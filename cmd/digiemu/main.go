@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -27,6 +26,8 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "verify":
+		runVerify(os.Args[2:])
 	case "uncertainty":
 		runUncertainty(os.Args[2:])
 	case "meaning":
@@ -604,7 +605,7 @@ func runServe(args []string) {
 		log.Fatalf("server error: %v", err)
 	}
 
-	_ = context.Background()
+	// NOTE: add graceful shutdown context handling when we introduce signal handling
 }
 
 // slugify creates a simple URL-safe key from the title
