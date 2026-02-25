@@ -1,0 +1,42 @@
+genesis:
+  name: "DigiEmu Core Genesis Anchor"
+  version: "1.0"
+  status: "normative"
+  effective_date: "2026-02-25"
+
+  anchor:
+    git_tag: "spec-v1.0.0"
+    repository_module: "digiemu-core"
+    public_api_freeze_doc: "docs/PUBLIC_API_FREEZE_v1.0.md"
+    public_api_readme: "docs/PUBLIC_API_README.md"
+    public_api_spec: "docs/PUBLIC_API_v1.0.md"
+    compatibility_policy: "docs/COMPATIBILITY_POLICY_v1.0.md"
+
+  purpose:
+    description: >
+      Defines the v1.0 root-of-trust marker for deterministic verification.
+      From this anchor, snapshot verification and audit checks MUST be reproducible.
+
+  canonicalization:
+    encoding: "utf-8"
+    line_endings: "LF"
+    trailing_whitespace: "forbidden"
+    implicit_time_injection: "forbidden"
+
+  hashing:
+    algorithm: "sha256"
+    output_format: "lowercase-hex"
+    truncation: "forbidden"
+    salting: "forbidden"
+    byte_exact_required: true
+
+  stability_commitment:
+    immutability: true
+    breaking_change_requires:
+      - "new spec tag (e.g. spec-v2.0.0)"
+      - "migration documentation"
+      - "compatibility statement"
+
+# Audit
+# sha256: 7DFE52E074FB66E2D8113ABCB24820711999BFE9489A08C20C5A1A864AA4E52E
+# generated_at: 2026-02-25

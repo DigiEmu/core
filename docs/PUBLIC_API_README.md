@@ -74,3 +74,7 @@ The v1.0 public API freeze marker is documented here:
 
 A minimal CLI command `digiemu verify` is provided as a stub reference implementation for the `pkg/verify` contract.
 See: `docs/CLI_VERIFY_v1.0.md`
+
+## Genesis anchor
+The normative genesis anchor for deterministic reconstruction is documented here:
+- `docs/GENESIS_ANCHOR_v1.0.yaml`

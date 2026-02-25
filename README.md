@@ -91,3 +91,7 @@ For academic collaboration or commercial licensing inquiries:
 
 Bruno Baumgartner  
 bruno@brainbloom.ch
+
+## Genesis anchor
+Normative genesis anchor (root-of-trust):
+- `docs/GENESIS_ANCHOR_v1.0.yaml`
