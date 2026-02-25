@@ -3,7 +3,7 @@
 Usage:
 
 ```
-digiemu verify --ref <hash> [--data <data-dir>] [--format text|json] [--strict] [--fixture-root <dir>] [--prefer-data] [--bundle <path>]
+digiemu verify --ref <hash> [--data <data-dir>] [--fixture-root <dir>] [--prefer-data] [--bundle <path>] [--json] [--write-expected] [--strict]
 ```
 
 Behavior:
@@ -13,11 +13,99 @@ Behavior:
 - Computes `hash_v1 = SHA-256(canonical_json(state))` using the internal canonicalizer.
 - Compares `hash_v1` to `expected_hash_v1` in the bundle.
 
+## Bundle vs ref (normative)
+
+- `--bundle` makes `--ref` optional. If `--bundle` is set, it is the single source of truth for which files are read.
+- When `--bundle` is provided, resolution flags (`--data`, `--fixture-root`, `--prefer-data`) MUST NOT influence file selection.
+- When `--bundle` is not provided, `--ref` is required and resolver order follows `--prefer-data` as defined in `docs/SNAPSHOT_BUNDLE_v1.0.md`.
+- Trace MUST end with `"used:<root>"`.
+
+Minimal examples (expected exit codes shown):
+
+```bash
+# verify ok => 0
+digiemu verify --bundle ./data/test-fixtures/snapshots/demo --json
+
+# mismatch => 2 (after setting expected_hash_v1 to an incorrect value)
+digiemu verify --bundle ./path/to/temp/snapshots/demo --json
+
+# write blocked existing expected (with --write-expected) => 3
+digiemu verify --bundle ./data/test-fixtures/snapshots/demo --write-expected --json
+```
+
+## Exit codes (normative)
+
+The command `digiemu verify` SHALL return the following exit codes.
+
+Notes:
+
+- `--strict` does not override these exit codes (exit codes are deterministic regardless of `--strict`).
+
+| Code | Meaning | When it occurs | Notes |
+| ---: | --- | --- | --- |
+| 0 | OK | Verification succeeds (`ok=true`). | Also ok when `--write-expected` is not set. |
+| 2 | Hash mismatch | `expected != got`. | Verification failure. |
+| 3 | Write blocked by governance | Only when `--write-expected` is set AND `expected_hash_v1` is already present (non-placeholder), i.e. would require overwrite. | This code may occur even if verification itself would otherwise be OK. |
+| 4 | Invalid input | Missing snapshot, invalid JSON, invalid hash, invalid bundle path, IO error, or a write-blocked reason other than `existing_expected_present`. | Includes write-blocked reasons such as `snapshot_not_found`, `snapshot_invalid_json`, `invalid_hash`, `io_error`. |
+| 5 | Internal / unexpected error | Unexpected runtime error (not classified as an input/write-policy error). | Implementation may exit before emitting JSON output. |
+
+### Minimal examples (PowerShell)
+
+Code 0 (OK):
+
+```powershell
+./digiemu.exe verify --bundle .\data\test-fixtures\snapshots\demo --json
+echo $LASTEXITCODE
+```
+
+Code 2 (hash mismatch):
+
+```powershell
+$tmp = Join-Path $env:TEMP ("digiemu-mismatch-" + [guid]::NewGuid())
+Copy-Item .\data\test-fixtures\snapshots\demo (Join-Path $tmp "snapshots\demo") -Recurse
+$p = Join-Path $tmp "snapshots\demo\snapshot.json"
+$o = Get-Content $p -Raw | ConvertFrom-Json
+$o.expected_hash_v1 = ("0" * 64)
+$o | ConvertTo-Json -Depth 100 | Out-File $p -Encoding utf8
+./digiemu.exe verify --bundle (Join-Path $tmp "snapshots\demo") --json
+echo $LASTEXITCODE
+```
+
+Code 3 (write blocked by governance):
+
+```powershell
+./digiemu.exe verify --bundle .\data\test-fixtures\snapshots\demo --write-expected --json
+echo $LASTEXITCODE
+```
+
+Code 4 (invalid input; snapshot not found):
+
+```powershell
+./digiemu.exe verify --bundle .\data\test-fixtures\snapshots\does-not-exist --json
+echo $LASTEXITCODE
+```
+
+Code 5 (internal/unexpected error example; force write failure):
+
+```powershell
+$tmp = Join-Path $env:TEMP ("digiemu-internal-" + [guid]::NewGuid())
+Copy-Item .\data\test-fixtures\snapshots\demo (Join-Path $tmp "snapshots\demo") -Recurse
+$p = Join-Path $tmp "snapshots\demo\snapshot.json"
+$o = Get-Content $p -Raw | ConvertFrom-Json
+$o.expected_hash_v1 = "REPLACE_AFTER_COMPUTE"
+$o | ConvertTo-Json -Depth 100 | Out-File $p -Encoding utf8
+attrib +R $p
+./digiemu.exe verify --bundle (Join-Path $tmp "snapshots\demo") --write-expected --json
+echo $LASTEXITCODE
+```
+
 Exit codes:
 
 - `0` = verification succeeded (hash match)
-- `2` = verification failed (mismatch or bundle error)
-- `1` = unexpected runtime error
+- `2` = hash mismatch (`expected != got`)
+- `3` = write blocked by governance (existing expected present; only with `--write-expected`)
+- `4` = invalid input/bundle/snapshot/json/hash
+- `5` = internal/unexpected error
 
 Output formats:
 

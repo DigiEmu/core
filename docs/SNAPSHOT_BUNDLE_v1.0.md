@@ -59,3 +59,48 @@ Canonical JSON rules:
 
 For the exact canonical encoding rules see `internal/canonicaljson` and
 `docs/SNAPSHOT_HASH_v1.0.md`.
+
+## Bundle root resolution (normative)
+
+### BundleV1 root definition
+
+A BundleV1 root SHALL be a directory of the form:
+
+- `snapshots/<ref>/`
+	- `snapshot.json` (required)
+	- `claims/*.json` (optional)
+	- other optional directories (e.g. `units/`, `versions/`, `meaning/`, `uncertainty/`) (optional)
+
+The verifier/replay SHALL treat `snapshots/<ref>/snapshot.json` as the required entrypoint.
+
+### Root resolution order
+
+1) If `--bundle` is provided:
+	 - It MUST be treated as the bundle root.
+	 - The verifier/replay MUST NOT perform any ref-based lookup.
+	 - The CLI MAY derive `--ref` from the directory name, but this MUST NOT change which files are read.
+	 - The trace MUST end with `"used:<bundle_root>"`.
+
+2) Else (no `--bundle`):
+	 - `--ref` is required.
+	 - The tool MUST attempt to find a bundle root in:
+		 a) `--data/snapshots/<ref>`
+		 b) `--fixture-root/snapshots/<ref>`
+		 but the order MUST follow `--prefer-data`:
+		 - if `--prefer-data` is true: try data first, then fixture-root
+		 - else: try fixture-root first, then data
+	 - If neither exists: the tool MUST fail deterministically (snapshot/bundle not found).
+
+### Trace norms
+
+- Trace MUST include every file path read (at minimum: `snapshot.json` and each loaded claim file).
+- Trace MUST include exactly one final `"used:<root>"` marker indicating the selected root.
+- Trace order SHOULD be stable and deterministic.
+
+### Minimal examples
+
+```bash
+digiemu verify --bundle ./data/test-fixtures/snapshots/demo --json
+digiemu verify --ref demo --fixture-root ./data/test-fixtures --data ./data --json
+digiemu replay --bundle ./data/test-fixtures/snapshots/demo --json
+```

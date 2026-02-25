@@ -5,43 +5,26 @@ import (
 	"fmt"
 )
 
-// ReplayV1 deterministically reconstructs the state from a loaded BundleV1.
+// ReplayV1 deterministically reconstructs the replayed state from a loaded BundleV1.
 //
-// It uses the same assembly logic as verification (StateV1FromBundle) and performs
-// no hash computation.
-func ReplayV1(b BundleV1) (ReconstructedStateV1, error) {
+// Normative behavior for verification v1:
+// - Replay MUST NOT compute the hash.
+// - expected_hash_v1 MUST be excluded from the replayed state's snapshot scope.
+// - Replay carries forward the input trace (caller-provided).
+func ReplayV1(b BundleV1, trace []string) (ReconstructedStateV1, error) {
+	// Normalize snapshot scope for hashing: remove expected_hash_v1 to prevent self-reference.
+	var snapObj map[string]any
+	if err := json.Unmarshal(b.Snapshot, &snapObj); err != nil {
+		return ReconstructedStateV1{}, fmt.Errorf("decode snapshot.json object: %v", err)
+	}
+	delete(snapObj, "expected_hash_v1")
+
+	cleanSnap, err := json.Marshal(snapObj)
+	if err != nil {
+		return ReconstructedStateV1{}, fmt.Errorf("re-encode snapshot.json: %v", err)
+	}
+	b.Snapshot = cleanSnap
+
 	state := StateV1FromBundle(b)
-
-	// Validate that all embedded raw JSON values are syntactically valid.
-	// (The bundle loader is BOM-tolerant but does not parse JSON.)
-	if !json.Valid(state.Snapshot) {
-		return ReconstructedStateV1{}, fmt.Errorf("invalid snapshot json")
-	}
-	for i, m := range state.Units {
-		if !json.Valid(m) {
-			return ReconstructedStateV1{}, fmt.Errorf("invalid units[%d] json", i)
-		}
-	}
-	for i, m := range state.Versions {
-		if !json.Valid(m) {
-			return ReconstructedStateV1{}, fmt.Errorf("invalid versions[%d] json", i)
-		}
-	}
-	for i, m := range state.Claims {
-		if !json.Valid(m) {
-			return ReconstructedStateV1{}, fmt.Errorf("invalid claims[%d] json", i)
-		}
-	}
-	for i, m := range state.Meaning {
-		if !json.Valid(m) {
-			return ReconstructedStateV1{}, fmt.Errorf("invalid meaning[%d] json", i)
-		}
-	}
-	for i, m := range state.Uncertainty {
-		if !json.Valid(m) {
-			return ReconstructedStateV1{}, fmt.Errorf("invalid uncertainty[%d] json", i)
-		}
-	}
-
-	return ReconstructedStateV1{StateV1: state}, nil
+	return ReconstructedStateV1{StateV1: state, Trace: trace}, nil
 }

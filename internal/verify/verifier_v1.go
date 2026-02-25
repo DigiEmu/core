@@ -69,30 +69,15 @@ func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
 	}
 	result.Expected = meta.ExpectedHashV1
 
-	// 2) Remove expected_hash_v1 from snapshot content BEFORE hashing (prevents self-reference)
-	var snapObj map[string]any
-	if err := json.Unmarshal(bundle.Snapshot, &snapObj); err != nil {
-		result.Message = fmt.Sprintf("decode snapshot.json object: %v", err)
-		result.Errors = append(result.Errors, err.Error())
-		return result, nil
-	}
-	delete(snapObj, "expected_hash_v1")
-
-	cleanSnap, err := json.Marshal(snapObj)
+	// 2) ReplayV1 reconstructs the hashed scope deterministically (excluding expected_hash_v1)
+	replayed, err := ReplayV1(bundle, result.Trace)
 	if err != nil {
-		result.Message = fmt.Sprintf("re-encode snapshot.json: %v", err)
+		result.Message = err.Error()
 		result.Errors = append(result.Errors, err.Error())
 		return result, nil
 	}
-	bundle.Snapshot = cleanSnap
-
-	// 3) Assemble StateV1 and compute hash over canonical_json_v1
-	replayed, err := ReplayV1(bundle)
-	if err != nil {
-		result.Message = fmt.Sprintf("replay v1: %v", err)
-		result.Errors = append(result.Errors, err.Error())
-		return result, nil
-	}
+	// Keep trace ordering/structure unchanged.
+	result.Trace = replayed.Trace
 
 	hv1, err := snaps.HashV1FromState(replayed.StateV1)
 	if err != nil {

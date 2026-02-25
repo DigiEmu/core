@@ -36,12 +36,11 @@ func runReplay(args []string) {
 		os.Exit(4)
 	}
 
-	state, err := verify.ReplayV1(b)
+	state, err := verify.ReplayV1(b, trace)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "replay error: %v\n", err)
 		os.Exit(4)
 	}
-	state.Trace = trace
 
 	if *jsonOut {
 		enc := json.NewEncoder(os.Stdout)
