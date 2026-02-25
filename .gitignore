@@ -12,3 +12,4 @@ tmp*.json
 
 # Windows build output (falls mal wieder erzeugt)
 *.exe
+digiemu.exe
