@@ -1,0 +1,21 @@
+{
+  "snapshot": {
+    "ref": "demo",
+    "state": {
+      "hello": "world",
+      "n": 1
+    }
+  },
+  "claims": [
+    {
+      "claim_id": "claim1",
+      "subject": "demo",
+      "assertion": "example"
+    }
+  ],
+  "trace": [
+    "data/test-fixtures/snapshots/demo/snapshot.json",
+    "data/test-fixtures/snapshots/demo/claims/claim1.json",
+    "used:data/test-fixtures/snapshots/demo"
+  ]
+}
