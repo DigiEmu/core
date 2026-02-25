@@ -1,4 +1,6 @@
-
 # local runtime data
 data/
 
+# local build artifacts
+digiemu.exe
+*.exe
