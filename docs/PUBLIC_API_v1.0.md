@@ -63,3 +63,27 @@ Public APIs producing canonical or hashed output must:
 **Rules**
 - Verifiers MUST return a `Result` with the same `ref` they verified.
 - `Result.Message` is optional and should be used for human-readable failure context.
+
+## Meaning (pkg/meaning)
+
+**Purpose:** Stable public types for expressing meaning metadata and constraints on interpretation.
+
+**Rules**
+- Public types in `pkg/meaning` are stable and backwards-compatible within `v1.x`.
+- Validation helpers (if present) must be deterministic and side-effect free.
+
+## Claims (pkg/claims)
+
+**Purpose:** Stable public types for representing verifiable claims and their identifiers.
+
+**Rules**
+- Claim identifiers must be stable strings.
+- Validation helpers (if present) must be deterministic and side-effect free.
+
+## Uncertainty (pkg/uncertainty)
+
+**Purpose:** Stable public types for uncertainty as a first-class domain object.
+
+**Rules**
+- Uncertainty must be representable without requiring internal packages.
+- Validation helpers (if present) must be deterministic and side-effect free.
