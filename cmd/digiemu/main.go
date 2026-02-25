@@ -56,6 +56,7 @@ func printUsage() {
 	fmt.Println("digiemu - minimal CLI for digiemu-core")
 	fmt.Println()
 	fmt.Println("Usage:")
+	fmt.Println("  digiemu verify --ref REF [--data ./data] [--json]")
 	fmt.Println("  digiemu unit create [--key KEY] --title TITLE [--desc DESC|--description DESC] [--data ./data]")
 	fmt.Println("  digiemu version create --unit UNIT_KEY --content CONTENT [--data ./data]")
 	fmt.Println("  digiemu audit verify [--data ./data] [--strict-hash] [--unit UNIT_KEY]")

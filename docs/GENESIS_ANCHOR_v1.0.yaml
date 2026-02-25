@@ -1,4 +1,4 @@
-genesis:
+﻿genesis:
   name: "DigiEmu Core Genesis Anchor"
   version: "1.0"
   status: "normative"
@@ -38,5 +38,6 @@ genesis:
       - "compatibility statement"
 
 # Audit
-# sha256: 7DFE52E074FB66E2D8113ABCB24820711999BFE9489A08C20C5A1A864AA4E52E
+# sha256: AB47D573DE36D4EC32ECBBAEDBD754B16C69C0237CF6C7D6CA302D23069D1D8F
+# sha256_scope: canonical_utf8_without_sha256_comment_line
 # generated_at: 2026-02-25

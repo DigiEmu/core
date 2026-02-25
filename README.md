@@ -95,3 +95,10 @@ bruno@brainbloom.ch
 ## Genesis anchor
 Normative genesis anchor (root-of-trust):
 - `docs/GENESIS_ANCHOR_v1.0.yaml`
+
+## Specs & Docs
+
+- `docs/PUBLIC_API_README.md`
+- `docs/PUBLIC_API_FREEZE_v1.0.md`
+- `docs/GENESIS_ANCHOR_v1.0.yaml`
+- `docs/CLI_TOOLCHAIN_VERIFY_v1.0.md`
