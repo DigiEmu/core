@@ -1,0 +1,8 @@
+{
+  "ref": "demo",
+  "expected_hash_v1": "5CEE930BE97BA365CF2222BFAFF2730F56C626F67517ACF5E8BCAC03851C2AEB",
+  "state": {
+    "hello": "world",
+    "n": 1
+  }
+}

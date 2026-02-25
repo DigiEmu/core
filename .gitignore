@@ -1,6 +1,6 @@
 # local runtime data
-data/
+data/*
 
-# local build artifacts
-digiemu.exe
-*.exe
+# keep tracked fixtures
+!data/test-fixtures/
+!data/test-fixtures/**

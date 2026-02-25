@@ -3,12 +3,13 @@
 Usage:
 
 ```
-digiemu verify --ref <hash> [--data <data-dir>] [--format text|json] [--strict]
+digiemu verify --ref <hash> [--data <data-dir>] [--format text|json] [--strict] [--fixture-root <dir>] [--prefer-data] [--bundle <path>]
 ```
 
 Behavior:
 
-- Reads snapshot bundle from `<data>/snapshots/<ref>/snapshot.json`.
+- Reads snapshot bundle from `<fixture-root>/snapshots/<ref>/` or `<data>/snapshots/<ref>/`.
+- Alternatively pass `--bundle <path>` to load a bundle root directly (bypass ref lookup).
 - Computes `hash_v1 = SHA-256(canonical_json(state))` using the internal canonicalizer.
 - Compares `hash_v1` to `expected_hash_v1` in the bundle.
 
@@ -20,7 +21,7 @@ Exit codes:
 
 Output formats:
 
-- `--format=json` — prints a single JSON object (the `pkg/verify.Result` shape).
+- `--format=json` or `--json` — prints a single JSON object (the `pkg/verify.Result` shape).
 - `--format=text` — prints a short text line: `OK\t<ref>` or `FAIL\t<ref>\t<msg>`.
 
 Link: see `docs/SNAPSHOT_BUNDLE_v1.0.md` for bundle layout and `docs/SNAPSHOT_HASH_v1.0.md` for the canonical hashing spec.

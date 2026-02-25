@@ -28,7 +28,16 @@ func runVerify(args []string) {
 	}
 
 	ref := snapshot.Ref{Hash: snapshot.Hash(strings.TrimSpace(*refStr))}
+	bundlePath := fs.String("bundle", "", "Optional bundle root path to load directly (bypass ref lookup)")
 	v := &verify.VerifierV1{DataDir: *dataDir, FixtureRoot: *fixtureRoot, PreferData: *preferData}
+
+	// If --bundle provided, use it as root (bypass lookup)
+	if strings.TrimSpace(*bundlePath) != "" {
+		// Treat bundle path as root and assemble state then verify against snapshot.json inside
+		// We will reuse VerifierV1 by temporarily setting FixtureRoot to the bundle path and PreferData=true
+		v.FixtureRoot = *bundlePath
+		v.PreferData = true
+	}
 
 	res, err := v.Verify(ref)
 	if err != nil {

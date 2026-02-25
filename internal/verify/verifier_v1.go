@@ -1,18 +1,24 @@
 package verify
 
 import (
+	"encoding/json"
 	"fmt"
 
 	snaps "digiemu-core/pkg/snapshot"
 	pkgverify "digiemu-core/pkg/verify"
 )
 
-// VerifierV1 implements pkg/verify.Verifier for MVP snapshot bundles.
-// It verifies expected_hash_v1 against HashV1FromState(bundle.state).
+// VerifierV1 implements pkg/verify.Verifier for assembled snapshot bundles.
+// It verifies expected_hash_v1 against HashV1FromState(assembled_state),
+// where expected_hash_v1 is EXCLUDED from the hashed state (otherwise self-referential).
 type VerifierV1 struct {
 	DataDir     string
 	FixtureRoot string
 	PreferData  bool
+}
+
+type snapshotMeta struct {
+	ExpectedHashV1 string `json:"expected_hash_v1"`
 }
 
 func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
@@ -23,30 +29,66 @@ func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
 		fixtureRoot = "data/test-fixtures"
 	}
 
-	sb, chosenPath, attempts, err := FindBundleV1(fixtureRoot, v.DataDir, refStr, v.PreferData)
 	result := pkgverify.Result{
 		OK:             false,
 		Ref:            refStr,
 		HashAlg:        "sha256(canonical_json_v1)",
-		CanonicalScope: "canonical_json_v1",
+		CanonicalScope: "canonical_json_v1_excluding_expected_hash_v1",
 		Trace:          []string{},
 		Errors:         []string{},
 	}
-	if len(attempts) > 0 {
-		// include attempted paths as trace information
-		for _, p := range attempts {
-			result.Trace = append(result.Trace, p)
-		}
-	}
 
+	// locate bundle root
+	root, rootsTried, err := FindBundleRoot(refStr, fixtureRoot, v.DataDir, v.PreferData)
+	result.Trace = append(result.Trace, rootsTried...)
 	if err != nil {
 		result.Message = err.Error()
 		result.Errors = append(result.Errors, err.Error())
 		return result, nil
 	}
 
-	// compute hash
-	hv1, err := snaps.HashV1FromState(sb.State)
+	bundle, trace, err := LoadBundleRootV1(root)
+	result.Trace = append(result.Trace, trace...)
+	if err != nil {
+		result.Message = err.Error()
+		result.Errors = append(result.Errors, err.Error())
+		return result, nil
+	}
+
+	// 1) Read expected_hash_v1 from snapshot.json (BOM-safe already)
+	var meta snapshotMeta
+	if err := json.Unmarshal(bundle.Snapshot, &meta); err != nil {
+		result.Message = fmt.Sprintf("decode snapshot.json meta: %v", err)
+		result.Errors = append(result.Errors, err.Error())
+		return result, nil
+	}
+	if meta.ExpectedHashV1 == "" {
+		result.Message = "snapshot.json missing expected_hash_v1"
+		result.Errors = append(result.Errors, "missing expected_hash_v1")
+		return result, nil
+	}
+	result.Expected = meta.ExpectedHashV1
+
+	// 2) Remove expected_hash_v1 from snapshot content BEFORE hashing (prevents self-reference)
+	var snapObj map[string]any
+	if err := json.Unmarshal(bundle.Snapshot, &snapObj); err != nil {
+		result.Message = fmt.Sprintf("decode snapshot.json object: %v", err)
+		result.Errors = append(result.Errors, err.Error())
+		return result, nil
+	}
+	delete(snapObj, "expected_hash_v1")
+
+	cleanSnap, err := json.Marshal(snapObj)
+	if err != nil {
+		result.Message = fmt.Sprintf("re-encode snapshot.json: %v", err)
+		result.Errors = append(result.Errors, err.Error())
+		return result, nil
+	}
+	bundle.Snapshot = cleanSnap
+
+	// 3) Assemble StateV1 and compute hash over canonical_json_v1
+	state := StateV1FromBundle(bundle)
+	hv1, err := snaps.HashV1FromState(state)
 	if err != nil {
 		result.Message = fmt.Sprintf("hash v1: %v", err)
 		result.Errors = append(result.Errors, err.Error())
@@ -54,17 +96,10 @@ func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
 	}
 
 	got := string(hv1)
-	exp := sb.ExpectedHashV1
-
-	result.Expected = exp
 	result.Got = got
-	// chosenPath may be useful for debugging; add to trace
-	if chosenPath != "" {
-		result.Trace = append(result.Trace, fmt.Sprintf("used:%s", chosenPath))
-	}
 
-	if got != exp {
-		result.Message = fmt.Sprintf("hash mismatch expected=%s got=%s", exp, got)
+	if got != result.Expected {
+		result.Message = fmt.Sprintf("hash mismatch expected=%s got=%s", result.Expected, got)
 		return result, nil
 	}
 

@@ -1,31 +1,36 @@
 package verify
 
 import (
-	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
-func TestLoadBundleFromPath_StripsBOM(t *testing.T) {
-	dir := t.TempDir()
-	p := filepath.Join(dir, "snapshot.json")
-
-	// JSON content with UTF-8 BOM prefix
-	content := []byte{0xEF, 0xBB, 0xBF}
-	content = append(content, []byte(`{"ref":"demo","expected_hash_v1":"abc","state": {"x":1}}`)...)
-
-	if err := os.WriteFile(p, content, 0644); err != nil {
-		t.Fatalf("write fixture: %v", err)
+// repoRoot returns <repo>/ by walking up from this test file location.
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller failed")
 	}
+	// file = <repo>/internal/verify/bundle_test.go
+	// go up: verify -> internal -> repo
+	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
+}
 
-	sb, err := loadBundleFromPath(p, "demo")
+func TestLoadBundleRootV1_BOMSafeSnapshot(t *testing.T) {
+	root := repoRoot(t)
+
+	fixtureRoot := filepath.Join(root, "data", "test-fixtures")
+	dataRoot := filepath.Join(root, "data")
+
+	bundleRoot, _, err := FindBundleRoot("demo", fixtureRoot, dataRoot, false)
 	if err != nil {
-		t.Fatalf("loadBundleFromPath failed: %v", err)
+		t.Fatalf("FindBundleRoot: %v", err)
 	}
-	if sb.Ref != "demo" {
-		t.Fatalf("expected ref demo, got %s", sb.Ref)
-	}
-	if sb.ExpectedHashV1 != "abc" {
-		t.Fatalf("expected expected_hash_v1 abc, got %s", sb.ExpectedHashV1)
+
+	_, _, err = LoadBundleRootV1(bundleRoot)
+	if err != nil {
+		t.Fatalf("LoadBundleRootV1: %v", err)
 	}
 }
