@@ -35,3 +35,31 @@ Public APIs producing canonical or hashed output must:
 - not rely on ambient time
 - not rely on OS-specific paths
 - produce byte-identical output for identical inputs
+
+## Snapshot (pkg/snapshot)
+
+**Purpose:** Stable public types to reference and describe a deterministic knowledge snapshot.
+
+**Key types**
+- `snapshot.Hash` — stable hex string (e.g. sha256)
+- `snapshot.Ref` — `{ hash }` identifier (public reference)
+- `snapshot.Manifest` — minimal public manifest shape:
+	- `version` (string)
+	- `hash` (Hash)
+	- `inputs` ([]string)
+
+**Rules**
+- `Ref.Validate()` MUST fail if `hash` is empty.
+- `Manifest` is the public stable shape; internal engines may carry richer state.
+
+## Verify (pkg/verify)
+
+**Purpose:** Stable interface for snapshot verification (internal implementations live under `internal/*`).
+
+**Key types**
+- `verify.Result` — `{ ok, message?, ref }`
+- `verify.Verifier` — `Verify(ref snapshot.Ref) (Result, error)`
+
+**Rules**
+- Verifiers MUST return a `Result` with the same `ref` they verified.
+- `Result.Message` is optional and should be used for human-readable failure context.
