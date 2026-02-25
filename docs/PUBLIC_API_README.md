@@ -64,3 +64,8 @@ func main() {
 If you propose changes to `pkg/*`, include:
 - a compatibility note (why it does not break v1)
 - tests for the new behavior
+
+## Freeze marker
+
+The v1.0 public API freeze marker is documented here:
+- `docs/PUBLIC_API_FREEZE_v1.0.md`
