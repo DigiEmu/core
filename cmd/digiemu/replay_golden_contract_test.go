@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -23,28 +22,7 @@ func normalizeReplayGolden(t *testing.T, repoRoot string, raw []byte) []byte {
 		t.Fatalf("invalid replay json: %v\nraw=%s", err, string(raw))
 	}
 
-	toStableTrace := func(s string) string {
-		usedPrefix := ""
-		p := s
-		if strings.HasPrefix(s, "used:") {
-			usedPrefix = "used:"
-			p = strings.TrimPrefix(s, "used:")
-		}
-
-		// Make absolute paths stable by converting them to repo-relative.
-		if filepath.IsAbs(p) {
-			if rel, err := filepath.Rel(repoRoot, p); err == nil && !strings.HasPrefix(rel, "..") {
-				p = rel
-			}
-		}
-
-		p = filepath.ToSlash(p)
-		return usedPrefix + p
-	}
-
-	for i := range g.Trace {
-		g.Trace[i] = toStableTrace(g.Trace[i])
-	}
+	g.Trace = stableTrace(t, repoRoot, g.Trace)
 
 	b, err := json.MarshalIndent(g, "", "  ")
 	if err != nil {

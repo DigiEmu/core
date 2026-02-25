@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "ref": "demo",
+  "expected": "273910B657210EECE942EFC038F6E06994711DA6399422E57225CE2394299E55",
+  "got": "273910B657210EECE942EFC038F6E06994711DA6399422E57225CE2394299E55",
+  "hash_alg": "sha256(canonical_json_v1)",
+  "canonical_scope": "canonical_json_v1_excluding_expected_hash_v1",
+  "trace": [
+    "data/test-fixtures/snapshots/demo",
+    "data/test-fixtures/snapshots/demo/snapshot.json",
+    "data/test-fixtures/snapshots/demo/claims/claim1.json",
+    "used:data/test-fixtures/snapshots/demo"
+  ],
+  "message": "ok",
+  "wrote_expected": false,
+  "write_blocked": false,
+  "write_reason": "none"
+}
