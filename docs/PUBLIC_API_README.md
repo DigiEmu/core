@@ -77,6 +77,8 @@ See: `docs/CLI_VERIFY_v1.0.md`
 ### Normative toolchain contract
 - `docs/CLI_TOOLCHAIN_VERIFY_v1.0.md`
 
+- `docs/SNAPSHOT_HASH_v1.0.md`
+
 ## Genesis anchor
 The normative genesis anchor for deterministic reconstruction is documented here:
 - `docs/GENESIS_ANCHOR_v1.0.yaml`

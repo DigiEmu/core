@@ -102,3 +102,5 @@ Normative genesis anchor (root-of-trust):
 - `docs/PUBLIC_API_FREEZE_v1.0.md`
 - `docs/GENESIS_ANCHOR_v1.0.yaml`
 - `docs/CLI_TOOLCHAIN_VERIFY_v1.0.md`
+
+- `docs/SNAPSHOT_HASH_v1.0.md`
