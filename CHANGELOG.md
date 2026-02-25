@@ -46,6 +46,4 @@ See RELEASE_NOTES_v0.2.9.md for full details.
 ## Unreleased
 
 ### Public API
-- Freeze v1.0 public API surface for `pkg/*` (meaning, claims, uncertainty, snapshot, verify).
-- Added `docs/PUBLIC_API_FREEZE_v1.0.md` as the formal freeze marker.
 
