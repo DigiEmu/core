@@ -1,2 +1,16 @@
-﻿*.yml  text eol=lf
+﻿# Always store text as LF in the repo (prevents gofmt check from flipping on Windows)
+* text=auto eol=lf
+
+# Go source MUST be LF
+*.go text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf
+
+# YAML / Markdown / JSON (CI + docs)
+*.yml text eol=lf
 *.yaml text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+# PowerShell scripts: keep CRLF for Windows ergonomics (optional)
+*.ps1 text eol=crlf
