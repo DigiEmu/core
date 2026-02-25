@@ -14,7 +14,6 @@ import (
 	"digiemu-core/internal/httpapi"
 	fsrepo "digiemu-core/internal/kernel/adapters/fs"
 	mem "digiemu-core/internal/kernel/adapters/memory"
-	"digiemu-core/internal/kernel/domain"
 	"digiemu-core/internal/kernel/ports"
 	usecases "digiemu-core/internal/kernel/usecases"
 )
