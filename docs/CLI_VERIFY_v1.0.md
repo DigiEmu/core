@@ -46,3 +46,19 @@ Exit behavior
 Notes
 - Phase 6 will replace the stub with a real engine-backed verifier.
 - The public API types live in pkg/snapshot and pkg/verify.
+
+## Windows / PowerShell note: fc
+
+In Windows PowerShell, `fc` is commonly an alias for `Format-Custom`, not a file comparison tool.
+
+For file compare, use:
+
+- `fc.exe file1 file2`
+
+Example: deterministic replay compare (PowerShell):
+
+```powershell
+./digiemu.exe replay --bundle .\data\test-fixtures\snapshots\demo --json | Out-File .\tmp1.json -Encoding utf8
+./digiemu.exe replay --bundle .\data\test-fixtures\snapshots\demo --json | Out-File .\tmp2.json -Encoding utf8
+fc.exe .\tmp1.json .\tmp2.json
+```

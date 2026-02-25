@@ -4,3 +4,11 @@ data/*
 # keep tracked fixtures
 !data/test-fixtures/
 !data/test-fixtures/**
+
+# temp verify/replay outputs
+tmp*.json
+*.tmp
+*.log
+
+# Windows build output (falls mal wieder erzeugt)
+*.exe

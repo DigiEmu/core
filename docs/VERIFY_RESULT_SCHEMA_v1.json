@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://digiemu.dev/schemas/VERIFY_RESULT_SCHEMA_v1.json",
+  "title": "DigiEmu Core Verify Result (v1)",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "ok",
+    "ref",
+    "expected",
+    "got",
+    "hash_alg",
+    "canonical_scope",
+    "trace",
+    "message",
+    "wrote_expected",
+    "write_blocked",
+    "write_reason"
+  ],
+  "properties": {
+    "ok": {
+      "type": "boolean",
+      "description": "True if computed hash matches expected_hash_v1."
+    },
+    "ref": {
+      "type": "string",
+      "description": "Snapshot reference identifier used for lookup and reporting."
+    },
+    "expected": {
+      "type": "string",
+      "description": "Declared expected_hash_v1 value read from snapshot.json.",
+      "pattern": "^(|REPLACE_AFTER_ASSEMBLE|REPLACE_AFTER_COMPUTE|[A-Fa-f0-9]{64})$"
+    },
+    "got": {
+      "type": "string",
+      "description": "Computed digest of the replayed state under canonical_json_v1.",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "hash_alg": {
+      "type": "string",
+      "description": "Hash algorithm identifier.",
+      "const": "sha256(canonical_json_v1)"
+    },
+    "canonical_scope": {
+      "type": "string",
+      "description": "Canonicalization scope identifier.",
+      "const": "canonical_json_v1_excluding_expected_hash_v1"
+    },
+    "trace": {
+      "type": "array",
+      "description": "Ordered trace entries describing attempted and loaded inputs.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable status message."
+    },
+    "wrote_expected": {
+      "type": "boolean",
+      "description": "True if expected_hash_v1 was written to snapshot.json by policy."
+    },
+    "write_blocked": {
+      "type": "boolean",
+      "description": "True if a write was attempted/considered but blocked by policy or error."
+    },
+    "write_reason": {
+      "type": "string",
+      "description": "Reason code describing write outcome or write blockage.",
+      "enum": [
+        "none",
+        "flag_not_set",
+        "placeholder",
+        "existing_expected_present",
+        "snapshot_not_found",
+        "snapshot_invalid_json",
+        "io_error",
+        "invalid_hash"
+      ]
+    }
+  }
+}

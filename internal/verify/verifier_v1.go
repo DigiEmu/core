@@ -87,8 +87,14 @@ func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
 	bundle.Snapshot = cleanSnap
 
 	// 3) Assemble StateV1 and compute hash over canonical_json_v1
-	state := StateV1FromBundle(bundle)
-	hv1, err := snaps.HashV1FromState(state)
+	replayed, err := ReplayV1(bundle)
+	if err != nil {
+		result.Message = fmt.Sprintf("replay v1: %v", err)
+		result.Errors = append(result.Errors, err.Error())
+		return result, nil
+	}
+
+	hv1, err := snaps.HashV1FromState(replayed.StateV1)
 	if err != nil {
 		result.Message = fmt.Sprintf("hash v1: %v", err)
 		result.Errors = append(result.Errors, err.Error())

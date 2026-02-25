@@ -27,6 +27,8 @@ func main() {
 	switch os.Args[1] {
 	case "verify":
 		runVerify(os.Args[2:])
+	case "replay":
+		runReplay(os.Args[2:])
 	case "uncertainty":
 		runUncertainty(os.Args[2:])
 	case "meaning":
@@ -57,6 +59,7 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("Usage:")
 	fmt.Println("  digiemu verify --ref REF [--data ./data] [--json]")
+	fmt.Println("  digiemu replay --bundle PATH [--json]")
 	fmt.Println("  digiemu unit create [--key KEY] --title TITLE [--desc DESC|--description DESC] [--data ./data]")
 	fmt.Println("  digiemu version create --unit UNIT_KEY --content CONTENT [--data ./data]")
 	fmt.Println("  digiemu audit verify [--data ./data] [--strict-hash] [--unit UNIT_KEY]")
