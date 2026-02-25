@@ -24,8 +24,12 @@ digiemu verify --ref <REF> [--data <DIR>] [--json]
   - A snapshot reference string. The exact grammar MUST match the `pkg/snapshot` reference format.
 - `--data <DIR>` (OPTIONAL; default `./data`)
   - Filesystem data directory used by the verifier implementation (adapters).
-- `--json` (OPTIONAL; default `true`)
-  - When set (or by default), output MUST be a single JSON object on stdout.
+- `--fixture-root <DIR>` (OPTIONAL; default `data/test-fixtures`)
+  - Optional fixture directory. The verifier will look for bundles under `<fixture-root>/snapshots/<ref>/snapshot.json` before falling back to `--data` unless `--prefer-data` is set.
+- `--prefer-data` (OPTIONAL; default `false`)
+  - If set, prefer `--data` paths over fixtures when both exist.
+- `--json` (OPTIONAL; default `false`)
+  - When set, output MUST be a single JSON object on stdout.
 
 Implementations MAY add additional flags, but MUST NOT change the meaning of the required ones.
 
@@ -41,9 +45,15 @@ When `--json` is enabled, stdout MUST be:
 
 ### JSON fields (REQUIRED)
 - `ok` (boolean)
+- `ref` (string) — the snapshot ref/hash used
+- `expected` (string) — expected hash from the bundle
+- `got` (string) — computed hash
+- `hash_alg` (string) — e.g. `sha256(canonical_json_v1)`
+- `canonical_scope` (string) — canonicalization scope description
+- `errors` (array[string]) — attempted paths, IO errors, or validation messages
 - `message` (string, optional; human-readable)
-- `ref` (object; REQUIRED)
-  - MUST be the parsed snapshot reference (same semantic fields as `pkg/snapshot.Ref`)
+
+JSON MUST be a single object followed by a newline. Consumers should rely on the defined fields above.
 
 ### Example (SUCCESS)
 ```json

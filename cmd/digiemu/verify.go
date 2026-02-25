@@ -14,9 +14,12 @@ import (
 func runVerify(args []string) {
 	fs := flag.NewFlagSet("verify", flag.ExitOnError)
 	refStr := fs.String("ref", "", "Snapshot hash reference to verify (required)")
-	format := fs.String("format", "text", "Output format: text|json")
+	dataDir := fs.String("data", "./data", "Data directory containing snapshots")
+	fixtureRoot := fs.String("fixture-root", "data/test-fixtures", "Fixture root directory (contains snapshots/<ref>/snapshot.json)")
+	preferData := fs.Bool("prefer-data", false, "If true, prefer --data over --fixture-root when both bundles exist")
+	jsonOut := fs.Bool("json", false, "Emit stable JSON output (machine readable)")
 	strict := fs.Bool("strict", false, "Exit non-zero if verification fails")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	if strings.TrimSpace(*refStr) == "" {
 		fmt.Fprintln(os.Stderr, "--ref is required")
@@ -25,38 +28,37 @@ func runVerify(args []string) {
 	}
 
 	ref := snapshot.Ref{Hash: snapshot.Hash(strings.TrimSpace(*refStr))}
-	v := verify.StubVerifier{}
-	res, err := v.Verify(ref)
+	v := &verify.VerifierV1{DataDir: *dataDir, FixtureRoot: *fixtureRoot, PreferData: *preferData}
 
-	switch strings.ToLower(*format) {
-	case "json":
+	res, err := v.Verify(ref)
+	if err != nil {
+		// Unexpected runtime error
+		fmt.Fprintf(os.Stderr, "verify error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if *jsonOut {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
 		if e := enc.Encode(res); e != nil {
 			fmt.Fprintf(os.Stderr, "encode error: %v\n", e)
 			os.Exit(1)
 		}
-	case "text":
+	} else {
 		if res.OK {
-			fmt.Fprintf(os.Stdout, "OK\t%s\n", res.Ref.Hash)
+			fmt.Fprintf(os.Stdout, "OK %s\n", res.Ref)
 		} else {
 			msg := res.Message
-			if msg == "" && err != nil {
-				msg = err.Error()
-			}
-			fmt.Fprintf(os.Stdout, "FAIL\t%s\t%s\n", res.Ref.Hash, msg)
+			fmt.Fprintf(os.Stdout, "FAIL %s %s\n", res.Ref, msg)
 		}
-	default:
-		fmt.Fprintf(os.Stderr, "invalid --format: %q (use json|text)\n", *format)
+	}
+
+	if !res.OK {
+		// verification failed (mismatch or bundle error)
 		os.Exit(2)
 	}
 
-	if *strict && (!res.OK || err != nil) {
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Fprintln(os.Stderr, "verification failed")
-		os.Exit(1)
+	if *strict && !res.OK {
+		os.Exit(2)
 	}
 }

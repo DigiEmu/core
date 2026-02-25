@@ -15,17 +15,21 @@ func (StubVerifier) Verify(ref snapshot.Ref) (pkgverify.Result, error) {
 	// Deterministic behavior:
 	// - invalid ref => error
 	// - otherwise => OK=true
-	if err := ref.Validate(); err != nil {
-		return pkgverify.Result{
-			OK:      false,
-			Message: fmt.Sprintf("invalid ref: %v", err),
-			Ref:     ref,
-		}, err
+	r := pkgverify.Result{
+		OK:             false,
+		Ref:            string(ref.Hash),
+		HashAlg:        "sha256(canonical_json_v1)",
+		CanonicalScope: "canonical_utf8_without_sha256_comment_line",
+		Errors:         []string{},
 	}
 
-	return pkgverify.Result{
-		OK:      true,
-		Message: "",
-		Ref:     ref,
-	}, nil
+	if err := ref.Validate(); err != nil {
+		r.Message = fmt.Sprintf("invalid ref: %v", err)
+		r.Errors = append(r.Errors, r.Message)
+		return r, err
+	}
+
+	r.OK = true
+	r.Message = "ok"
+	return r, nil
 }

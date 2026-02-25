@@ -103,4 +103,10 @@ Normative genesis anchor (root-of-trust):
 - `docs/GENESIS_ANCHOR_v1.0.yaml`
 - `docs/CLI_TOOLCHAIN_VERIFY_v1.0.md`
 
+## Verify CLI notes
+
+- The `digiemu verify` command supports loading snapshot bundles from either fixtures or the data directory.
+- By default the command prefers fixtures under `data/test-fixtures` when present; use `--prefer-data` to override.
+- Use `--json` to obtain stable machine-readable output with fields: `ok,ref,expected,got,hash_alg,canonical_scope,errors`.
+
 - `docs/SNAPSHOT_HASH_v1.0.md`

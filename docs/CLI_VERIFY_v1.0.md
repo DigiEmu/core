@@ -1,3 +1,29 @@
+# digiemu verify — CLI (v1.0)
+
+Usage:
+
+```
+digiemu verify --ref <hash> [--data <data-dir>] [--format text|json] [--strict]
+```
+
+Behavior:
+
+- Reads snapshot bundle from `<data>/snapshots/<ref>/snapshot.json`.
+- Computes `hash_v1 = SHA-256(canonical_json(state))` using the internal canonicalizer.
+- Compares `hash_v1` to `expected_hash_v1` in the bundle.
+
+Exit codes:
+
+- `0` = verification succeeded (hash match)
+- `2` = verification failed (mismatch or bundle error)
+- `1` = unexpected runtime error
+
+Output formats:
+
+- `--format=json` — prints a single JSON object (the `pkg/verify.Result` shape).
+- `--format=text` — prints a short text line: `OK\t<ref>` or `FAIL\t<ref>\t<msg>`.
+
+Link: see `docs/SNAPSHOT_BUNDLE_v1.0.md` for bundle layout and `docs/SNAPSHOT_HASH_v1.0.md` for the canonical hashing spec.
 CLI — verify (v1.0 stub)
 This command is a deterministic placeholder that validates the snapshot ref and returns OK for non-empty hashes.
 

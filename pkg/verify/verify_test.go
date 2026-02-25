@@ -9,7 +9,7 @@ import (
 type stubVerifier struct{}
 
 func (stubVerifier) Verify(ref snapshot.Ref) (Result, error) {
-	return Result{OK: true, Ref: ref}, nil
+	return Result{OK: true, Ref: string(ref.Hash), _Ref: ref}, nil
 }
 
 func TestVerifierInterface(t *testing.T) {
@@ -22,7 +22,7 @@ func TestVerifierInterface(t *testing.T) {
 	if !res.OK {
 		t.Fatalf("expected OK=true")
 	}
-	if res.Ref.Hash != ref.Hash {
+	if res._Ref.Hash != ref.Hash {
 		t.Fatalf("expected ref to roundtrip")
 	}
 }
