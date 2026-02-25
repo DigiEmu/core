@@ -49,8 +49,9 @@ When `--json` is enabled, stdout MUST be:
 - `expected` (string) — expected hash from the bundle
 - `got` (string) — computed hash
 - `hash_alg` (string) — e.g. `sha256(canonical_json_v1)`
-- `canonical_scope` (string) — canonicalization scope description
-- `errors` (array[string]) — attempted paths, IO errors, or validation messages
+- `canonical_scope` (string) — canonicalization scope description. For Verify MVP this is exactly `canonical_json_v1`.
+- `trace` (array[string]) — informational trace lines (attempted bundle paths, chosen path)
+- `errors` (array[string]) — real errors (I/O, decode, validation) — separate from `trace`
 - `message` (string, optional; human-readable)
 
 JSON MUST be a single object followed by a newline. Consumers should rely on the defined fields above.

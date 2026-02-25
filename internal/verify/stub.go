@@ -19,7 +19,8 @@ func (StubVerifier) Verify(ref snapshot.Ref) (pkgverify.Result, error) {
 		OK:             false,
 		Ref:            string(ref.Hash),
 		HashAlg:        "sha256(canonical_json_v1)",
-		CanonicalScope: "canonical_utf8_without_sha256_comment_line",
+		CanonicalScope: "canonical_json_v1",
+		Trace:          []string{},
 		Errors:         []string{},
 	}
 

@@ -28,18 +28,20 @@ func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
 		OK:             false,
 		Ref:            refStr,
 		HashAlg:        "sha256(canonical_json_v1)",
-		CanonicalScope: "canonical_utf8_without_sha256_comment_line",
+		CanonicalScope: "canonical_json_v1",
+		Trace:          []string{},
 		Errors:         []string{},
 	}
 	if len(attempts) > 0 {
-		// include attempted paths in errors if failure
+		// include attempted paths as trace information
 		for _, p := range attempts {
-			result.Errors = append(result.Errors, p)
+			result.Trace = append(result.Trace, p)
 		}
 	}
 
 	if err != nil {
 		result.Message = err.Error()
+		result.Errors = append(result.Errors, err.Error())
 		return result, nil
 	}
 
@@ -56,9 +58,9 @@ func (v *VerifierV1) Verify(ref snaps.Ref) (pkgverify.Result, error) {
 
 	result.Expected = exp
 	result.Got = got
-	// chosenPath may be useful for debugging; add to errors slice as informational entry
+	// chosenPath may be useful for debugging; add to trace
 	if chosenPath != "" {
-		result.Errors = append(result.Errors, fmt.Sprintf("used:%s", chosenPath))
+		result.Trace = append(result.Trace, fmt.Sprintf("used:%s", chosenPath))
 	}
 
 	if got != exp {

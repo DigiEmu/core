@@ -36,8 +36,15 @@ func loadBundleFromPath(path, ref string) (SnapshotBundleV1, error) {
 		return SnapshotBundleV1{}, fmt.Errorf("read bundle %s: %w", path, err)
 	}
 
+	// strip UTF-8 BOM if present to be tolerant of Windows editors
+	b = stripUTF8BOM(b)
+
 	var sb SnapshotBundleV1
 	if err := json.Unmarshal(b, &sb); err != nil {
+		// If BOM was detected originally, mention it to aid debugging
+		if len(b) >= 3 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF {
+			return SnapshotBundleV1{}, fmt.Errorf("decode bundle %s: %w (note: UTF-8 BOM detected and stripped)", path, err)
+		}
 		return SnapshotBundleV1{}, fmt.Errorf("decode bundle %s: %w", path, err)
 	}
 
@@ -52,6 +59,14 @@ func loadBundleFromPath(path, ref string) (SnapshotBundleV1, error) {
 		return SnapshotBundleV1{}, fmt.Errorf("bundle missing state")
 	}
 	return sb, nil
+}
+
+// stripUTF8BOM removes a UTF-8 BOM prefix if present.
+func stripUTF8BOM(b []byte) []byte {
+	if len(b) >= 3 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF {
+		return b[3:]
+	}
+	return b
 }
 
 // FindBundleV1 attempts to locate a bundle file in fixtureRoot and dataRoot.

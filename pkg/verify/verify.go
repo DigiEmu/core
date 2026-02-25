@@ -11,6 +11,7 @@ type Result struct {
 	Got            string   `json:"got,omitempty"`
 	HashAlg        string   `json:"hash_alg,omitempty"`
 	CanonicalScope string   `json:"canonical_scope,omitempty"`
+	Trace          []string `json:"trace,omitempty"`
 	Errors         []string `json:"errors,omitempty"`
 	Message        string   `json:"message,omitempty"`
 	// keep a typed Ref for callers in memory (not serialized)
