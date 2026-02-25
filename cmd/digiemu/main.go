@@ -85,7 +85,7 @@ func runUnit(args []string) {
 		desc := fs.String("desc", "", "unit description (optional)")
 		description := fs.String("description", "", "unit description (optional, alias for --desc)")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		if *title == "" {
 			fmt.Fprintln(os.Stderr, "--title is required")
@@ -134,7 +134,7 @@ func runVersion(args []string) {
 		unit := fs.String("unit", "", "unit key (required)")
 		content := fs.String("content", "", "version content (required)")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		if *unit == "" || *content == "" {
 			fmt.Fprintln(os.Stderr, "--unit and --content are required")
@@ -176,7 +176,7 @@ func runMeaning(args []string) {
 		version := fs.String("version", "", "version id (optional, defaults to head)")
 		file := fs.String("file", "", "path to meaning.json")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		if *file == "" {
 			fmt.Fprintln(os.Stderr, "--file is required")
@@ -212,7 +212,7 @@ func runMeaning(args []string) {
 		fs := flag.NewFlagSet("meaning show", flag.ExitOnError)
 		version := fs.String("version", "", "version id (optional, defaults to head)")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		repo := fsrepo.NewUnitRepo(*data)
 
@@ -223,11 +223,9 @@ func runMeaning(args []string) {
 			os.Exit(2)
 		}
 		keyOrID := rem[0]
-		var unit domain.Unit
-		var ok bool
-		var errFind error
+
 		// try by key first
-		unit, ok, errFind = repo.FindUnitByKey(keyOrID)
+		unit, ok, errFind := repo.FindUnitByKey(keyOrID)
 		if errFind != nil {
 			log.Fatalf("find unit: %v", errFind)
 		}
@@ -288,7 +286,7 @@ func runClaim(args []string) {
 		version := fs.String("version", "", "version id (optional, defaults to head)")
 		file := fs.String("file", "", "path to claimset.json")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		if *file == "" {
 			fmt.Fprintln(os.Stderr, "--file is required")
@@ -323,7 +321,7 @@ func runClaim(args []string) {
 		fs := flag.NewFlagSet("claim show", flag.ExitOnError)
 		version := fs.String("version", "", "version id (optional, defaults to head)")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		repo := fsrepo.NewUnitRepo(*data)
 
@@ -334,10 +332,8 @@ func runClaim(args []string) {
 			os.Exit(2)
 		}
 		keyOrID := rem[0]
-		var unit domain.Unit
-		var ok bool
-		var errFind error
-		unit, ok, errFind = repo.FindUnitByKey(keyOrID)
+
+		unit, ok, errFind := repo.FindUnitByKey(keyOrID)
 		if errFind != nil {
 			log.Fatalf("find unit: %v", errFind)
 		}
@@ -397,7 +393,7 @@ func runUncertainty(args []string) {
 		version := fs.String("version", "", "version id (optional, defaults to head)")
 		file := fs.String("file", "", "path to uncertainty.json")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		if *file == "" {
 			fmt.Fprintln(os.Stderr, "--file is required")
@@ -432,7 +428,7 @@ func runUncertainty(args []string) {
 		fs := flag.NewFlagSet("uncertainty show", flag.ExitOnError)
 		version := fs.String("version", "", "version id (optional, defaults to head)")
 		data := fs.String("data", "./data", "data directory")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		repo := fsrepo.NewUnitRepo(*data)
 
@@ -443,10 +439,8 @@ func runUncertainty(args []string) {
 			os.Exit(2)
 		}
 		keyOrID := rem[0]
-		var unit domain.Unit
-		var ok bool
-		var errFind error
-		unit, ok, errFind = repo.FindUnitByKey(keyOrID)
+
+		unit, ok, errFind := repo.FindUnitByKey(keyOrID)
 		if errFind != nil {
 			log.Fatalf("find unit: %v", errFind)
 		}
@@ -507,7 +501,7 @@ func runAudit(args []string) {
 		data := fs.String("data", "./data", "data directory")
 		strictHash := fs.Bool("strict-hash", false, "verify contentHash matches audit events")
 		unitKey := fs.String("unit", "", "verify only this unit key")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		repo := fsrepo.NewUnitRepo(*data)
 		reader := fsrepo.NewAuditReader(*data)
@@ -547,7 +541,7 @@ func runAudit(args []string) {
 		unitID := fs.String("unit-id", "", "filter by unit id")
 		versionID := fs.String("version-id", "", "filter by version id")
 		asJSON := fs.Bool("json", false, "output events as JSON (one per line)")
-		fs.Parse(args[1:])
+		_ = fs.Parse(args[1:])
 
 		tail := fsrepo.NewAuditTail(*data)
 		evs, err := tail.Tail(ports.AuditTailRequest{N: *n, Type: *typ, UnitID: *unitID, VersionID: *versionID})
@@ -577,7 +571,7 @@ func runServe(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	addr := fs.String("addr", ":8080", "address to bind")
 	data := fs.String("data", "./data", "data directory")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	repo := fsrepo.NewUnitRepo(*data)
 
