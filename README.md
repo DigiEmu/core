@@ -14,11 +14,7 @@ It is infrastructure.
 
 Modern AI systems lack reproducibility, version stability and epistemic traceability. DigiEmu Core introduces a structured knowledge layer that enables:
 
-- Versioned claims
-- Deterministic content history
-- Audit trails
 - Explicit governance rules
-- Decision logging
 
 The system is designed for environments where traceability and reproducibility are essential (education, research, regulated industries, AI governance).
 
@@ -27,14 +23,11 @@ The system is designed for environments where traceability and reproducibility a
 ## Architectural Principles
 
 - Separation of domain logic from infrastructure
-- Explicit versioning at claim level
 - Immutable historical states
 - Deterministic decision logging
 - Strict boundary between Open Core and commercial extensions
 
 ---
-
-## Open Core Scope
 
 The Open Core includes:
 
