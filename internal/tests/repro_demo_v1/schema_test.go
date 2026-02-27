@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"unicode/utf16"
@@ -116,5 +117,37 @@ func TestExpectedVerifyReport_MinimalInvariants(t *testing.T) {
 	// trace: allow array or object (schema-dependent)
 	if _, ok := m["trace"]; !ok {
 		t.Fatalf("missing field %q", "trace")
+	}
+}
+
+func TestExpectedVerifyReport_ConformsToSchemaSubset(t *testing.T) {
+	schema := decodeTextToUTF8(t, readFile(t, "schemas/VERIFY_RESULT_SCHEMA_v1.json"))
+	doc := decodeTextToUTF8(t, readFile(t, "examples/snapshot_v1_demo/expected_verify_report.json"))
+	if err := ValidateAgainstSchemaSubset(schema, doc); err != nil {
+		t.Fatalf("expected report fails schema subset gate: %v", err)
+	}
+}
+
+func TestRuntimeVerifyOutput_ConformsToSchemaSubset(t *testing.T) {
+	schema := decodeTextToUTF8(t, readFile(t, "schemas/VERIFY_RESULT_SCHEMA_v1.json"))
+
+	root := repoRoot(t)
+	cmd := exec.Command("go", "run", "./cmd/digiemu", "verify",
+		"--bundle", "examples/snapshot_v1_demo/snapshots/snapshot_demo_v1",
+		"--json",
+	)
+	cmd.Dir = root
+	out, err := cmd.Output()
+	if err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			t.Fatalf("verify failed: %v", err)
+		}
+		// continue — out may contain stdout even on ExitError
+	}
+	if len(out) == 0 {
+		t.Fatalf("verify produced no stdout JSON")
+	}
+	if err := ValidateAgainstSchemaSubset(schema, out); err != nil {
+		t.Fatalf("runtime verify output fails schema subset gate: %v", err)
 	}
 }

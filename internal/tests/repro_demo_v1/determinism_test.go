@@ -3,6 +3,7 @@ package repro_demo_v1
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -97,7 +98,7 @@ func TestVerify_ReproducesExpectedHash(t *testing.T) {
 		t.Fatalf("read expected hash: %v", err)
 	}
 
-	expectedHash := bytes.TrimSpace(hashBytes)
+	expectedHash := bytes.TrimSpace(decodeTextToUTF8(t, hashBytes))
 
 	cmd := exec.Command("go", "run", "./cmd/digiemu", "verify",
 		"--bundle", "examples/snapshot_v1_demo/snapshots/snapshot_demo_v1",
@@ -111,11 +112,25 @@ func TestVerify_ReproducesExpectedHash(t *testing.T) {
 		}
 		// continue — out may contain stdout even on ExitError
 	}
+	if len(out) == 0 {
+		t.Fatalf("verify produced no stdout JSON")
+	}
 
-	_ = out
-	_ = expectedHash
-
-	// NOTE: Placeholder — we will implement this hash extraction in YAML #4
-	// together with full schema validation wiring.
-	t.Skip("Hash extraction assertion implemented in next YAML (keeps this commit small).")
+	// Parse "got" from JSON output and compare to expected_snapshot_hash.txt
+	// This is part of the public contract: verify result contains "got" as the computed snapshot hash.
+	var m map[string]any
+	if err := json.Unmarshal(out, &m); err != nil {
+		t.Fatalf("decode verify output JSON: %v", err)
+	}
+	gotVal, ok := m["got"]
+	if !ok {
+		t.Fatalf("verify output missing field %q", "got")
+	}
+	got, ok := gotVal.(string)
+	if !ok {
+		t.Fatalf("verify output field %q must be string", "got")
+	}
+	if !bytes.Equal([]byte(got), expectedHash) {
+		t.Fatalf("snapshot hash mismatch: got=%q expected=%q", got, string(expectedHash))
+	}
 }
