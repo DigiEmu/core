@@ -1,0 +1,11 @@
+{
+  "ref": "snapshot_demo_v1",
+  "expected_hash_v1": "REPLACE_AFTER_ASSEMBLE",
+  "state": {
+    "version": "v1",
+    "inputs": [
+      "inputs/README.md"
+    ],
+    "note": "minimal deterministic demo state"
+  }
+}
