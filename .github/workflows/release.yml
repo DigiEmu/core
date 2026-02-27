@@ -1,0 +1,95 @@
+name: Release (binaries)
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "cli-*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build binaries (${{ matrix.goos }}-${{ matrix.goarch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+            ext: .exe
+          - goos: linux
+            goarch: amd64
+            ext: ""
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+          - goos: darwin
+            goarch: arm64
+            ext: ""
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Compute build metadata
+        id: meta
+        run: |
+          echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo "commit=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Build digiemu
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p dist
+          BIN="digiemu-${{ steps.meta.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X main.Version=${{ steps.meta.outputs.version }} -X main.Commit=${{ steps.meta.outputs.commit }} -X main.Date=${{ steps.meta.outputs.date }}" \
+            -o "dist/$BIN" \
+            ./cmd/digiemu
+          echo "Built dist/$BIN"
+          ./dist/$BIN --version || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: digiemu-${{ steps.meta.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist_all
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p dist
+          find dist_all -type f -maxdepth 3 -print -exec cp {} dist/ \;
+          ls -la dist
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
