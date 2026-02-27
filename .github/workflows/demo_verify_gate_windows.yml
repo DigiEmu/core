@@ -1,0 +1,65 @@
+name: Demo Verify Gate (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  demo_verify_gate_windows:
+    name: demo verify gate (windows-latest)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Go test
+        run: go test ./...
+
+      # Build a CI binary into _release so gate_demo_verify.ps1 auto-detect works,
+      # but we still pass -ExePath explicitly to remove ambiguity.
+      - name: Build CLI (ci)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "_release" | Out-Null
+
+          $exe = Join-Path "_release" "digiemu-ci-windows-amd64.exe"
+
+          $env:CGO_ENABLED = "0"
+
+          $version = "ci"
+          $commit  = "${{ github.sha }}"
+          $date    = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+          $ld = "-s -w -X main.Version=$version -X main.Commit=$commit -X main.Date=$date"
+
+          go build -trimpath -ldflags $ld -o $exe ./cmd/digiemu
+
+          if (!(Test-Path $exe)) { throw "Build failed: $exe not found" }
+          Write-Host "Built: $exe"
+          & $exe --version
+
+      - name: Run demo verify gate (canonical JSON)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/gate_demo_verify.ps1 `
+            -ExePath _release\digiemu-ci-windows-amd64.exe
+
+      - name: Upload demo output (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot_v1_demo_out_windows
+          path: |
+            examples/snapshot_v1_demo/_out/release_report.json
+            examples/snapshot_v1_demo/_out/release_stderr.txt
+          if-no-files-found: ignore
