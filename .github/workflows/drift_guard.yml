@@ -3,8 +3,8 @@ name: Drift Guard
 on:
   pull_request:
     branches: ["main"]
-  workflow_dispatch:
-    
+  workflow_dispatch: {}
+
 jobs:
   guard:
     runs-on: ubuntu-latest
@@ -18,15 +18,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git diff --name-only origin/${{ github.base_ref }}...HEAD > changed.txt
+
+          # Decide comparison base:
+          # - PR: compare against PR base branch (github.base_ref)
+          # - workflow_dispatch: compare against main
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="${{ github.base_ref }}"
+          else
+            base_ref="main"
+          fi
+
+          echo "Using base_ref=$base_ref"
+
+          # Ensure we have the base ref locally
+          git fetch --no-tags --prune origin "$base_ref"
+
+          # List changed files between base and HEAD
+          git diff --name-only "origin/${base_ref}...HEAD" > changed.txt
           cat changed.txt
+
+          # Guard: expected demo artifacts must not change
           if grep -Eq '^examples/snapshot_v1_demo/expected_(snapshot_hash\.txt|verify_report\.json)$' changed.txt; then
-            echo "ERROR: expected demo artifacts changed in this PR. This usually indicates drift."
+            echo "ERROR: expected demo artifacts changed. This usually indicates drift."
             echo "If this is intentional, do it in a dedicated PR with explicit justification."
             exit 1
           fi
+
+          # Guard: schema is a contract change
           if grep -Eq '^schemas/VERIFY_RESULT_SCHEMA_v1\.json$' changed.txt; then
             echo "ERROR: schema changed. This is a contract change; must be handled explicitly."
             exit 1
           fi
+
           echo "OK: no expected artifacts changed."
