@@ -19,6 +19,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "--version" {
+		fmt.Println(cliVersionLine())
+		os.Exit(0)
+	}
+
 	if len(os.Args) < 2 {
 		printUsage()
 		os.Exit(2)
@@ -127,8 +132,8 @@ func runUnit(args []string) {
 
 func runVersion(args []string) {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "version subcommands: create")
-		os.Exit(2)
+		fmt.Println(cliVersionLine())
+		return
 	}
 
 	switch args[0] {
