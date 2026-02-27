@@ -1,0 +1,30 @@
+name: Drift Guard
+
+on:
+  pull_request:
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail if expected demo artifacts are modified
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only origin/${{ github.base_ref }}...HEAD > changed.txt
+          cat changed.txt
+          if grep -Eq '^examples/snapshot_v1_demo/expected_(snapshot_hash\.txt|verify_report\.json)$' changed.txt; then
+            echo "ERROR: expected demo artifacts changed in this PR. This usually indicates drift."
+            echo "If this is intentional, do it in a dedicated PR with explicit justification."
+            exit 1
+          fi
+          if grep -Eq '^schemas/VERIFY_RESULT_SCHEMA_v1\.json$' changed.txt; then
+            echo "ERROR: schema changed. This is a contract change; must be handled explicitly."
+            exit 1
+          fi
+          echo "OK: no expected artifacts changed."

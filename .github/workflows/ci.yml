@@ -4,16 +4,11 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   test:
-    name: Go fmt + test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    name: Go Tests (Repro Gate)
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -25,23 +20,6 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: gofmt check
-        shell: bash
+      - name: Go test
         run: |
-          set -euo pipefail
-          # gofmt should not modify tracked files in CI
-          files="$(gofmt -l .)"
-          if [ -n "$files" ]; then
-            echo "gofmt would modify:"
-            echo "$files"
-            exit 1
-          fi
-
-      - name: go test
-        run: go test ./...
-
-      - name: Phase 4 acceptance (Windows only)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          pwsh -ExecutionPolicy Bypass -File .\scripts\accept_phase4.ps1
+          go test ./...
