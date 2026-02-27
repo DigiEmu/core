@@ -13,3 +13,6 @@ tmp*.json
 # Windows build output (falls mal wieder erzeugt)
 *.exe
 digiemu.exe
+
+# Ignore demo output dir
+examples/snapshot_v1_demo/_out/
