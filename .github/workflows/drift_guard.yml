@@ -2,7 +2,9 @@ name: Drift Guard
 
 on:
   pull_request:
-
+    branches: ["main"]
+  workflow_dispatch:
+    
 jobs:
   guard:
     runs-on: ubuntu-latest

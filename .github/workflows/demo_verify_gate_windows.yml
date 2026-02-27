@@ -38,7 +38,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path _release | Out-Null
-          $version = "ci-${{ github.run_id }}"
+          $version = "ci-${{ github.sha }}"
           $commit  = "${{ github.sha }}"
           $date    = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssK")
           $env:CGO_ENABLED = "0"
@@ -51,8 +51,7 @@ jobs:
 
       - name: Upload demo _out artifacts (on failure)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: demo-verify-out-windows
           path: examples/snapshot_v1_demo/_out/**
-          if-no-files-found: ignore
