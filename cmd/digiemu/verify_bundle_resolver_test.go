@@ -182,7 +182,7 @@ func TestVerify_UsesBundleAsSingleSourceOfTruth_IgnoresResolverFlags(t *testing.
 		bundle,
 		[]string{
 			"snapshot.json",
-			string(filepath.Separator) + "claims" + string(filepath.Separator),
+			"\\claims\\",
 		},
 	)
 }
@@ -229,7 +229,7 @@ func TestVerify_ResolverOrder_FollowsPreferData(t *testing.T) {
 		dstFixDemo,
 		[]string{
 			"snapshot.json",
-			string(filepath.Separator) + "claims" + string(filepath.Separator),
+			"\\claims\\",
 		},
 	)
 
@@ -253,7 +253,7 @@ func TestVerify_ResolverOrder_FollowsPreferData(t *testing.T) {
 		dstDataDemo,
 		[]string{
 			"snapshot.json",
-			string(filepath.Separator) + "claims" + string(filepath.Separator),
+			"\\claims\\",
 		},
 	)
 }

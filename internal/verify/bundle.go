@@ -11,6 +11,12 @@ import (
 	"strings"
 )
 
+func stableTracePath(p string) string {
+	// Trace is part of a public, byte-stable demo artifact.
+	// Normalize to Windows-style separators to keep outputs stable across OSes.
+	return strings.ReplaceAll(p, "/", "\\")
+}
+
 // BundlePath returns the expected location of a snapshot bundle.
 // MVP layout:
 //
@@ -59,7 +65,7 @@ func FindBundleRoot(ref, fixtureRoot, dataRoot string, preferData bool) (string,
 	var attempts []string
 	var lastErr error
 	for _, d := range tryOrder {
-		attempts = append(attempts, d)
+		attempts = append(attempts, stableTracePath(d))
 		if fi, err := os.Stat(d); err == nil && fi.IsDir() {
 			return d, attempts, nil
 		} else if err != nil {
@@ -86,7 +92,7 @@ func LoadBundleRootV1(root string) (BundleV1, []string, error) {
 
 	snapshotPath := filepath.Join(root, "snapshot.json")
 	b, err := ReadJSONFileBOMSafe(snapshotPath)
-	trace = append(trace, snapshotPath)
+	trace = append(trace, stableTracePath(snapshotPath))
 	if err != nil {
 		return BundleV1{}, trace, fmt.Errorf("read snapshot.json: %w", err)
 	}
@@ -127,7 +133,7 @@ func LoadBundleRootV1(root string) (BundleV1, []string, error) {
 		sort.Strings(names)
 		for _, name := range names {
 			p := filepath.Join(dirPath, name)
-			trace = append(trace, p)
+			trace = append(trace, stableTracePath(p))
 
 			rb, err := ReadJSONFileBOMSafe(p)
 			if err != nil {
@@ -150,7 +156,7 @@ func LoadBundleRootV1(root string) (BundleV1, []string, error) {
 		}
 	}
 
-	trace = append(trace, fmt.Sprintf("used:%s", root))
+	trace = append(trace, fmt.Sprintf("used:%s", stableTracePath(root)))
 	return bundle, trace, nil
 }
 

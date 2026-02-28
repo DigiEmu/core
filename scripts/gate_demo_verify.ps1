@@ -60,7 +60,7 @@ $p.WaitForExit()
 [System.IO.File]::WriteAllText($stderrPath, $stderr)
 
 # Gate: canonical JSON compare
-powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot/check_verify_report.ps1" -Expected $Expected -Got $Out
+& "$PSScriptRoot/check_verify_report.ps1" -Expected $Expected -Got $Out
 
 if ($p.ExitCode -ne 0) {
   # Verify can legitimately exit non-zero while still producing deterministic JSON.

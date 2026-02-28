@@ -1,4 +1,4 @@
-﻿# Always store text as LF in the repo (prevents gofmt check from flipping on Windows)
+# Always store text as LF in the repo (prevents gofmt check from flipping on Windows)
 * text=auto eol=lf
 
 # Go source MUST be LF
