@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	bun "digiemu-core/internal/bundle"
+	derr "digiemu-core/pkg/digiemu"
 	snaps "digiemu-core/pkg/snapshot"
 	pkgverify "digiemu-core/pkg/verify"
 )
@@ -143,24 +144,37 @@ func (op *Operator) Verify(ref snaps.Ref) (ResultV1, error) {
 	if !IsValidSHA256HexLower(computedHashLower) {
 		result.WriteBlocked = true
 		result.WriteReason = WriteReasonInvalidHash
-		return result, fmt.Errorf("%w", bun.ErrInvalidNewHash)
+		// Preserve existing bun.* classification while attaching stable taxonomy classification.
+		return result, errors.Join(
+			derr.BundleInvalid("verify.writeExpected", snapshotPath, bun.ErrInvalidNewHash),
+			bun.ErrInvalidNewHash,
+		)
 	}
 
 	if err := bun.WriteExpectedHashV1(snapshotPath, computedHash); err != nil {
 		result.WriteBlocked = true
+		var categorized error
 		switch {
 		case errors.Is(err, bun.ErrExpectedAlreadySet):
 			result.WriteReason = WriteReasonExistingExpected
+			categorized = derr.UsageError("verify.writeExpected", snapshotPath, err)
 		case errors.Is(err, bun.ErrSnapshotNotFound):
 			result.WriteReason = WriteReasonSnapshotNotFound
+			categorized = derr.FileMissing("verify.writeExpected", snapshotPath, err)
 		case errors.Is(err, bun.ErrSnapshotInvalidJSON):
 			result.WriteReason = WriteReasonSnapshotInvalidJSON
+			categorized = derr.SchemaInvalid("verify.writeExpected", snapshotPath, "snapshot.json", err)
 		case errors.Is(err, bun.ErrInvalidNewHash):
 			result.WriteReason = WriteReasonInvalidHash
+			categorized = derr.BundleInvalid("verify.writeExpected", snapshotPath, err)
 		default:
 			result.WriteReason = WriteReasonIOError
+			categorized = derr.IOError("verify.writeExpected", snapshotPath, err)
 		}
-		return result, err
+		if categorized == nil {
+			categorized = derr.InternalError("verify.writeExpected", err)
+		}
+		return result, errors.Join(categorized, err)
 	}
 
 	result.WroteExpected = true
