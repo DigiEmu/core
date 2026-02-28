@@ -77,7 +77,7 @@ func runVerify(args []string) {
 			errors.Is(err, bun.ErrSnapshotInvalidJSON) ||
 			errors.Is(err, bun.ErrInvalidNewHash)) {
 			fmt.Fprintf(os.Stderr, "verify error: %v\n", err)
-			os.Exit(5)
+			os.Exit(4)
 		}
 	}
 
@@ -86,7 +86,7 @@ func runVerify(args []string) {
 		enc.SetIndent("", "  ")
 		if e := enc.Encode(res); e != nil {
 			fmt.Fprintf(os.Stderr, "encode error: %v\n", e)
-			os.Exit(5)
+			os.Exit(4)
 		}
 	} else {
 		writeSuffix := ""
@@ -153,5 +153,5 @@ func verifyExitCode(res verify.ResultV1, writeExpected bool, opErr error) int {
 	}
 
 	// internal error
-	return 5
+	return 4
 }

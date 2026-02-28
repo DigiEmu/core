@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
+	"io"
 	"os"
 
 	fsrepo "digiemu-core/internal/kernel/adapters/fs"
@@ -13,24 +13,34 @@ import (
 )
 
 func runExport(args []string) {
+	os.Exit(runExportWithIO(args, os.Stdout, os.Stderr))
+}
+
+func runExportWithIO(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "export subcommands: unit")
-		os.Exit(2)
+		fmt.Fprintln(stderr, "export subcommands: unit")
+		return 2
 	}
 
 	switch args[0] {
 	case "unit":
-		fs := flag.NewFlagSet("export unit", flag.ExitOnError)
+		fs := flag.NewFlagSet("export unit", flag.ContinueOnError)
+		fs.SetOutput(stderr)
 		unitKey := fs.String("unit", "", "unit key (required)")
 		data := fs.String("data", "./data", "data directory")
 		withAudit := fs.Bool("audit", false, "include audit events for this unit")
 		pretty := fs.Bool("pretty", false, "pretty-print JSON")
-		fs.Parse(args[1:])
+		if err := fs.Parse(args[1:]); err != nil {
+			if err == flag.ErrHelp {
+				return 0
+			}
+			return 2
+		}
 
 		if *unitKey == "" {
-			fmt.Fprintln(os.Stderr, "--unit is required")
+			fmt.Fprintln(stderr, "--unit is required")
 			fs.Usage()
-			os.Exit(2)
+			return 2
 		}
 
 		repo := fsrepo.NewUnitRepo(*data)
@@ -47,7 +57,8 @@ func runExport(args []string) {
 			IncludeAudit: *withAudit,
 		})
 		if err != nil {
-			log.Fatalf("export unit: %v", err)
+			fmt.Fprintf(stderr, "export unit: %v\n", err)
+			return 4
 		}
 
 		var b []byte
@@ -57,13 +68,14 @@ func runExport(args []string) {
 			b, err = json.Marshal(out)
 		}
 		if err != nil {
-			log.Fatalf("export marshal: %v", err)
+			fmt.Fprintf(stderr, "export marshal: %v\n", err)
+			return 4
 		}
-
-		fmt.Println(string(b))
+		fmt.Fprintln(stdout, string(b))
+		return 0
 
 	default:
-		fmt.Fprintln(os.Stderr, "export subcommands: unit")
-		os.Exit(2)
+		fmt.Fprintln(stderr, "export subcommands: unit")
+		return 2
 	}
 }
