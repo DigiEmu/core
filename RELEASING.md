@@ -1,8 +1,8 @@
-﻿# Releasing (DigiEmu Core)
+# Releasing (DigiEmu Core)
 
 ## Policy
 - Releases are produced **only** from annotated tags on main.
-- Tag format: MAJOR.MINOR.PATCH (SemVer).
+- Tag format: MAJOR.MINOR.PATCH (SemVer).
 - A release must have green CI on main for the tagged commit.
 
 ## Checklist
