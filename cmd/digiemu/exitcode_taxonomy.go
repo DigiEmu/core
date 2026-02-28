@@ -6,31 +6,36 @@ import (
 	derr "digiemu-core/pkg/digiemu"
 )
 
-// exitCodeForTaxonomy maps the stable error taxonomy to the CLI exit-code space.
-//
-// Phase A note: this is a hook point only; it is intentionally not wired into
-// command execution yet to avoid changing CLI UX/semantics.
-func exitCodeForTaxonomy(err error) (code int, ok bool) {
+// Phase A2 contract (locked):
+// - ok: 0
+// - verify_fail: 1
+// - usage: 2
+// - io: 3
+// - internal: 4
+func exitCodeForError(err error) int {
 	if err == nil {
-		return 0, false
+		return 0
 	}
 
 	switch {
-	case errors.Is(err, derr.ErrHashMismatch):
-		return 2, true
-
-	case errors.Is(err, derr.ErrBundleInvalid),
-		errors.Is(err, derr.ErrSchemaInvalid),
-		errors.Is(err, derr.ErrFileMissing),
-		errors.Is(err, derr.ErrIO),
-		errors.Is(err, derr.ErrVerifyFailed),
-		errors.Is(err, derr.ErrUsage):
-		return 4, true
-
+	case errors.Is(err, derr.ErrUsage):
+		return 2
+	case errors.Is(err, derr.ErrIO):
+		return 3
 	case errors.Is(err, derr.ErrInternal):
-		return 5, true
-
+		return 4
+	case errors.Is(err, derr.ErrVerifyFailed),
+		errors.Is(err, derr.ErrHashMismatch),
+		errors.Is(err, derr.ErrSchemaInvalid),
+		errors.Is(err, derr.ErrBundleInvalid),
+		errors.Is(err, derr.ErrFileMissing):
+		return 1
 	default:
-		return 0, false
+		// Unknown errors are treated as internal.
+		return 4
 	}
+}
+
+func isUsageError(err error) bool {
+	return errors.Is(err, derr.ErrUsage)
 }
