@@ -1,0 +1,2 @@
+﻿Bring Phase B1 (bundle layout + demo bundles gate + schema lock LF fix) to main.
+Backport of PR #8 branch.

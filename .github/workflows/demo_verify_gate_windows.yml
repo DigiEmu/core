@@ -49,6 +49,11 @@ jobs:
         run: |
           pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/gate_all.ps1 -ExePath _release\digiemu-ci-windows-amd64.exe
 
+      - name: Run demo bundles gate (OK + FAIL)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/gate_demo_bundles.ps1 -ExePath _release\digiemu-ci-windows-amd64.exe
+
       - name: Upload demo _out artifacts (on failure)
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

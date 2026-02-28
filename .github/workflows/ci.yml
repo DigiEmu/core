@@ -28,6 +28,7 @@ jobs:
     name: Gate All (ubuntu-latest)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,7 +45,7 @@ jobs:
           mkdir -p _release
           version="ci-${GITHUB_SHA}"
           commit="${GITHUB_SHA}"
-          date="$(date -Iseconds)"
+          date="${GITHUB_RUN_ID}"
           CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.Version=${version} -X main.Commit=${commit} -X main.Date=${date}" -o _release/digiemu-ci-ubuntu-amd64 ./cmd/digiemu
 
       - name: Run all gates (verify + bundles + lock)

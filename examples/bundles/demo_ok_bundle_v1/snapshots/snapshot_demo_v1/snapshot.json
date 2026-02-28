@@ -1,8 +1,11 @@
 {
-  "ref": "demo",
-  "expected_hash_v1": "273910B657210EECE942EFC038F6E06994711DA6399422E57225CE2394299E55",
+  "expected_hash_v1": "9DB69823AB463EE7C1B8C112CCE7A659C5AA29CB571CCF1335C9CD23D0286BFE",
+  "ref": "snapshot_demo_v1",
   "state": {
-    "hello": "world",
-    "n": 1
+    "inputs": [
+      "inputs/README.md"
+    ],
+    "note": "minimal deterministic demo state",
+    "version": "v1"
   }
 }

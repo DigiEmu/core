@@ -1,8 +1,11 @@
 {
-  "ref": "demo_fail",
   "expected_hash_v1": "0000000000000000000000000000000000000000000000000000000000000000",
+  "ref": "snapshot_demo_v1",
   "state": {
-    "hello": "world",
-    "n": 1
+    "inputs": [
+      "inputs/README.md"
+    ],
+    "note": "tampered: deterministic mismatch",
+    "version": "v1"
   }
 }

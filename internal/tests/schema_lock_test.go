@@ -11,7 +11,7 @@ import (
 )
 
 func TestVerifyResultSchemaLocked(t *testing.T) {
-	root := repoRoot(t)
+	root := repoRoot(t) // defined in cli_version_test.go
 
 	schemaPath := filepath.Join(root, "schemas", "VERIFY_RESULT_SCHEMA_v1.json")
 	lockPath := filepath.Join(root, "schemas", "VERIFY_RESULT_SCHEMA_v1.sha256")
