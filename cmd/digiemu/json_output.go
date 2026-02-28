@@ -29,6 +29,7 @@ func normalizeJSONFlagArgs(args []string) []string {
 			continue
 		}
 		if a == "--json=false" {
+			// Treat explicit false as if the flag was not set.
 			continue
 		}
 		out = append(out, a)
@@ -59,8 +60,8 @@ func writePrettyJSON(w io.Writer, v any) error {
 }
 
 func writeCanonicalJSON(w io.Writer, v any) error {
-	// Normalize through encoding/json (omitempty, embedded flattening, etc.),
-	// then canonicalize the generic value so map key ordering is stable.
+	// Preserve encoding/json semantics (omitempty, embedded field flattening, etc.)
+	// by normalizing through JSON first, then canonicalizing the generic value.
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -76,6 +77,8 @@ func writeCanonicalJSON(w io.Writer, v any) error {
 	if _, err := w.Write(cb); err != nil {
 		return err
 	}
-	_, err = w.Write([]byte("\n"))
-	return err
+	if _, err := w.Write([]byte("\n")); err != nil {
+		return err
+	}
+	return nil
 }

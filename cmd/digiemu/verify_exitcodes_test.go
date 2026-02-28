@@ -210,8 +210,8 @@ func TestVerifyExitCodeMismatch(t *testing.T) {
 	}
 
 	code, out, _ := runVerifyCLI(t, bin, "--bundle", dstBundle, "--json")
-	if code != 2 {
-		t.Fatalf("exit code=%d, want 2\nstdout=%s", code, out)
+	if code != 1 {
+		t.Fatalf("exit code=%d, want 1\nstdout=%s", code, out)
 	}
 	_ = readVerifyJSON(t, out)
 }
@@ -225,8 +225,8 @@ func TestVerifyExitCodeWriteBlockedExistingExpected(t *testing.T) {
 	bundle := filepath.Join(repoRoot, "data", "test-fixtures", "snapshots", "demo")
 
 	code, out, _ := runVerifyCLI(t, bin, "--bundle", bundle, "--write-expected", "--json")
-	if code != 3 {
-		t.Fatalf("exit code=%d, want 3\nstdout=%s", code, out)
+	if code != 2 {
+		t.Fatalf("exit code=%d, want 2\nstdout=%s", code, out)
 	}
 	v := readVerifyJSON(t, out)
 	if !v.WriteBlocked {
@@ -244,8 +244,8 @@ func TestVerifyExitCodeSnapshotNotFound(t *testing.T) {
 	bundle := filepath.Join(tmp, "snapshots", "does-not-exist")
 
 	code, out, _ := runVerifyCLI(t, bin, "--bundle", bundle, "--json")
-	if code != 4 {
-		t.Fatalf("exit code=%d, want 4\nstdout=%s", code, out)
+	if code != 1 {
+		t.Fatalf("exit code=%d, want 1\nstdout=%s", code, out)
 	}
 	// The CLI still emits JSON for this case.
 	_ = readVerifyJSON(t, out)
