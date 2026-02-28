@@ -1,4 +1,4 @@
-﻿# Always store text as LF in the repo (prevents gofmt/check churn on Windows)
+# Always store text as LF in the repo (prevents gofmt/check churn on Windows)
 * text=auto eol=lf
 
 # keep JSON + lock stable across OS/runners
