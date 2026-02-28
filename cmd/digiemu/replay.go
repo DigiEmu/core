@@ -1,9 +1,11 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,49 +14,90 @@ import (
 )
 
 func runReplay(args []string) {
-	fs := flag.NewFlagSet("replay", flag.ExitOnError)
-	bundlePath := fs.String("bundle", "", "Path to snapshots/<ref> directory containing snapshot.json")
-	jsonOut := fs.Bool("json", false, "Emit pretty JSON output (machine readable)")
-	_ = fs.Parse(args)
+	os.Exit(runReplayWithIO(args, os.Stdout, os.Stderr))
+}
+
+func runReplayWithIO(args []string, stdout, stderr io.Writer) int {
+	args = normalizeJSONFlagArgs(args)
+
+	flagset := flag.NewFlagSet("replay", flag.ContinueOnError)
+	flagset.SetOutput(stderr)
+	bundlePath := flagset.String("bundle", "", "Path to snapshots/<ref> directory containing snapshot.json")
+	jsonOut := flagset.String("json", "", "Emit JSON output to stdout (pretty or canonical). Use --json or --json=canonical")
+	if err := flagset.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			return 0
+		}
+		return 2
+	}
+
+	mode, err := parseJSONMode(*jsonOut)
+	if err != nil {
+		fmt.Fprintln(stderr, err.Error())
+		flagset.Usage()
+		return 2
+	}
 
 	root := filepath.Clean(strings.TrimSpace(*bundlePath))
 	if root == "." || strings.TrimSpace(*bundlePath) == "" {
-		fmt.Fprintln(os.Stderr, "--bundle is required")
-		fs.Usage()
-		os.Exit(4)
+		fmt.Fprintln(stderr, "--bundle is required")
+		flagset.Usage()
+		return 2
 	}
 
 	parent := filepath.Base(filepath.Dir(root))
 	if parent != "snapshots" {
-		fmt.Fprintln(os.Stderr, "--bundle must point to a snapshots/<ref> directory containing snapshot.json")
-		os.Exit(4)
+		fmt.Fprintln(stderr, "--bundle must point to a snapshots/<ref> directory containing snapshot.json")
+		return 2
 	}
 
 	b, trace, err := verify.LoadBundleRootV1(root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "replay load error: %v\n", err)
-		os.Exit(4)
+		fmt.Fprintf(stderr, "replay load error: %v\n", err)
+		// Contract: load errors are treated as IO.
+		// Use a conservative check for missing/permission-related errors.
+		if errorsIsAny(err, fs.ErrNotExist, os.ErrNotExist) {
+			return 3
+		}
+		return 3
 	}
 
 	state, err := verify.ReplayV1(b, trace)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "replay error: %v\n", err)
-		os.Exit(4)
+		fmt.Fprintf(stderr, "replay error: %v\n", err)
+		return 4
 	}
 
-	if *jsonOut {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		if err := enc.Encode(state); err != nil {
-			fmt.Fprintf(os.Stderr, "encode error: %v\n", err)
-			os.Exit(5)
+	if mode != jsonModeNone {
+		// JSON mode contract: stdout is JSON only.
+		var encErr error
+		switch mode {
+		case jsonModePretty:
+			encErr = writePrettyJSON(stdout, state)
+		case jsonModeCanonical:
+			encErr = writeCanonicalJSON(stdout, state)
+		default:
+			encErr = fmt.Errorf("unexpected json mode: %q", mode)
 		}
-		os.Exit(0)
+		if encErr != nil {
+			fmt.Fprintf(stderr, "encode error: %v\n", encErr)
+			return 4
+		}
+		return 0
 	}
 
 	// human summary
 	ref := filepath.Base(root)
-	fmt.Fprintf(os.Stdout, "OK replay %s units=%d versions=%d claims=%d meaning=%d uncertainty=%d\n",
+	fmt.Fprintf(stdout, "OK replay %s units=%d versions=%d claims=%d meaning=%d uncertainty=%d\n",
 		ref, len(state.Units), len(state.Versions), len(state.Claims), len(state.Meaning), len(state.Uncertainty))
-	os.Exit(0)
+	return 0
+}
+
+func errorsIsAny(err error, targets ...error) bool {
+	for _, t := range targets {
+		if t != nil && errors.Is(err, t) {
+			return true
+		}
+	}
+	return false
 }
