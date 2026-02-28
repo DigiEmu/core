@@ -1,30 +1,48 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
-	bun "digiemu-core/internal/bundle"
 	"digiemu-core/internal/verify"
+	derr "digiemu-core/pkg/digiemu"
 	"digiemu-core/pkg/snapshot"
 )
 
 func runVerify(args []string) {
-	fs := flag.NewFlagSet("verify", flag.ExitOnError)
+	os.Exit(runVerifyWithIO(args, os.Stdout, os.Stderr))
+}
+
+func runVerifyWithIO(args []string, stdout, stderr io.Writer) int {
+	args = normalizeJSONFlagArgs(args)
+
+	fs := flag.NewFlagSet("verify", flag.ContinueOnError)
+	fs.SetOutput(stderr)
 	refStr := fs.String("ref", "", "Snapshot hash reference to verify (required)")
 	dataDir := fs.String("data", "./data", "Data directory containing snapshots")
 	fixtureRoot := fs.String("fixture-root", "data/test-fixtures", "Fixture root directory (contains snapshots/<ref>/snapshot.json)")
 	preferData := fs.Bool("prefer-data", false, "If true, prefer --data over --fixture-root when both bundles exist")
-	jsonOut := fs.Bool("json", false, "Emit stable JSON output (machine readable)")
+	jsonOut := fs.String("json", "", "Emit JSON output to stdout (pretty or canonical). Use --json or --json=canonical")
 	strict := fs.Bool("strict", false, "Exit non-zero if verification fails")
 	writeExpected := fs.Bool("write-expected", false, "Write expected_hash_v1 only if snapshot has a placeholder; never overwrites.")
 	bundlePath := fs.String("bundle", "", "Optional bundle root path to load directly (bypass ref lookup)")
-	_ = fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			return 0
+		}
+		return 2
+	}
+
+	mode, err := parseJSONMode(*jsonOut)
+	if err != nil {
+		fmt.Fprintln(stderr, err.Error())
+		fs.Usage()
+		return 2
+	}
 
 	// Allow --ref to be omitted when --bundle is provided. Derive ref from bundle root name.
 	if strings.TrimSpace(*bundlePath) != "" && strings.TrimSpace(*refStr) == "" {
@@ -34,15 +52,15 @@ func runVerify(args []string) {
 	}
 
 	if strings.TrimSpace(*refStr) == "" {
-		fmt.Fprintln(os.Stderr, "--ref is required")
+		fmt.Fprintln(stderr, "--ref is required")
 		fs.Usage()
-		os.Exit(4)
+		return 2
 	}
 
 	ref := snapshot.Ref{Hash: snapshot.Hash(strings.TrimSpace(*refStr))}
 	if err := ref.Validate(); err != nil {
-		fmt.Fprintf(os.Stderr, "invalid ref: %v\n", err)
-		os.Exit(4)
+		fmt.Fprintf(stderr, "invalid ref: %v\n", err)
+		return 2
 	}
 
 	op := &verify.Operator{
@@ -59,8 +77,8 @@ func runVerify(args []string) {
 		root := filepath.Clean(strings.TrimSpace(*bundlePath))
 		parent := filepath.Base(filepath.Dir(root))
 		if parent != "snapshots" {
-			fmt.Fprintln(os.Stderr, "--bundle must point to a snapshots/<ref> directory containing snapshot.json")
-			os.Exit(4)
+			fmt.Fprintln(stderr, "--bundle must point to a snapshots/<ref> directory containing snapshot.json")
+			return 2
 		}
 		derivedRoot := filepath.Dir(filepath.Dir(root))
 		op.FixtureRoot = derivedRoot
@@ -68,25 +86,26 @@ func runVerify(args []string) {
 		op.PreferData = false
 	}
 
-	res, err := op.Verify(ref)
-	if err != nil {
-		// Only treat truly unexpected errors as internal. Typed write-policy errors
-		// should still produce normal output and deterministic exit codes.
-		if !(errors.Is(err, bun.ErrExpectedAlreadySet) ||
-			errors.Is(err, bun.ErrSnapshotNotFound) ||
-			errors.Is(err, bun.ErrSnapshotInvalidJSON) ||
-			errors.Is(err, bun.ErrInvalidNewHash)) {
-			fmt.Fprintf(os.Stderr, "verify error: %v\n", err)
-			os.Exit(5)
-		}
-	}
+	res, opErr := op.Verify(ref)
 
-	if *jsonOut {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		if e := enc.Encode(res); e != nil {
-			fmt.Fprintf(os.Stderr, "encode error: %v\n", e)
-			os.Exit(5)
+	if mode != jsonModeNone {
+		// JSON mode contract: stdout is JSON only.
+		var encErr error
+		switch mode {
+		case jsonModePretty:
+			encErr = writePrettyJSON(stdout, res)
+		case jsonModeCanonical:
+			encErr = writeCanonicalJSON(stdout, res)
+		default:
+			encErr = fmt.Errorf("unexpected json mode: %q", mode)
+		}
+		if encErr != nil {
+			fmt.Fprintf(stderr, "encode error: %v\n", encErr)
+			return 4
+		}
+		// In JSON mode, any operational error text goes to stderr only.
+		if opErr != nil {
+			fmt.Fprintf(stderr, "verify error: %v\n", opErr)
 		}
 	} else {
 		writeSuffix := ""
@@ -108,50 +127,22 @@ func runVerify(args []string) {
 		}
 
 		if res.OK {
-			fmt.Fprintf(os.Stdout, "OK %s%s\n", res.Ref, writeSuffix)
+			fmt.Fprintf(stdout, "OK %s%s\n", res.Ref, writeSuffix)
 		} else {
 			msg := res.Message
-			fmt.Fprintf(os.Stdout, "FAIL %s %s%s\n", res.Ref, msg, writeSuffix)
+			fmt.Fprintf(stdout, "FAIL %s %s%s\n", res.Ref, msg, writeSuffix)
 		}
 	}
 
-	_ = strict // preserved for backward compatibility; exit codes are deterministic now.
-	os.Exit(verifyExitCode(res, *writeExpected, err))
-}
+	_ = strict // preserved for backward compatibility; exit codes follow Phase A2 contract.
+	_ = writeExpected
 
-func verifyExitCode(res verify.ResultV1, writeExpected bool, opErr error) int {
-	// write blocked (ErrExpectedAlreadySet) => 3 (only when --write-expected set)
-	if writeExpected && opErr != nil && errors.Is(opErr, bun.ErrExpectedAlreadySet) {
-		return 3
+	if opErr != nil {
+		return exitCodeForError(opErr)
 	}
-	// Governance: also return 3 when the operator recorded write_blocked for existing expected,
-	// even if verification itself succeeded.
-	if writeExpected && res.WriteBlocked && res.WriteReason == verify.WriteReasonExistingExpected {
-		return 3
-	}
-
 	if res.OK {
 		return 0
 	}
-
-	// mismatch (hash computed but does not match expected)
-	if res.Got != "" && res.Expected != "" && res.Got != res.Expected {
-		return 2
-	}
-
-	// invalid snapshot/json/file => 4
-	if opErr != nil {
-		if errors.Is(opErr, bun.ErrSnapshotNotFound) || errors.Is(opErr, bun.ErrSnapshotInvalidJSON) || errors.Is(opErr, bun.ErrInvalidNewHash) {
-			return 4
-		}
-	}
-	if res.WriteBlocked {
-		return 4
-	}
-	if len(res.Errors) > 0 {
-		return 4
-	}
-
-	// internal error
-	return 5
+	// Verification failed without an operational error; classify as verify failure.
+	return exitCodeForError(derr.VerifyFailed("cli.verify", res.Ref, nil))
 }
