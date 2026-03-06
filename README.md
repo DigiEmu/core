@@ -1,139 +1,170 @@
+
 # DigiEmu Core
 
-DigiEmu Core is an auditable knowledge kernel designed to stabilize AI-driven systems through versioned claims, structured governance, and traceable decision logic.
+Deterministic Knowledge Infrastructure for AI Systems.
 
-It is not a chatbot framework.  
-It is not a CMS.  
-It is not an application layer.  
+DigiEmu Core provides a deterministic snapshot and verification layer for knowledge states.
+It allows AI and software systems to store, replay, verify and sign knowledge states with
+full reproducibility.
 
-It is infrastructure.
+The system ensures that knowledge snapshots can always be reconstructed and verified.
 
----
+---------------------------------------------------------------------
 
-## Purpose
+## Core Principles
 
-Modern AI systems lack reproducibility, version stability and epistemic traceability. DigiEmu Core introduces a structured knowledge layer that enables:
+- Deterministic knowledge snapshots
+- Cryptographic integrity
+- Replay verification
+- Signed knowledge bundles
+- Trusted identity layer
+- Transportable bundles
 
-- Explicit governance rules
+---------------------------------------------------------------------
 
-The system is designed for environments where traceability and reproducibility are essential (education, research, regulated industries, AI governance).
+## Quick Start
 
----
+Build the CLI:
 
-## Architectural Principles
+```bash
+go build -o digiemu ./cmd/digiemu
+```
 
-- Separation of domain logic from infrastructure
-- Immutable historical states
-- Deterministic decision logging
-- Strict boundary between Open Core and commercial extensions
+Create a snapshot:
 
----
+```bash
+digiemu snapshot file input.json
+```
 
-The Open Core includes:
+Verify bundle:
 
-- Kernel architecture
-- Domain model (Tenant, Content, Claim, Version)
-- Core API ports
-- Governance documentation
-- Decision log structure
-- Ethics and abort criteria framework
+```bash
+digiemu verify bundle snapshots/.../bundle.json
+```
 
----
+Replay snapshot:
 
-## Commercial Extensions (Not Included)
+```bash
+digiemu replay bundle snapshots/.../bundle.json
+```
 
-The following components are not part of the Open Core:
+Verify replay determinism:
 
-- Enterprise multi-tenant layer
-- License activation mechanisms
-- Compliance add-ons
-- SLA / support modules
-- Commercial audit tooling
+```bash
+digiemu verify replay snapshots/.../bundle.json
+```
 
-These components are available under separate commercial licensing.
+---------------------------------------------------------------------
 
----
+## Signature System
+
+Sign a bundle:
+
+```bash
+digiemu sign bundle bundle.json
+```
+
+Verify signature:
+
+```bash
+digiemu verify signature bundle.json
+```
+
+---------------------------------------------------------------------
+
+## Identity System
+
+Show local identity:
+
+```bash
+digiemu identity show
+```
+
+Export identity:
+
+```bash
+digiemu identity export <directory>
+```
+
+Import trusted identity:
+
+```bash
+digiemu identity import <directory>
+```
+
+Identity fingerprint:
+
+```bash
+digiemu identity fingerprint
+```
+
+---------------------------------------------------------------------
+
+## Bundle Transport
+
+Export bundle:
+
+```bash
+digiemu export bundle bundle.json <directory>
+```
+
+Import bundle:
+
+```bash
+digiemu import bundle <directory>
+```
+
+---------------------------------------------------------------------
+
+## End-to-End Verification Pipeline
+
+DigiEmu Core guarantees that a knowledge snapshot can always be:
+
+- recreated
+- replayed
+- verified
+- cryptographically signed
+- transported
+- trusted via identity verification
+
+---------------------------------------------------------------------
+
+## Architecture Overview
+
+DigiEmu Core consists of:
+
+- Snapshot engine
+- Replay engine
+- Verification layer
+- Signature system
+- Identity trust layer
+- Bundle transport system
+
+---------------------------------------------------------------------
+
+## Repository Structure
+
+```
+cmd/digiemu
+pkg/snapshot
+pkg/replay
+pkg/verify
+pkg/claims
+pkg/meaning
+pkg/uncertainty
+```
+
+---------------------------------------------------------------------
 
 ## Status
 
-DigiEmu Core is released as Open Core infrastructure under the Business Source License (BSL 1.1).
+Core MVP completed.
 
-It is intended for controlled adoption, academic validation and responsible system integration.
+The system is now capable of deterministic knowledge snapshot verification and
+cryptographically verifiable replay.
 
----
+---------------------------------------------------------------------
 
-## Non-Goals
+## License
 
-DigiEmu Core does not:
-
-- Replace application frameworks
-- Provide conversational AI
-- Offer UI components
-- Replace data storage engines
-
-It provides epistemic infrastructure only.
-
----
-
-## Governance
-
-Development follows explicit governance principles defined in:
-
-- GOVERNANCE.md
-- ETHICS.md
-- ABORT_CRITERIA.md
-
----
-
-## Contact
-
-For academic collaboration or commercial licensing inquiries:
-
-Bruno Baumgartner  
-bruno@brainbloom.ch
-
-## Genesis anchor
-Normative genesis anchor (root-of-trust):
-- `docs/GENESIS_ANCHOR_v1.0.yaml`
-
-## Specs & Docs
-
-- `docs/PUBLIC_API_README.md`
-- `docs/PUBLIC_API_FREEZE_v1.0.md`
-- `docs/GENESIS_ANCHOR_v1.0.yaml`
-- `docs/CLI_TOOLCHAIN_VERIFY_v1.0.md`
-- `docs/SNAPSHOT_HASH_v1.0.md`
-
-## Verify CLI notes
-
-- The `digiemu verify` command supports loading snapshot bundles from either fixtures or the data directory.
-- By default the command prefers fixtures under `data/test-fixtures` when present; use `--prefer-data` to override.
-- Use `--json` to obtain stable machine-readable output with fields: `ok,ref,expected,got,hash_alg,canonical_scope,errors`.
-
-## CLI – Snapshot
-
-DigiEmu Core can create a deterministic snapshot from a file.
-
-### Snapshot a File
-
-```bash
-digiemu snapshot file <path>
-```
-
-This writes output files to `snapshots/<ref>/snapshot.json` and `snapshots/<ref>/meta.json` in the current working directory.
-
-## CLI - Replay
-
-DigiEmu Core provides deterministic replay commands.
-
-### Replay a Snapshot Bundle
-
-	digiemu replay --bundle snapshots/<ref>
-
-Add `--json` to emit machine-readable JSON to stdout.
-
-### Replay a File
-
-	digiemu replay file <path>
-
-This prints a deterministic JSON object to stdout (including `source` and `sha256`).
+See LICENSE file.
