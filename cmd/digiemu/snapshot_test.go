@@ -61,6 +61,14 @@ func TestRunSnapshotFileWithIO_Success(t *testing.T) {
 	if len(traceMatches) != 1 {
 		t.Fatalf("expected 1 trace.json, got %d", len(traceMatches))
 	}
+
+	bundleMatches, err := filepath.Glob(filepath.Join("snapshots", "*", "bundle.json"))
+	if err != nil {
+		t.Fatalf("glob bundle: %v", err)
+	}
+	if len(bundleMatches) != 1 {
+		t.Fatalf("expected 1 bundle.json, got %d", len(bundleMatches))
+	}
 }
 
 func TestRunSnapshotFileWithIO_Usage(t *testing.T) {

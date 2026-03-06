@@ -30,6 +30,14 @@ type snapshotTraceDoc struct {
 	Mode      string `json:"mode"`
 }
 
+type snapshotBundleDoc struct {
+	Version  string `json:"version"`
+	Ref      string `json:"ref"`
+	Snapshot string `json:"snapshot"`
+	Meta     string `json:"meta"`
+	Trace    string `json:"trace"`
+}
+
 func runSnapshot(args []string) {
 	os.Exit(runSnapshotWithIO(args, os.Stdout, os.Stderr))
 }
@@ -84,6 +92,13 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 		CreatedAt: now,
 		Mode:      "snapshot-file-v0.1",
 	}
+	bundleDoc := snapshotBundleDoc{
+		Version:  "snapshot-bundle-v0.1",
+		Ref:      ref,
+		Snapshot: "snapshot.json",
+		Meta:     "meta.json",
+		Trace:    "trace.json",
+	}
 
 	snapshotBytes, err := json.MarshalIndent(snapshotDoc, "", "  ")
 	if err != nil {
@@ -100,6 +115,11 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "snapshot file: marshal trace: %v\n", err)
 		return 1
 	}
+	bundleBytes, err := json.MarshalIndent(bundleDoc, "", "  ")
+	if err != nil {
+		fmt.Fprintf(stderr, "snapshot file: marshal bundle: %v\n", err)
+		return 1
+	}
 
 	if err := os.WriteFile(filepath.Join(outDir, "snapshot.json"), snapshotBytes, 0o644); err != nil {
 		fmt.Fprintf(stderr, "snapshot file: write snapshot.json: %v\n", err)
@@ -111,6 +131,10 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 	}
 	if err := os.WriteFile(filepath.Join(outDir, "trace.json"), traceBytes, 0o644); err != nil {
 		fmt.Fprintf(stderr, "snapshot file: write trace.json: %v\n", err)
+		return 1
+	}
+	if err := os.WriteFile(filepath.Join(outDir, "bundle.json"), bundleBytes, 0o644); err != nil {
+		fmt.Fprintf(stderr, "snapshot file: write bundle.json: %v\n", err)
 		return 1
 	}
 
