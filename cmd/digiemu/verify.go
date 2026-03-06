@@ -21,6 +21,9 @@ func runVerifyWithIO(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "bundle" {
 		return runVerifyBundle(args[1:])
 	}
+	if len(args) > 0 && args[0] == "signature" {
+		return runVerifySignatureWithIO(args[1:], stdout, stderr)
+	}
 	if len(args) > 0 && args[0] == "replay" {
 		return runVerifyReplayWithIO(args[1:], stdout, stderr)
 	}
