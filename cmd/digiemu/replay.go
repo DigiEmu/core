@@ -22,6 +22,9 @@ func runReplayWithIO(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "file" {
 		return runReplayFileWithIO(args[1:], stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == "bundle" {
+		return runReplayBundleWithIO(args[1:], stdout, stderr)
+	}
 
 	args = normalizeJSONFlagArgs(args)
 
@@ -35,14 +38,12 @@ func runReplayWithIO(args []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-
 	mode, err := parseJSONMode(*jsonOut)
 	if err != nil {
 		fmt.Fprintln(stderr, err.Error())
 		flagset.Usage()
 		return 2
 	}
-
 	root := filepath.Clean(strings.TrimSpace(*bundlePath))
 	if root == "." || strings.TrimSpace(*bundlePath) == "" {
 		fmt.Fprintln(stderr, "--bundle is required")
