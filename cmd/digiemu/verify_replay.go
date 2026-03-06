@@ -54,6 +54,12 @@ func runVerifyReplayWithIO(args []string, stdout, stderr io.Writer) int {
 	snapshotPath := filepath.Join(baseDir, bundle.Snapshot)
 	tracePath := filepath.Join(baseDir, bundle.Trace)
 
+	snapshotBytes, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		fmt.Fprintf(stderr, "verify replay: read snapshot: %v\n", err)
+		return 1
+	}
+
 	traceBytes, err := os.ReadFile(tracePath)
 	if err != nil {
 		fmt.Fprintf(stderr, "verify replay: read trace: %v\n", err)
@@ -65,7 +71,7 @@ func runVerifyReplayWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	r1, err := pkgreplay.FromFile(snapshotPath)
+	r1, err := pkgreplay.FromBytes(snapshotBytes)
 	if err != nil {
 		fmt.Fprintf(stderr, "verify replay: %v\n", err)
 		return 1
@@ -76,7 +82,7 @@ func runVerifyReplayWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	r2, err := pkgreplay.FromFile(snapshotPath)
+	r2, err := pkgreplay.FromBytes(snapshotBytes)
 	if err != nil {
 		fmt.Fprintf(stderr, "verify replay: %v\n", err)
 		return 1
@@ -92,11 +98,13 @@ func runVerifyReplayWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	sum := sha256.Sum256(out1)
-	actual := hex.EncodeToString(sum[:])
-	if trace.ReplaySHA256 != "" && actual != trace.ReplaySHA256 {
-		fmt.Fprintln(stderr, "replay mismatch")
-		return 1
+	if trace.ReplaySHA256 != "" {
+		sum := sha256.Sum256(out1)
+		actual := hex.EncodeToString(sum[:])
+		if actual != trace.ReplaySHA256 {
+			fmt.Fprintln(stderr, "replay mismatch")
+			return 1
+		}
 	}
 
 	_ = trace.Mode

@@ -40,7 +40,12 @@ func TestRunVerifyReplayWithIO_Success_WithExpected(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := pkgreplay.FromFile(snapshotPath)
+	snapshotBytes, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// verify replay uses FromBytes(snapshot file bytes) to avoid source-dependent hashes.
+	res, err := pkgreplay.FromBytes(snapshotBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
