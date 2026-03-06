@@ -110,6 +110,18 @@ Normative genesis anchor (root-of-trust):
 - By default the command prefers fixtures under `data/test-fixtures` when present; use `--prefer-data` to override.
 - Use `--json` to obtain stable machine-readable output with fields: `ok,ref,expected,got,hash_alg,canonical_scope,errors`.
 
+## CLI – Snapshot
+
+DigiEmu Core can create a deterministic snapshot from a file.
+
+### Snapshot a File
+
+```bash
+digiemu snapshot file <path>
+```
+
+This writes output files to `snapshots/<ref>/snapshot.json` and `snapshots/<ref>/meta.json` in the current working directory.
+
 ## CLI - Replay
 
 DigiEmu Core provides deterministic replay commands.

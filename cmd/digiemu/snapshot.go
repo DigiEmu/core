@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type snapshotFileDoc struct {
@@ -19,6 +20,14 @@ type snapshotMetaDoc struct {
 	Source    string `json:"source"`
 	InputPath string `json:"input_path"`
 	Size      int    `json:"size"`
+}
+
+type snapshotTraceDoc struct {
+	Source    string `json:"source"`
+	InputPath string `json:"input_path"`
+	SHA256    string `json:"sha256"`
+	CreatedAt string `json:"created_at"`
+	Mode      string `json:"mode"`
 }
 
 func runSnapshot(args []string) {
@@ -57,6 +66,8 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
+	now := time.Now().UTC().Format(time.RFC3339)
+
 	snapshotDoc := snapshotFileDoc{
 		Canonical: string(data),
 		SHA256:    hash,
@@ -65,6 +76,13 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 		Source:    "file",
 		InputPath: path,
 		Size:      len(data),
+	}
+	traceDoc := snapshotTraceDoc{
+		Source:    "file",
+		InputPath: path,
+		SHA256:    hash,
+		CreatedAt: now,
+		Mode:      "snapshot-file-v0.1",
 	}
 
 	snapshotBytes, err := json.MarshalIndent(snapshotDoc, "", "  ")
@@ -77,6 +95,11 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "snapshot file: marshal meta: %v\n", err)
 		return 1
 	}
+	traceBytes, err := json.MarshalIndent(traceDoc, "", "  ")
+	if err != nil {
+		fmt.Fprintf(stderr, "snapshot file: marshal trace: %v\n", err)
+		return 1
+	}
 
 	if err := os.WriteFile(filepath.Join(outDir, "snapshot.json"), snapshotBytes, 0o644); err != nil {
 		fmt.Fprintf(stderr, "snapshot file: write snapshot.json: %v\n", err)
@@ -84,6 +107,10 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 	}
 	if err := os.WriteFile(filepath.Join(outDir, "meta.json"), metaBytes, 0o644); err != nil {
 		fmt.Fprintf(stderr, "snapshot file: write meta.json: %v\n", err)
+		return 1
+	}
+	if err := os.WriteFile(filepath.Join(outDir, "trace.json"), traceBytes, 0o644); err != nil {
+		fmt.Fprintf(stderr, "snapshot file: write trace.json: %v\n", err)
 		return 1
 	}
 

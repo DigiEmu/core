@@ -53,6 +53,14 @@ func TestRunSnapshotFileWithIO_Success(t *testing.T) {
 	if len(metaMatches) != 1 {
 		t.Fatalf("expected 1 meta.json, got %d", len(metaMatches))
 	}
+
+	traceMatches, err := filepath.Glob(filepath.Join("snapshots", "*", "trace.json"))
+	if err != nil {
+		t.Fatalf("glob trace: %v", err)
+	}
+	if len(traceMatches) != 1 {
+		t.Fatalf("expected 1 trace.json, got %d", len(traceMatches))
+	}
 }
 
 func TestRunSnapshotFileWithIO_Usage(t *testing.T) {
