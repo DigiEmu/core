@@ -50,6 +50,8 @@ func main() {
 		runAudit(os.Args[2:])
 	case "export":
 		runExport(os.Args[2:])
+	case "import":
+		runImport(os.Args[2:])
 	case "serve":
 		runServe(os.Args[2:])
 	case "--help", "-h", "help":
@@ -73,6 +75,8 @@ func printUsage() {
 	fmt.Println("  digiemu audit verify [--data ./data] [--strict-hash] [--unit UNIT_KEY]")
 	fmt.Println("  digiemu audit tail [--data ./data] [--n 50] [--type EVENT_TYPE] [--unit-id UNIT_ID] [--version-id VERSION_ID] [--json]")
 	fmt.Println("  digiemu export unit --unit UNIT_KEY [--data ./data] [--audit] [--pretty]")
+	fmt.Println("  digiemu export bundle <bundle.json> <out-dir>")
+	fmt.Println("  digiemu import bundle <bundle-dir>")
 	fmt.Println("  digiemu serve [--addr :8080] [--data ./data]")
 	fmt.Println("  digiemu meaning set <unitKeyOrId> [--version <versionId>] --file <meaning.json> [--data ./data]")
 	fmt.Println("  digiemu meaning show <unitKeyOrId> [--version <versionId>] [--data ./data]")

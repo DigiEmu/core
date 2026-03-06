@@ -18,7 +18,7 @@ func runExport(args []string) {
 
 func runExportWithIO(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(stderr, "export subcommands: unit")
+		fmt.Fprintln(stderr, "export subcommands: unit | bundle")
 		return 2
 	}
 
@@ -74,8 +74,11 @@ func runExportWithIO(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, string(b))
 		return 0
 
+	case "bundle":
+		return runExportBundleWithIO(args[1:], stdout, stderr)
+
 	default:
-		fmt.Fprintln(stderr, "export subcommands: unit")
+		fmt.Fprintln(stderr, "export subcommands: unit | bundle")
 		return 2
 	}
 }
