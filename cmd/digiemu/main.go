@@ -54,6 +54,8 @@ func main() {
 		runImport(os.Args[2:])
 	case "sign":
 		runSign(os.Args[2:])
+	case "identity":
+		runIdentity(os.Args[2:])
 	case "serve":
 		runServe(os.Args[2:])
 	case "--help", "-h", "help":
@@ -80,6 +82,9 @@ func printUsage() {
 	fmt.Println("  digiemu export bundle <bundle.json> <out-dir>")
 	fmt.Println("  digiemu import bundle <bundle-dir>")
 	fmt.Println("  digiemu sign bundle <bundle.json>")
+	fmt.Println("  digiemu identity show")
+	fmt.Println("  digiemu identity export <out-dir>")
+	fmt.Println("  digiemu identity import <dir>")
 	fmt.Println("  digiemu verify signature <bundle.json>")
 	fmt.Println("  digiemu serve [--addr :8080] [--data ./data]")
 	fmt.Println("  digiemu meaning set <unitKeyOrId> [--version <versionId>] --file <meaning.json> [--data ./data]")
