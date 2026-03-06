@@ -9,8 +9,17 @@ import (
 )
 
 func TestRunSignBundleWithIO_AndVerifySignatureWithIO_Success(t *testing.T) {
-	dir := t.TempDir()
-	bundlePath := filepath.Join(dir, "bundle.json")
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmp := t.TempDir()
+	if err := os.Chdir(tmp); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+
+	bundlePath := filepath.Join(tmp, "bundle.json")
 
 	if err := os.WriteFile(bundlePath, []byte(`{"version":"snapshot-bundle-v0.1","ref":"abc123"}`), 0o644); err != nil {
 		t.Fatal(err)
@@ -34,11 +43,23 @@ func TestRunSignBundleWithIO_AndVerifySignatureWithIO_Success(t *testing.T) {
 	if !strings.Contains(verifyOut.String(), "OK verify signature") {
 		t.Fatalf("unexpected stdout: %s", verifyOut.String())
 	}
+	if !strings.Contains(verifyOut.String(), "identity=local") {
+		t.Fatalf("unexpected stdout: %s", verifyOut.String())
+	}
 }
 
 func TestRunVerifySignatureWithIO_MissingSignatureFile(t *testing.T) {
-	dir := t.TempDir()
-	bundlePath := filepath.Join(dir, "bundle.json")
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmp := t.TempDir()
+	if err := os.Chdir(tmp); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+
+	bundlePath := filepath.Join(tmp, "bundle.json")
 
 	if err := os.WriteFile(bundlePath, []byte(`{"version":"snapshot-bundle-v0.1","ref":"abc123"}`), 0o644); err != nil {
 		t.Fatal(err)

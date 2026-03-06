@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func runVerifySignatureWithIO(args []string, stdout, stderr io.Writer) int {
@@ -33,12 +32,6 @@ func runVerifySignatureWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	pubBytes, err := os.ReadFile(filepath.Join(dir, "public.key"))
-	if err != nil {
-		fmt.Fprintf(stderr, "verify signature: %v\n", err)
-		return 1
-	}
-
 	var doc signatureDoc
 	if err := json.Unmarshal(sigBytes, &doc); err != nil {
 		fmt.Fprintln(stderr, "verify signature: invalid signature json")
@@ -49,18 +42,25 @@ func runVerifySignatureWithIO(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "verify signature: unsupported algorithm")
 		return 1
 	}
+	if doc.Identity == "" {
+		fmt.Fprintln(stderr, "verify signature: missing identity")
+		return 1
+	}
+
+	identityMeta, pub, err := loadLocalIdentityPublic()
+	if err != nil {
+		fmt.Fprintf(stderr, "verify signature: %v\n", err)
+		return 1
+	}
+	if identityMeta.Name != doc.Identity {
+		fmt.Fprintln(stderr, "verify signature: identity mismatch")
+		return 1
+	}
 
 	sum := sha256.Sum256(bundleBytes)
 	actualHash := hex.EncodeToString(sum[:])
 	if doc.BundleSHA256 != actualHash {
 		fmt.Fprintln(stderr, "verify signature: bundle hash mismatch")
-		return 1
-	}
-
-	pubHex := strings.TrimSpace(string(pubBytes))
-	pub, err := hex.DecodeString(pubHex)
-	if err != nil {
-		fmt.Fprintln(stderr, "verify signature: invalid public key")
 		return 1
 	}
 
@@ -70,11 +70,11 @@ func runVerifySignatureWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	if !ed25519.Verify(ed25519.PublicKey(pub), bundleBytes, sig) {
+	if !ed25519.Verify(pub, bundleBytes, sig) {
 		fmt.Fprintln(stderr, "verify signature: signature check failed")
 		return 1
 	}
 
-	fmt.Fprintf(stdout, "OK verify signature %s\n", bundlePath)
+	fmt.Fprintf(stdout, "OK verify signature %s identity=%s\n", bundlePath, doc.Identity)
 	return 0
 }

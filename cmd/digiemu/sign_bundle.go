@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/ed25519"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -14,6 +13,7 @@ import (
 
 type signatureDoc struct {
 	Algorithm    string `json:"algorithm"`
+	Identity     string `json:"identity"`
 	BundleSHA256 string `json:"bundle_sha256"`
 	Signature    string `json:"signature"`
 }
@@ -32,19 +32,21 @@ func runSignBundleWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	sum := sha256.Sum256(data)
-	hashHex := hex.EncodeToString(sum[:])
-
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	meta, pub, priv, err := ensureLocalIdentity()
 	if err != nil {
-		fmt.Fprintf(stderr, "sign bundle: generate key: %v\n", err)
+		fmt.Fprintf(stderr, "sign bundle: ensure identity: %v\n", err)
 		return 1
 	}
+	_ = pub
+
+	sum := sha256.Sum256(data)
+	hashHex := hex.EncodeToString(sum[:])
 
 	sig := ed25519.Sign(priv, data)
 
 	doc := signatureDoc{
-		Algorithm:    "ed25519",
+		Algorithm:    meta.Algorithm,
+		Identity:     meta.Name,
 		BundleSHA256: hashHex,
 		Signature:    hex.EncodeToString(sig),
 	}
@@ -62,11 +64,6 @@ func runSignBundleWithIO(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	if err := os.WriteFile(filepath.Join(dir, "public.key"), []byte(hex.EncodeToString(pub)), 0o644); err != nil {
-		fmt.Fprintf(stderr, "sign bundle: write public.key: %v\n", err)
-		return 1
-	}
-
-	fmt.Fprintf(stdout, "OK sign bundle %s\n", bundlePath)
+	fmt.Fprintf(stdout, "OK sign bundle %s identity=%s\n", bundlePath, meta.Name)
 	return 0
 }
