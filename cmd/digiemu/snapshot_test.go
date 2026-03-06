@@ -2,11 +2,17 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+type testTraceDoc struct {
+	SHA256       string `json:"sha256"`
+	ReplaySHA256 string `json:"replay_sha256"`
+}
 
 func TestRunSnapshotFileWithIO_Success(t *testing.T) {
 	wd, err := os.Getwd()
@@ -60,6 +66,22 @@ func TestRunSnapshotFileWithIO_Success(t *testing.T) {
 	}
 	if len(traceMatches) != 1 {
 		t.Fatalf("expected 1 trace.json, got %d", len(traceMatches))
+	}
+
+	traceBytes, err := os.ReadFile(traceMatches[0])
+	if err != nil {
+		t.Fatalf("read trace: %v", err)
+	}
+
+	var trace testTraceDoc
+	if err := json.Unmarshal(traceBytes, &trace); err != nil {
+		t.Fatalf("unmarshal trace: %v", err)
+	}
+	if trace.SHA256 == "" {
+		t.Fatal("expected trace sha256")
+	}
+	if trace.ReplaySHA256 == "" {
+		t.Fatal("expected trace replay_sha256")
 	}
 
 	bundleMatches, err := filepath.Glob(filepath.Join("snapshots", "*", "bundle.json"))

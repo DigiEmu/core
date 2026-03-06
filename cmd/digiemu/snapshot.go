@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	pkgreplay "digiemu-core/pkg/replay"
 )
 
 type snapshotFileDoc struct {
@@ -23,11 +25,12 @@ type snapshotMetaDoc struct {
 }
 
 type snapshotTraceDoc struct {
-	Source    string `json:"source"`
-	InputPath string `json:"input_path"`
-	SHA256    string `json:"sha256"`
-	CreatedAt string `json:"created_at"`
-	Mode      string `json:"mode"`
+	Source       string `json:"source"`
+	InputPath    string `json:"input_path"`
+	SHA256       string `json:"sha256"`
+	ReplaySHA256 string `json:"replay_sha256,omitempty"`
+	CreatedAt    string `json:"created_at"`
+	Mode         string `json:"mode"`
 }
 
 type snapshotBundleDoc struct {
@@ -105,6 +108,22 @@ func runSnapshotFileWithIO(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "snapshot file: marshal snapshot: %v\n", err)
 		return 1
 	}
+
+	replayResult, err := pkgreplay.FromBytes(snapshotBytes)
+	if err != nil {
+		fmt.Fprintf(stderr, "snapshot file: replay prepare: %v\n", err)
+		return 1
+	}
+
+	replayBytes, err := replayResult.Marshal()
+	if err != nil {
+		fmt.Fprintf(stderr, "snapshot file: replay marshal: %v\n", err)
+		return 1
+	}
+
+	replaySum := sha256.Sum256(replayBytes)
+	traceDoc.ReplaySHA256 = hex.EncodeToString(replaySum[:])
+
 	metaBytes, err := json.MarshalIndent(metaDoc, "", "  ")
 	if err != nil {
 		fmt.Fprintf(stderr, "snapshot file: marshal meta: %v\n", err)
