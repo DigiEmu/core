@@ -18,6 +18,10 @@ func runVerify(args []string) {
 }
 
 func runVerifyWithIO(args []string, stdout, stderr io.Writer) int {
+	if len(args) > 0 && args[0] == "bundle" {
+		return runVerifyBundle(args[1:])
+	}
+
 	args = normalizeJSONFlagArgs(args)
 
 	fs := flag.NewFlagSet("verify", flag.ContinueOnError)
