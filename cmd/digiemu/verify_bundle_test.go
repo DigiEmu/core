@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,13 +12,35 @@ import (
 func TestRunVerifyBundle_Success(t *testing.T) {
 	dir := t.TempDir()
 
-	if err := os.WriteFile(filepath.Join(dir, "snapshot.json"), []byte(`{}`), 0o644); err != nil {
+	canonical := `{"hello":"world"}`
+	sum := sha256.Sum256([]byte(canonical))
+	expected := hex.EncodeToString(sum[:])
+
+	snapshotDoc := verifySnapshotDoc{Canonical: canonical, SHA256: expected}
+	snapshotBytes, err := json.Marshal(snapshotDoc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "snapshot.json"), snapshotBytes, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "meta.json"), []byte(`{}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "trace.json"), []byte(`{}`), 0o644); err != nil {
+
+	traceDoc := verifyTraceDoc{
+		Source:    "file",
+		InputPath: "x",
+		SHA256:    expected,
+		CreatedAt: "2026-01-01T00:00:00Z",
+		Mode:      "snapshot-file-v0.1",
+	}
+	traceBytes, err := json.Marshal(traceDoc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "trace.json"), traceBytes, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
