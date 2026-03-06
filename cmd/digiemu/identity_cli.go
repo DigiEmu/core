@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +16,7 @@ func runIdentity(args []string) {
 
 func runIdentityWithIO(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(stderr, "identity subcommands: show | export | import")
+		fmt.Fprintln(stderr, "identity subcommands: show | export | import | fingerprint")
 		return 2
 	}
 
@@ -25,8 +27,10 @@ func runIdentityWithIO(args []string, stdout, stderr io.Writer) int {
 		return runIdentityExportWithIO(args[1:], stdout, stderr)
 	case "import":
 		return runIdentityImportWithIO(args[1:], stdout, stderr)
+	case "fingerprint":
+		return runIdentityFingerprintWithIO(args[1:], stdout, stderr)
 	default:
-		fmt.Fprintln(stderr, "identity subcommands: show | export | import")
+		fmt.Fprintln(stderr, "identity subcommands: show | export | import | fingerprint")
 		return 2
 	}
 }
@@ -127,5 +131,22 @@ func runIdentityImportWithIO(args []string, stdout, stderr io.Writer) int {
 	}
 
 	fmt.Fprintf(stdout, "OK identity import %s\n", srcDir)
+	return 0
+}
+
+func runIdentityFingerprintWithIO(args []string, stdout, stderr io.Writer) int {
+	if len(args) != 0 {
+		fmt.Fprintln(stderr, "usage: digiemu identity fingerprint")
+		return 2
+	}
+
+	pubBytes, err := os.ReadFile(filepath.Join(".digiemu", "identity.pub"))
+	if err != nil {
+		fmt.Fprintf(stderr, "identity fingerprint: %v\n", err)
+		return 1
+	}
+
+	sum := sha256.Sum256(pubBytes)
+	fmt.Fprintln(stdout, hex.EncodeToString(sum[:]))
 	return 0
 }

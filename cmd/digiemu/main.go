@@ -85,6 +85,7 @@ func printUsage() {
 	fmt.Println("  digiemu identity show")
 	fmt.Println("  digiemu identity export <out-dir>")
 	fmt.Println("  digiemu identity import <dir>")
+	fmt.Println("  digiemu identity fingerprint")
 	fmt.Println("  digiemu verify signature <bundle.json>")
 	fmt.Println("  digiemu serve [--addr :8080] [--data ./data]")
 	fmt.Println("  digiemu meaning set <unitKeyOrId> [--version <versionId>] --file <meaning.json> [--data ./data]")
