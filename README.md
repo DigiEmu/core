@@ -102,6 +102,7 @@ Normative genesis anchor (root-of-trust):
 - `docs/PUBLIC_API_FREEZE_v1.0.md`
 - `docs/GENESIS_ANCHOR_v1.0.yaml`
 - `docs/CLI_TOOLCHAIN_VERIFY_v1.0.md`
+- `docs/SNAPSHOT_HASH_v1.0.md`
 
 ## Verify CLI notes
 
@@ -109,4 +110,18 @@ Normative genesis anchor (root-of-trust):
 - By default the command prefers fixtures under `data/test-fixtures` when present; use `--prefer-data` to override.
 - Use `--json` to obtain stable machine-readable output with fields: `ok,ref,expected,got,hash_alg,canonical_scope,errors`.
 
-- `docs/SNAPSHOT_HASH_v1.0.md`
+## CLI - Replay
+
+DigiEmu Core provides deterministic replay commands.
+
+### Replay a Snapshot Bundle
+
+	digiemu replay --bundle snapshots/<ref>
+
+Add `--json` to emit machine-readable JSON to stdout.
+
+### Replay a File
+
+	digiemu replay file <path>
+
+This prints a deterministic JSON object to stdout (including `source` and `sha256`).

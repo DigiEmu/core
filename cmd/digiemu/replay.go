@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"digiemu-core/internal/verify"
+	pkgreplay "digiemu-core/pkg/replay"
 )
 
 func runReplay(args []string) {
@@ -18,6 +19,10 @@ func runReplay(args []string) {
 }
 
 func runReplayWithIO(args []string, stdout, stderr io.Writer) int {
+	if len(args) > 0 && args[0] == "file" {
+		return runReplayFileWithIO(args[1:], stdout, stderr)
+	}
+
 	args = normalizeJSONFlagArgs(args)
 
 	flagset := flag.NewFlagSet("replay", flag.ContinueOnError)
@@ -100,4 +105,30 @@ func errorsIsAny(err error, targets ...error) bool {
 		}
 	}
 	return false
+}
+
+func runReplayFileWithIO(args []string, stdout, stderr io.Writer) int {
+	if len(args) != 1 {
+		fmt.Fprintln(stderr, "usage: digiemu replay file <path>")
+		return 2
+	}
+
+	result, err := pkgreplay.FromFile(args[0])
+	if err != nil {
+		fmt.Fprintf(stderr, "replay file: %v\n", err)
+		return 1
+	}
+
+	data, err := result.Marshal()
+	if err != nil {
+		fmt.Fprintf(stderr, "replay file: marshal result: %v\n", err)
+		return 1
+	}
+
+	if _, err := fmt.Fprintln(stdout, string(data)); err != nil {
+		fmt.Fprintf(stderr, "replay file: write output: %v\n", err)
+		return 1
+	}
+
+	return 0
 }
