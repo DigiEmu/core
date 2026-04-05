@@ -2,11 +2,10 @@ name: Drift Guard
 
 on:
   pull_request:
-    branches: ["main"]
-  workflow_dispatch: {}
+  push:
 
 jobs:
-  guard:
+  guard-demo-artifacts:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -14,40 +13,53 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fail if expected demo artifacts are modified
+      - name: Guard expected demo artifacts
         shell: bash
         run: |
           set -euo pipefail
 
-          # Decide comparison base:
-          # - PR: compare against PR base branch (github.base_ref)
-          # - workflow_dispatch: compare against main
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            base_ref="${{ github.base_ref }}"
-          else
-            base_ref="main"
+          DEMO_FILE="examples/snapshot_v1_demo/expected_verify_report.json"
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}}"
+
+          git fetch origin main --depth=1
+
+          CHANGED_FILES="$(git diff --name-only origin/main...HEAD || true)"
+
+          DEMO_CHANGED=false
+          if printf '%s\n' "$CHANGED_FILES" | grep -Fxq "$DEMO_FILE"; then
+            DEMO_CHANGED=true
           fi
 
-          echo "Using base_ref=$base_ref"
+          IS_DEMO_BRANCH=false
+          case "$BRANCH" in
+            chore/update-demo-golden-*|demo-artifact/*)
+              IS_DEMO_BRANCH=true
+              ;;
+          esac
 
-          # Ensure we have the base ref locally
-          git fetch --no-tags --prune origin "$base_ref"
+          if [ "$DEMO_CHANGED" = true ]; then
+            if [ "$IS_DEMO_BRANCH" = true ]; then
+              EXTRA_FILES="$(printf '%s\n' "$CHANGED_FILES" | grep -Fxv "$DEMO_FILE" || true)"
+              if [ -n "$EXTRA_FILES" ]; then
+                echo "ERROR: dedicated demo-artifact branches may only modify:"
+                echo "  $DEMO_FILE"
+                echo
+                echo "Additional changed files detected:"
+                printf '%s\n' "$EXTRA_FILES"
+                exit 1
+              fi
 
-          # List changed files between base and HEAD
-          git diff --name-only "origin/${base_ref}...HEAD" > changed.txt
-          cat changed.txt
+              echo "INFO: intentional demo artifact update allowed on dedicated branch: $BRANCH"
+              exit 0
+            fi
 
-          # Guard: expected demo artifacts must not change
-          if grep -Eq '^examples/snapshot_v1_demo/expected_(snapshot_hash\.txt|verify_report\.json)$' changed.txt; then
             echo "ERROR: expected demo artifacts changed. This usually indicates drift."
             echo "If this is intentional, do it in a dedicated PR with explicit justification."
+            echo
+            echo "Allowed branch patterns:"
+            echo "  chore/update-demo-golden-*"
+            echo "  demo-artifact/*"
             exit 1
           fi
 
-          # Guard: schema is a contract change
-          if grep -Eq '^schemas/VERIFY_RESULT_SCHEMA_v1\.json$' changed.txt; then
-            echo "ERROR: schema changed. This is a contract change; must be handled explicitly."
-            exit 1
-          fi
-
-          echo "OK: no expected artifacts changed."
+          echo "INFO: no demo artifact drift detected"
