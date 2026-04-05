@@ -62,7 +62,7 @@ func (uc CreateVersion) CreateVersion(in ports.CreateVersionRequest) (ports.Crea
 	// strict audit: no "success" without journal entry
 	ev := domain.AuditEvent{
 		Schema:    "digiemu.audit.v1",
-		ID:        domain.NewID("evt"),
+		ID:        domain.NewIDParts("evt", "version.created", v.UnitID, v.ID),
 		Type:      "version.created",
 		AtUnix:    v.CreatedAtUnix,
 		ActorID:   v.ActorID,

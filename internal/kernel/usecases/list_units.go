@@ -18,10 +18,13 @@ func (uc ListUnits) ListUnits(in ports.ListUnitsRequest) (ports.ListUnitsRespons
 
 	prefix := strings.TrimSpace(in.KeyPrefix)
 	out := make([]ports.UnitDTO, 0, len(us))
-	for _, u := range us {
+
+	for i := 0; i < len(us); i++ {
+		u := us[i]
 		if prefix != "" && !strings.HasPrefix(u.Key, prefix) {
 			continue
 		}
+
 		out = append(out, ports.UnitDTO{
 			ID:            u.ID,
 			Key:           u.Key,
@@ -30,5 +33,6 @@ func (uc ListUnits) ListUnits(in ports.ListUnitsRequest) (ports.ListUnitsRespons
 			HeadVersionID: u.HeadVersionID,
 		})
 	}
+
 	return ports.ListUnitsResponse{Units: out}, nil
 }

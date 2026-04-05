@@ -21,7 +21,6 @@ func (StubVerifier) Verify(ref snapshot.Ref) (pkgverify.Result, error) {
 		HashAlg:        "sha256(canonical_json_v1)",
 		CanonicalScope: "canonical_json_v1",
 		Trace:          []string{},
-		Errors:         []string{},
 	}
 
 	if err := ref.Validate(); err != nil {

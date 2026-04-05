@@ -7,15 +7,13 @@ import "digiemu-core/pkg/snapshot"
 type Result struct {
 	OK             bool     `json:"ok"`
 	Ref            string   `json:"ref"`
-	Expected       string   `json:"expected,omitempty"`
-	Got            string   `json:"got,omitempty"`
-	HashAlg        string   `json:"hash_alg,omitempty"`
-	CanonicalScope string   `json:"canonical_scope,omitempty"`
-	Trace          []string `json:"trace,omitempty"`
+	Expected       string   `json:"expected"`
+	Got            string   `json:"got"`
+	HashAlg        string   `json:"hash_alg"`
+	CanonicalScope string   `json:"canonical_scope"`
+	Trace          []string `json:"trace"`
 	Errors         []string `json:"errors,omitempty"`
-	Message        string   `json:"message,omitempty"`
-	// keep a typed Ref for callers in memory (not serialized)
-	_Ref snapshot.Ref `json:"-"`
+	Message        string   `json:"message"`
 }
 
 // Verifier is the stable interface for snapshot verification.

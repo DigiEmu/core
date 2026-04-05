@@ -79,7 +79,7 @@ func (uc SetUncertainty) SetUncertainty(in ports.SetUncertaintyRequest) (ports.S
 
 	ev := domain.AuditEvent{
 		Schema:    "digiemu.audit.v1",
-		ID:        domain.NewID("evt"),
+		ID:        domain.NewIDParts("evt", "UNCERTAINTY_SET", unit.ID, verID, uh),
 		Type:      "UNCERTAINTY_SET",
 		AtUnix:    uc.Clock.NowUnix(),
 		ActorID:   in.ActorID,

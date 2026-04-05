@@ -34,7 +34,7 @@ func NewVersion(unitID, label, content string) (Version, error) {
 	}
 
 	return Version{
-		ID:      NewID("ver"),
+		ID:      NewIDParts("ver", unitID, label, content),
 		UnitID:  unitID,
 		Label:   label,
 		Content: content,

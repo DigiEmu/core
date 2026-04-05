@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"sort"
+
 	"digiemu-core/internal/kernel/domain"
 	"digiemu-core/internal/kernel/ports"
 )
@@ -23,6 +25,16 @@ func (uc ExportUnitSnapshot) ExportUnitSnapshot(in ports.ExportUnitSnapshotReque
 	if err != nil {
 		return ports.ExportUnitSnapshotResponse{}, err
 	}
+
+	// Deterministic ordering for snapshot export:
+	// 1) CreatedAtUnix ascending
+	// 2) ID ascending as stable tie-breaker
+	sort.Slice(vs, func(i, j int) bool {
+		if vs[i].CreatedAtUnix != vs[j].CreatedAtUnix {
+			return vs[i].CreatedAtUnix < vs[j].CreatedAtUnix
+		}
+		return vs[i].ID < vs[j].ID
+	})
 
 	outVers := make([]ports.VersionDTO, 0, len(vs))
 	for _, v := range vs {

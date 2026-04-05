@@ -13,8 +13,8 @@ const (
 // Annotation attaches uncertainty information to an object reference.
 type Annotation struct {
 	Level Level    `json:"level"`
-	Note  string   `json:"note,omitempty"`
-	Refs  []string `json:"refs,omitempty"`
+	Note  string   `json:"note"`
+	Refs  []string `json:"refs"`
 }
 
 func (a Annotation) Validate() error {

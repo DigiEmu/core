@@ -40,7 +40,7 @@ func (uc CreateUnit) CreateUnit(in ports.CreateUnitRequest) (ports.CreateUnitRes
 
 	ev := domain.AuditEvent{
 		Schema:  "digiemu.audit.v1",
-		ID:      domain.NewID("evt"),
+		ID:      domain.NewIDParts("evt", "unit.created", u.ID, actorOrUnknown(in.ActorID)),
 		Type:    "unit.created",
 		AtUnix:  uc.Clock.NowUnix(),
 		ActorID: actorOrUnknown(in.ActorID),

@@ -1,6 +1,9 @@
 package domain
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 const (
 	ClaimSchemaV0    = "claim/v0"
@@ -10,7 +13,7 @@ const (
 type Claim struct {
 	ID   string   `json:"id"`
 	Text string   `json:"text"`
-	Tags []string `json:"tags,omitempty"`
+	Tags []string `json:"tags"`
 }
 
 type RelationType string
@@ -29,7 +32,7 @@ type ClaimSet struct {
 	SchemaVersion string          `json:"schema_version"`
 	VersionID     string          `json:"version_id"`
 	Claims        []Claim         `json:"claims"`
-	Relations     []ClaimRelation `json:"relations,omitempty"`
+	Relations     []ClaimRelation `json:"relations"`
 }
 
 // ValidateMinimal checks basic schema and referential integrity rules.
@@ -44,8 +47,11 @@ func (cs *ClaimSet) ValidateMinimal() error {
 		return fmt.Errorf("version_id is required")
 	}
 
-	idSeen := make(map[string]struct{})
-	for i, c := range cs.Claims {
+	idSeen := make(map[string]struct{}, len(cs.Claims))
+	claimIDs := make([]string, 0, len(cs.Claims))
+
+	for i := 0; i < len(cs.Claims); i++ {
+		c := cs.Claims[i]
 		if c.ID == "" {
 			return fmt.Errorf("claim[%d]: id is required", i)
 		}
@@ -56,9 +62,13 @@ func (cs *ClaimSet) ValidateMinimal() error {
 			return fmt.Errorf("duplicate claim id: %s", c.ID)
 		}
 		idSeen[c.ID] = struct{}{}
+		claimIDs = append(claimIDs, c.ID)
 	}
 
-	for i, r := range cs.Relations {
+	sort.Strings(claimIDs)
+
+	for i := 0; i < len(cs.Relations); i++ {
+		r := cs.Relations[i]
 		if r.Type != RelationContradicts {
 			return fmt.Errorf("relation[%d]: unsupported relation type: %s", i, r.Type)
 		}

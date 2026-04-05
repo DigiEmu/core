@@ -15,14 +15,14 @@ type Uncertainty struct {
 	ID            string               `json:"id"`
 	Type          string               `json:"type"`
 	Level         string               `json:"level"`
-	Text          string               `json:"text,omitempty"`
-	Tags          []string             `json:"tags,omitempty"`
+	Text          string               `json:"text"`
+	Tags          []string             `json:"tags"`
 	AppliesTo     UncertaintyAppliesTo `json:"applies_to"`
 }
 
 type UncertaintyAppliesTo struct {
 	Scope   AppliesToScope `json:"scope"`
-	ClaimID string         `json:"claim_id,omitempty"`
+	ClaimID string         `json:"claim_id"`
 }
 
 // ValidateMinimal enforces the minimal invariants described in the spec.

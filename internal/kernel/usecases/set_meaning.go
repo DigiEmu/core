@@ -28,7 +28,6 @@ func (uc SetMeaning) SetMeaning(in ports.SetMeaningRequest) (ports.SetMeaningRes
 		return ports.SetMeaningResponse{}, domain.ErrClockNotConfigured
 	}
 
-	// resolve unit by key
 	unit, ok, err := uc.Repo.FindUnitByKey(in.UnitKey)
 	if err != nil {
 		return ports.SetMeaningResponse{}, err
@@ -37,7 +36,6 @@ func (uc SetMeaning) SetMeaning(in ports.SetMeaningRequest) (ports.SetMeaningRes
 		return ports.SetMeaningResponse{}, domain.ErrUnitNotFound
 	}
 
-	// determine target version
 	verID := in.VersionID
 	if verID == "" {
 		verID = unit.HeadVersionID
@@ -46,7 +44,6 @@ func (uc SetMeaning) SetMeaning(in ports.SetMeaningRequest) (ports.SetMeaningRes
 		return ports.SetMeaningResponse{}, domain.ErrVersionNotFound
 	}
 
-	// validate version exists
 	_, found, err := uc.Repo.FindVersionByID(verID)
 	if err != nil {
 		return ports.SetMeaningResponse{}, err
@@ -55,12 +52,10 @@ func (uc SetMeaning) SetMeaning(in ports.SetMeaningRequest) (ports.SetMeaningRes
 		return ports.SetMeaningResponse{}, domain.ErrVersionNotFound
 	}
 
-	// max size check
 	if len(in.MeaningJSON) > 64*1024 {
 		return ports.SetMeaningResponse{}, errors.New("meaning.json too large")
 	}
 
-	// unmarshal into domain.Meaning and validate schema_version
 	var m domain.Meaning
 	if err := json.Unmarshal(in.MeaningJSON, &m); err != nil {
 		return ports.SetMeaningResponse{}, err
@@ -69,21 +64,18 @@ func (uc SetMeaning) SetMeaning(in ports.SetMeaningRequest) (ports.SetMeaningRes
 		return ports.SetMeaningResponse{}, errors.New("unsupported schema_version")
 	}
 
-	// compute canonical hash
 	mh, err := ComputeMeaningHash(m)
 	if err != nil {
 		return ports.SetMeaningResponse{}, err
 	}
 
-	// persist via repo (persistence-only)
 	if err := uc.Repo.SaveMeaning(unit.ID, verID, m, mh); err != nil {
 		return ports.SetMeaningResponse{}, err
 	}
 
-	// append audit event
 	ev := domain.AuditEvent{
 		Schema:    "digiemu.audit.v1",
-		ID:        domain.NewID("evt"),
+		ID:        domain.NewIDParts("evt", "meaning_set", unit.ID, verID, mh),
 		Type:      "MEANING_SET",
 		AtUnix:    uc.Clock.NowUnix(),
 		ActorID:   in.ActorID,
@@ -93,16 +85,19 @@ func (uc SetMeaning) SetMeaning(in ports.SetMeaningRequest) (ports.SetMeaningRes
 			MeaningHash:   mh,
 			MeaningPath:   unit.ID + "." + verID + ".meaning.json",
 			SchemaVersion: m.SchemaVersion,
-			InlinePreview: &struct {
-				Title   string `json:"title,omitempty"`
-				Purpose string `json:"purpose,omitempty"`
-			}{Title: m.Title, Purpose: m.Purpose},
+			InlinePreview: &domain.MeaningInlinePreview{
+				Title:   m.Title,
+				Purpose: m.Purpose,
+			},
 		},
 	}
 	if err := uc.Audit.Append(ev); err != nil {
 		return ports.SetMeaningResponse{}, err
 	}
 
-	// return response
-	return ports.SetMeaningResponse{UnitID: unit.ID, VersionID: verID, MeaningHash: mh}, nil
+	return ports.SetMeaningResponse{
+		UnitID:      unit.ID,
+		VersionID:   verID,
+		MeaningHash: mh,
+	}, nil
 }

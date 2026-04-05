@@ -12,17 +12,8 @@ import (
 	"unicode/utf16"
 )
 
-func readExpectedFromGitOrDisk(t *testing.T, root string, rel string) []byte {
+func readExpectedFromDisk(t *testing.T, root string, rel string) []byte {
 	t.Helper()
-
-	// Prefer reading from the git blob to avoid platform-specific working tree
-	// newline conversion (e.g. core.autocrlf). This keeps the byte-equality test
-	// stable across OSes.
-	cmd := exec.Command("git", "show", "HEAD:"+rel)
-	cmd.Dir = root
-	if out, err := cmd.Output(); err == nil {
-		return out
-	}
 
 	b, err := os.ReadFile(filepath.Join(root, rel))
 	if err != nil {
@@ -42,11 +33,25 @@ func encodeUTF16LEWithBOM(s string) []byte {
 	return out
 }
 
+func trimSingleTrailingLFOrCRLF(b []byte) []byte {
+	if len(b) >= 2 && b[len(b)-2] == '\r' && b[len(b)-1] == '\n' {
+		return b[:len(b)-2]
+	}
+	if len(b) >= 1 && b[len(b)-1] == '\n' {
+		return b[:len(b)-1]
+	}
+	return b
+}
+
 func normalizeStdoutToExpectedBytes(stdout []byte, expected []byte) []byte {
-	// If expected is UTF-16LE with BOM (common when created via PowerShell redirection),
-	// normalize stdout by converting LF->CRLF and encoding to UTF-16LE+BOM.
+	// Normalize a single trailing newline difference, because fixtures may be
+	// saved with or without final newline depending on editor/platform.
+	stdout = trimSingleTrailingLFOrCRLF(stdout)
+	expected = trimSingleTrailingLFOrCRLF(expected)
+
+	// If expected is UTF-16LE with BOM, normalize stdout accordingly.
 	if len(expected) >= 2 && expected[0] == 0xFF && expected[1] == 0xFE {
-		s := string(stdout) // stdout is UTF-8 JSON from Go
+		s := string(stdout)
 		s = strings.ReplaceAll(s, "\n", "\r\n")
 		return encodeUTF16LEWithBOM(s)
 	}
@@ -59,37 +64,54 @@ func normalizeStdoutToExpectedBytes(stdout []byte, expected []byte) []byte {
 	return stdout
 }
 
+func firstDiffIndex(a, b []byte) int {
+	n := len(a)
+	if len(b) < n {
+		n = len(b)
+	}
+	for i := 0; i < n; i++ {
+		if a[i] != b[i] {
+			return i
+		}
+	}
+	if len(a) != len(b) {
+		return n
+	}
+	return -1
+}
+
 func TestVerify_ReproducesExpectedReport_ByteExact(t *testing.T) {
 	root := repoRoot(t)
 
-	expected := readExpectedFromGitOrDisk(t, root, "examples/snapshot_v1_demo/expected_verify_report.json")
+	expected := readExpectedFromDisk(t, root, "examples/snapshot_v1_demo/expected_verify_report.json")
 
-	// Run: go run ./cmd/digiemu verify --bundle <bundle> --json
-	// We capture stdout and compare bytes exactly.
 	cmd := exec.Command("go", "run", "./cmd/digiemu", "verify",
 		"--bundle", "examples/snapshot_v1_demo/snapshots/snapshot_demo_v1",
 		"--json",
 	)
 	cmd.Dir = root
+
 	out, err := cmd.Output()
 	if err != nil {
-		// If CLI exits non-zero but still wrote JSON to stdout, we still want to compare bytes.
 		if _, ok := err.(*exec.ExitError); !ok {
 			t.Fatalf("verify failed: %v", err)
 		}
-		// continue — out may contain stdout even on ExitError
+		// continue: verify may intentionally exit non-zero while still emitting JSON
 	}
 
 	norm := normalizeStdoutToExpectedBytes(out, expected)
-	if !bytes.Equal(norm, expected) {
-		t.Fatalf("verify output drifted: stdout != expected_verify_report.json (byte mismatch)")
+	expNorm := trimSingleTrailingLFOrCRLF(expected)
+
+	if !bytes.Equal(norm, expNorm) {
+		i := firstDiffIndex(norm, expNorm)
+		t.Fatalf(
+			"verify output drifted: stdout != expected_verify_report.json (byte mismatch; idx=%d, got_len=%d, expected_len=%d)",
+			i, len(norm), len(expNorm),
+		)
 	}
 }
 
 func TestVerify_ReproducesExpectedHash(t *testing.T) {
-	// Hash is stored in report field "got" (current behavior observed).
-	// This test only ensures the stored hash matches the report's got.
-	// If report format changes, update accordingly (but that would be a contract change).
 	root := repoRoot(t)
 
 	hashPath := filepath.Join(root, "examples/snapshot_v1_demo/expected_snapshot_hash.txt")
@@ -105,19 +127,17 @@ func TestVerify_ReproducesExpectedHash(t *testing.T) {
 		"--json",
 	)
 	cmd.Dir = root
+
 	out, err := cmd.Output()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
 			t.Fatalf("verify failed: %v", err)
 		}
-		// continue — out may contain stdout even on ExitError
 	}
 	if len(out) == 0 {
 		t.Fatalf("verify produced no stdout JSON")
 	}
 
-	// Parse "got" from JSON output and compare to expected_snapshot_hash.txt
-	// This is part of the public contract: verify result contains "got" as the computed snapshot hash.
 	var m map[string]any
 	if err := json.Unmarshal(out, &m); err != nil {
 		t.Fatalf("decode verify output JSON: %v", err)

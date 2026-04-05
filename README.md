@@ -154,6 +154,8 @@ pkg/meaning
 pkg/uncertainty
 ```
 
+
+
 ---------------------------------------------------------------------
 
 ## Status
@@ -168,3 +170,8 @@ cryptographically verifiable replay.
 ## License
 
 See LICENSE file.
+
+
+## 🔐 Security
+
+- [Strict Rules](docs/SECURITY/STRICT_RULES.md)

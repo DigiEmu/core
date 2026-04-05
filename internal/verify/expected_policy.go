@@ -2,7 +2,7 @@ package verify
 
 import "regexp"
 
-var sha256Hex = regexp.MustCompile(`^[A-Fa-f0-9]{64}$`)
+const sha256HexPattern = `^[A-Fa-f0-9]{64}$`
 
 // IsPlaceholderExpected returns true for known placeholder values or empty string.
 func IsPlaceholderExpected(s string) bool {
@@ -19,5 +19,6 @@ func IsPlaceholderExpected(s string) bool {
 
 // IsRealHash reports whether s looks like a 64-hex sha256 digest.
 func IsRealHash(s string) bool {
-	return sha256Hex.MatchString(s)
+	ok, err := regexp.MatchString(sha256HexPattern, s)
+	return err == nil && ok
 }

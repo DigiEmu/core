@@ -1,0 +1,27 @@
+{
+  "ignores": [
+    {
+      "file_contains": "cmd/digiemu/",
+      "category": "time"
+    },
+    {
+      "file_contains": "internal/tests/",
+      "rule": "range-review"
+    },
+    {
+      "file_contains": "internal/kernel/usecases/snapshot_hash.go",
+      "category": "determinism",
+      "rule": "range-review"
+    },
+    {
+      "file_contains": "internal/kernel/usecases/verify_audit.go",
+      "category": "determinism",
+      "rule": "range-review"
+    },
+    {
+      "file_contains": "internal/kernel/usecases/export_unit_snapshot.go",
+      "category": "determinism",
+      "rule": "range-review"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"fmt"
+	"sort"
 
 	"digiemu-core/internal/kernel/domain"
 	"digiemu-core/internal/kernel/ports"
@@ -16,6 +17,15 @@ import (
 type VerifyAudit struct {
 	Repo  ports.UnitRepository
 	Audit ports.AuditLogReader
+}
+
+func sortedStringKeys[T any](m map[string]T) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAuditResponse, error) {
@@ -88,7 +98,6 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 			if ev.VersionID != "" {
 				if _, ok := expectedVersions[ev.VersionID]; ok {
 					foundVersionCreated[ev.VersionID]++
-					// Try extract content hash if present (support both map and struct forms)
 					switch d := ev.Data.(type) {
 					case map[string]any:
 						if h, ok := d["contentHash"].(string); ok && h != "" {
@@ -157,7 +166,6 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 		return ports.VerifyAuditResponse{}, err
 	}
 
-	// Evaluate results
 	out := ports.VerifyAuditResponse{
 		TotalUnits:     len(units),
 		TotalVersions:  totalVersions,
@@ -167,7 +175,7 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 	}
 
 	// Missing or duplicate unit.created
-	for unitID := range expectedUnitCreated {
+	for _, unitID := range sortedStringKeys(expectedUnitCreated) {
 		n := foundUnitCreated[unitID]
 		if n == 0 {
 			out.Missing = append(out.Missing, ports.MissingAudit{
@@ -181,7 +189,7 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 	}
 
 	// Missing or duplicate version.created
-	for verID := range expectedVersions {
+	for _, verID := range sortedStringKeys(expectedVersions) {
 		n := foundVersionCreated[verID]
 		if n == 0 {
 			out.Missing = append(out.Missing, ports.MissingAudit{
@@ -195,7 +203,8 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 	}
 
 	// Missing, duplicate, or mismatched MEANING_SET events when repo versions expect a meaning
-	for verID, v := range expectedVersions {
+	for _, verID := range sortedStringKeys(expectedVersions) {
+		v := expectedVersions[verID]
 		if v.MeaningHash == "" {
 			continue
 		}
@@ -209,14 +218,12 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 				EventType: "MEANING_SET", TargetID: verID,
 			})
 		}
-		// check event-level meaning_hash matches recorded version meaning_hash
 		eh, ok := foundMeaningHash[verID]
 		if !ok || eh == "" || eh != v.MeaningHash {
 			out.HashMismatches = append(out.HashMismatches, ports.HashMismatch{
 				UnitID: versionToUnit[verID], VersionID: verID, ExpectedHash: v.MeaningHash, EventHash: eh,
 			})
 		}
-		// If StrictHash is requested, load current meaning from repo and ensure its canonical hash matches
 		if in.StrictHash {
 			m, ok, err := uc.Repo.LoadMeaning(versionToUnit[verID], verID)
 			if err != nil {
@@ -238,7 +245,8 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 	}
 
 	// Missing, duplicate, or mismatched CLAIM_SET events when repo versions expect a claimset
-	for verID, v := range expectedVersions {
+	for _, verID := range sortedStringKeys(expectedVersions) {
+		v := expectedVersions[verID]
 		if v.ClaimSetHash == "" {
 			continue
 		}
@@ -256,7 +264,6 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 				UnitID: versionToUnit[verID], VersionID: verID, ExpectedHash: v.ClaimSetHash, EventHash: eh,
 			})
 		}
-		// If StrictHash is requested, load current claimset from repo and ensure its canonical hash matches
 		if in.StrictHash {
 			cs, ok, err := uc.Repo.LoadClaimSet(versionToUnit[verID], verID)
 			if err != nil {
@@ -278,7 +285,8 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 	}
 
 	// Missing, duplicate, or mismatched UNCERTAINTY_SET events when repo versions expect an uncertainty
-	for verID, v := range expectedVersions {
+	for _, verID := range sortedStringKeys(expectedVersions) {
+		v := expectedVersions[verID]
 		if v.UncertaintyHash == "" {
 			continue
 		}
@@ -318,9 +326,9 @@ func (uc VerifyAudit) VerifyAudit(in ports.VerifyAuditRequest) (ports.VerifyAudi
 
 	// Optional strict hash verification
 	if in.StrictHash {
-		for verID, v := range expectedVersions {
+		for _, verID := range sortedStringKeys(expectedVersions) {
+			v := expectedVersions[verID]
 			eh, ok := foundVersionHash[verID]
-			// If event exists but hash missing, treat as mismatch
 			if foundVersionCreated[verID] > 0 {
 				if !ok || eh == "" || eh != v.ContentHash {
 					out.HashMismatches = append(out.HashMismatches, ports.HashMismatch{

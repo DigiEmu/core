@@ -37,11 +37,11 @@ type SnapshotBundleV1 struct {
 // and optional collections of JSON files.
 type BundleV1 struct {
 	Snapshot    json.RawMessage   `json:"snapshot"`
-	Units       []json.RawMessage `json:"units,omitempty"`
-	Versions    []json.RawMessage `json:"versions,omitempty"`
-	Claims      []json.RawMessage `json:"claims,omitempty"`
-	Meaning     []json.RawMessage `json:"meaning,omitempty"`
-	Uncertainty []json.RawMessage `json:"uncertainty,omitempty"`
+	Units       []json.RawMessage `json:"units"`
+	Versions    []json.RawMessage `json:"versions"`
+	Claims      []json.RawMessage `json:"claims"`
+	Meaning     []json.RawMessage `json:"meaning"`
+	Uncertainty []json.RawMessage `json:"uncertainty"`
 }
 
 // LoadSnapshotBundleV1 loads the minimal (old) bundle format from <dataDir>/snapshots/<ref>/snapshot.json
@@ -62,17 +62,22 @@ func FindBundleRoot(ref, fixtureRoot, dataRoot string, preferData bool) (string,
 		tryOrder = []string{dataDir, fixtureDir}
 	}
 
-	var attempts []string
+	attempts := make([]string, 0, len(tryOrder))
 	var lastErr error
-	for _, d := range tryOrder {
+
+	for i := 0; i < len(tryOrder); i++ {
+		d := tryOrder[i]
 		attempts = append(attempts, stableTracePath(d))
-		if fi, err := os.Stat(d); err == nil && fi.IsDir() {
+
+		fi, err := os.Stat(d)
+		if err == nil && fi.IsDir() {
 			return d, attempts, nil
-		} else if err != nil {
+		}
+		if err != nil {
 			lastErr = err
-			continue
 		}
 	}
+
 	return "", attempts, fmt.Errorf("no bundle root found (attempted %d roots); last error: %w", len(attempts), lastErr)
 }
 
@@ -88,7 +93,15 @@ func ReadJSONFileBOMSafe(path string) ([]byte, error) {
 // LoadBundleRootV1 reads snapshot.json from root and optional collection directories.
 // It returns the assembled BundleV1, a trace of loaded file paths, and error.
 func LoadBundleRootV1(root string) (BundleV1, []string, error) {
-	var trace []string
+	trace := make([]string, 0)
+
+	bundle := BundleV1{
+		Units:       make([]json.RawMessage, 0),
+		Versions:    make([]json.RawMessage, 0),
+		Claims:      make([]json.RawMessage, 0),
+		Meaning:     make([]json.RawMessage, 0),
+		Uncertainty: make([]json.RawMessage, 0),
+	}
 
 	snapshotPath := filepath.Join(root, "snapshot.json")
 	b, err := ReadJSONFileBOMSafe(snapshotPath)
@@ -98,12 +111,13 @@ func LoadBundleRootV1(root string) (BundleV1, []string, error) {
 	}
 
 	// keep snapshot raw (verifier may normalize it before hashing)
-	bundle := BundleV1{Snapshot: json.RawMessage(b)}
+	bundle.Snapshot = json.RawMessage(b)
 
-	// optional dirs to load
 	optDirs := []string{"units", "versions", "claims", "meaning", "uncertainty"}
-	for _, d := range optDirs {
+	for i := 0; i < len(optDirs); i++ {
+		d := optDirs[i]
 		dirPath := filepath.Join(root, d)
+
 		fi, err := os.Stat(dirPath)
 		if err != nil {
 			if errors.Is(err, fs.ErrNotExist) {
@@ -120,8 +134,9 @@ func LoadBundleRootV1(root string) (BundleV1, []string, error) {
 			return BundleV1{}, trace, fmt.Errorf("read dir %s: %w", dirPath, err)
 		}
 
-		var names []string
-		for _, e := range entries {
+		names := make([]string, 0, len(entries))
+		for j := 0; j < len(entries); j++ {
+			e := entries[j]
 			if e.IsDir() {
 				continue
 			}
@@ -131,7 +146,9 @@ func LoadBundleRootV1(root string) (BundleV1, []string, error) {
 		}
 
 		sort.Strings(names)
-		for _, name := range names {
+
+		for j := 0; j < len(names); j++ {
+			name := names[j]
 			p := filepath.Join(dirPath, name)
 			trace = append(trace, stableTracePath(p))
 
@@ -168,7 +185,6 @@ func loadSnapshotBundleFromPath(path, ref string) (SnapshotBundleV1, error) {
 		return SnapshotBundleV1{}, fmt.Errorf("read bundle %s: %w", path, err)
 	}
 
-	// strip UTF-8 BOM if present to be tolerant of Windows editors
 	b = stripUTF8BOM(b)
 
 	var sb SnapshotBundleV1

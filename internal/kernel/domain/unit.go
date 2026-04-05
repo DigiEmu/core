@@ -25,7 +25,7 @@ func NewUnit(key, title, description string) (Unit, error) {
 	}
 
 	return Unit{
-		ID:            NewID("unit"),
+		ID:            NewIDParts("unit", key, title, description),
 		Key:           key,
 		Title:         title,
 		Description:   description,
