@@ -1,8 +1,12 @@
-DigiEmu Core MVP
+# DigiEmu Core MVP
 
-Deterministic knowledge snapshot infrastructure.
+## Summary
 
-Core capabilities:
+DigiEmu Core MVP establishes the baseline for deterministic knowledge snapshot infrastructure.
+
+This release introduces a foundational system for creating, transporting, replaying, and verifying deterministic knowledge bundles with integrity-oriented semantics.
+
+## Core capabilities
 
 - deterministic snapshot engine
 - replay verification
@@ -12,7 +16,9 @@ Core capabilities:
 - identity fingerprinting
 - portable bundle transport
 
-Bundles can now be:
+## Bundle operations
+
+Bundles can be:
 
 - created
 - verified
@@ -24,3 +30,18 @@ Bundles can now be:
 - imported
 - bound to a trusted identity
 - referenced by identity fingerprint
+
+## Release significance
+
+This MVP is not positioned as a final enterprise release.
+
+It defines the initial operational baseline for:
+
+- deterministic replay
+- bundle integrity verification
+- portable trust artifacts
+- identity-bound knowledge transport
+
+## Notes
+
+Consumers should treat this release as an early baseline for controlled evaluation, validation, and future hardening.
