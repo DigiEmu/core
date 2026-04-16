@@ -1,26 +1,25 @@
 
 # DigiEmu Core
 
-Deterministic Knowledge Infrastructure for AI Systems.
+Deterministic and verifiable knowledge infrastructure.
 
-DigiEmu Core provides a deterministic snapshot and verification layer for knowledge states.
-It allows AI and software systems to store, replay, verify and sign knowledge states with
-full reproducibility.
+DigiEmu Core provides a deterministic snapshot and verification layer for knowledge states.  
+It enables AI and software systems to store, replay, verify, and sign knowledge states with full reproducibility.
 
-The system ensures that knowledge snapshots can always be reconstructed and verified.
+The system ensures that knowledge snapshots can always be reconstructed and independently verified.
 
----------------------------------------------------------------------
+---
 
 ## Core Principles
 
-- Deterministic knowledge snapshots
-- Cryptographic integrity
-- Replay verification
-- Signed knowledge bundles
-- Trusted identity layer
-- Transportable bundles
+- Deterministic knowledge snapshots  
+- Cryptographic integrity  
+- Replay verification  
+- Signed knowledge bundles  
+- Trusted identity layer  
+- Transportable bundles  
 
----------------------------------------------------------------------
+---
 
 ## Quick Start
 
@@ -28,123 +27,78 @@ Build the CLI:
 
 ```bash
 go build -o digiemu ./cmd/digiemu
-```
 
 Create a snapshot:
 
-```bash
 digiemu snapshot file input.json
-```
 
 Verify bundle:
 
-```bash
 digiemu verify bundle snapshots/.../bundle.json
-```
 
 Replay snapshot:
 
-```bash
 digiemu replay bundle snapshots/.../bundle.json
-```
 
 Verify replay determinism:
 
-```bash
 digiemu verify replay snapshots/.../bundle.json
-```
-
----------------------------------------------------------------------
-
-## Signature System
+Signature System
 
 Sign a bundle:
 
-```bash
 digiemu sign bundle bundle.json
-```
 
 Verify signature:
 
-```bash
 digiemu verify signature bundle.json
-```
-
----------------------------------------------------------------------
-
-## Identity System
+Identity System
 
 Show local identity:
 
-```bash
 digiemu identity show
-```
 
 Export identity:
 
-```bash
 digiemu identity export <directory>
-```
 
 Import trusted identity:
 
-```bash
 digiemu identity import <directory>
-```
 
 Identity fingerprint:
 
-```bash
 digiemu identity fingerprint
-```
-
----------------------------------------------------------------------
-
-## Bundle Transport
+Bundle Transport
 
 Export bundle:
 
-```bash
 digiemu export bundle bundle.json <directory>
-```
 
 Import bundle:
 
-```bash
 digiemu import bundle <directory>
-```
-
----------------------------------------------------------------------
-
-## End-to-End Verification Pipeline
+End-to-End Verification Pipeline
 
 DigiEmu Core guarantees that a knowledge snapshot can always be:
 
-- recreated
-- replayed
-- verified
-- cryptographically signed
-- transported
-- trusted via identity verification
-
----------------------------------------------------------------------
-
-## Architecture Overview
+recreated
+replayed
+verified
+cryptographically signed
+transported
+trusted via identity verification
+Architecture Overview
 
 DigiEmu Core consists of:
 
-- Snapshot engine
-- Replay engine
-- Verification layer
-- Signature system
-- Identity trust layer
-- Bundle transport system
-
----------------------------------------------------------------------
-
-## Repository Structure
-
-```
+Snapshot engine
+Replay engine
+Verification layer
+Signature system
+Identity trust layer
+Bundle transport system
+Repository Structure
 cmd/digiemu
 pkg/snapshot
 pkg/replay
@@ -152,26 +106,32 @@ pkg/verify
 pkg/claims
 pkg/meaning
 pkg/uncertainty
-```
+Status
 
+DigiEmu Core v1.0.0 is the first deterministic baseline release.
 
+The system supports:
 
----------------------------------------------------------------------
+deterministic snapshot creation
+replay verification
+cryptographic integrity validation
+identity-bound artifacts
 
-## Status
+Enterprise hardening and ecosystem integration are ongoing.
 
-Core MVP completed.
+Release
 
-The system is now capable of deterministic knowledge snapshot verification and
-cryptographically verifiable replay.
+Current version: v1.0.0
 
----------------------------------------------------------------------
+See:
+https://github.com/DigiEmu/core/releases
 
-## License
+License
 
-See LICENSE file.
+Business Source License (BSL).
+See LICENSE for details.
 
+## Security
 
-## 🔐 Security
-
-- [Strict Rules](docs/SECURITY/STRICT_RULES.md)
+- [Security Policy](SECURITY.md)  
+- [Determinism Exceptions](docs/security/DETERMINISM_EXCEPTIONS.md)
