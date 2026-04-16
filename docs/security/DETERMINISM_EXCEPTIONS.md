@@ -3,7 +3,7 @@
 
 ## `DETERMINISM_EXCEPTIONS.md`
 
-```md
+
 # DETERMINISM_EXCEPTIONS.md
 
 ## Purpose
