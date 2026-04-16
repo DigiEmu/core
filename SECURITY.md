@@ -2,6 +2,7 @@
 
 ## Supported Versions
 
+DigiEmu Core treats security as a function of determinism, integrity, and auditability.
 DigiEmu Core follows a security-first maintenance model for tagged releases.
 
 | Version line | Supported |
