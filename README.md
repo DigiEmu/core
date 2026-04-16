@@ -1,11 +1,12 @@
 # DigiEmu Core
 
-Deterministic and verifiable knowledge infrastructure for AI systems.
+Deterministic Knowledge Infrastructure for AI Systems.
 
-DigiEmu Core provides a deterministic snapshot and verification layer for knowledge states.  
-It enables AI and software systems to store, replay, verify, and sign knowledge states with full reproducibility.
+DigiEmu Core provides a deterministic snapshot and verification layer for knowledge states.
+It allows AI and software systems to store, replay, verify and sign knowledge states with
+full reproducibility.
 
-The system ensures that knowledge snapshots can always be reconstructed and independently verified.
+The system ensures that knowledge snapshots can always be reconstructed and verified.
 
 ---------------------------------------------------------------------
 
@@ -22,7 +23,7 @@ The system ensures that knowledge snapshots can always be reconstructed and inde
 
 ## Quick Start
 
-Build the CLI:
+### Build the CLI
 
 ```bash
 go build -o digiemu ./cmd/digiemu
