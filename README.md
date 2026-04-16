@@ -1,25 +1,24 @@
-
 # DigiEmu Core
 
-Deterministic and verifiable knowledge infrastructure.
+Deterministic and verifiable knowledge infrastructure for AI systems.
 
 DigiEmu Core provides a deterministic snapshot and verification layer for knowledge states.  
 It enables AI and software systems to store, replay, verify, and sign knowledge states with full reproducibility.
 
 The system ensures that knowledge snapshots can always be reconstructed and independently verified.
 
----
+---------------------------------------------------------------------
 
 ## Core Principles
 
-- Deterministic knowledge snapshots  
-- Cryptographic integrity  
-- Replay verification  
-- Signed knowledge bundles  
-- Trusted identity layer  
-- Transportable bundles  
+- Deterministic knowledge snapshots
+- Cryptographic integrity
+- Replay verification
+- Signed knowledge bundles
+- Trusted identity layer
+- Transportable bundles
 
----
+---------------------------------------------------------------------
 
 ## Quick Start
 
@@ -131,7 +130,7 @@ License
 Business Source License (BSL).
 See LICENSE for details.
 
-## Security
+## 🔐Security
 
 - [Security Policy](SECURITY.md)  
 - [Determinism Exceptions](docs/security/DETERMINISM_EXCEPTIONS.md)
