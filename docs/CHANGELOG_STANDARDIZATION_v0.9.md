@@ -152,6 +152,34 @@ This gives implementers a reviewable way to state which DigiEmu Core conformance
 
 ---
 
+---
+
+### DigiEmu Core Conformance Declaration Schema v0.9
+
+File:
+
+```text
+docs/CONFORMANCE_DECLARATION_SCHEMA_v0.9.json
+```
+
+Purpose:
+
+Defines a public review draft JSON Schema for machine-readable DigiEmu Core conformance declarations.
+
+It supports validation of:
+
+- declaration type and version
+- implementation metadata
+- declared conformance levels
+- supported capabilities
+- supported and passed test vectors
+- known limitations
+- declaration status
+
+This makes DigiEmu Core conformance declarations formally validatable across independent implementations.
+
+---
+
 ### DigiEmu Core Verify Report Examples v0.9
 
 File:
