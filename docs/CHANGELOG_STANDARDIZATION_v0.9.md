@@ -22,7 +22,7 @@ DigiEmu Core is being structured as an emerging public standard for deterministi
 The current public standard structure is:
 
 ```text
-Specification → Test Vectors → Conformance → Verify Report Examples
+Specification → Test Vectors → Conformance → Verify Report Examples → Verify Report Schema
 ```
 
 Meaning:
@@ -32,6 +32,7 @@ Specification explains the model.
 Test vectors make verification reproducible.
 Conformance defines implementer requirements.
 Verify report examples define machine-readable outcomes.
+Verify report schema makes verification reports formally validatable.
 ```
 
 ---
@@ -150,6 +151,33 @@ This helps implementers and auditors understand how verification results should 
 
 ---
 
+### DigiEmu Core Verify Report Schema v0.9
+
+File:
+
+```text
+docs/VERIFY_REPORT_SCHEMA_v0.9.json
+```
+
+Purpose:
+
+Defines a public review draft JSON Schema for machine-readable DigiEmu Core verification reports.
+
+It supports validation of:
+
+- PASS reports
+- FAIL reports
+- ERROR reports
+- SHA-256 hash format
+- canonicalization identifier
+- hash algorithm identifier
+- reason-code format
+- optional metadata outside the deterministic hash boundary
+
+This makes DigiEmu Core verification reports formally validatable across independent implementations.
+
+---
+
 ## 4. Updated Index and Repository Entry Points
 
 ### Spec Index v1.0
@@ -166,6 +194,7 @@ Updated to include:
 - public review drafts
 - supporting specification documents
 - implementation baseline vs public standard draft distinction
+- Verify Report Schema v0.9
 
 The index now makes the public standard structure visible from one canonical location.
 
@@ -185,6 +214,7 @@ Updated to include links to:
 - Test Vectors v0.9
 - Conformance v0.9
 - Verify Report Examples v0.9
+- Verify Report Schema v0.9
 - Spec Index v1.0
 - Snapshot Hash v1.0
 - Verify Spec v1.0
@@ -222,7 +252,7 @@ Before this phase, DigiEmu Core already contained implementation logic and suppo
 After this phase, DigiEmu Core has a recognizable public standard skeleton:
 
 ```text
-Spec → Test Vectors → Conformance → Verify Report Examples → Spec Index → README
+Spec → Test Vectors → Conformance → Verify Report Examples → Verify Report Schema → Spec Index → README
 ```
 
 This improves:
@@ -241,14 +271,14 @@ This improves:
 
 DigiEmu Core is positioned as deterministic knowledge infrastructure for AI systems.
 
-The v0.9 standardization phase strengthens that positioning by making the verification model easier to understand, reproduce, and implement.
+The v0.9 standardization phase strengthens that positioning by making the verification model easier to understand, reproduce, implement, and validate.
 
 Core message:
 
 ```text
 DigiEmu Core is no longer only an implementation.
 It now has the beginning of a public standard structure:
-Specification, reproducible test vectors, conformance levels, and machine-readable verification reports.
+Specification, reproducible test vectors, conformance levels, machine-readable verification reports, and a formal verify report schema.
 ```
 
 ---
@@ -257,7 +287,7 @@ Specification, reproducible test vectors, conformance levels, and machine-readab
 
 Future work may include:
 
-- JSON Schema for verify reports
+- JSON Schema refinements for verify reports
 - formal conformance declaration format
 - additional test vectors
 - negative test vector registry

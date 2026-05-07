@@ -26,6 +26,7 @@ These documents define the emerging public standard structure for DigiEmu Core.
 - `docs/TEST_VECTORS_v0.9.md`
 - `docs/CONFORMANCE_v0.9.md`
 - `docs/VERIFY_REPORT_EXAMPLES_v0.9.md`
+- `docs/VERIFY_REPORT_SCHEMA_v0.9.json`
 
 ---
 
@@ -46,4 +47,15 @@ These documents provide additional specification context for snapshot hashing, b
 DigiEmu Core currently follows this public standard development path:
 
 ```text
-Specification → Test Vectors → Conformance → Verify Report Examples
+Specification → Test Vectors → Conformance → Verify Report Examples → Verify Report Schema
+```
+
+Meaning:
+
+```text
+Specification explains the model.
+Test vectors make verification reproducible.
+Conformance defines implementer requirements.
+Verify report examples define machine-readable outcomes.
+Verify report schema makes verification reports formally validatable.
+```
