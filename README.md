@@ -23,10 +23,10 @@ The system ensures that knowledge snapshots can always be reconstructed and veri
 ## Specification
 
 - [DigiEmu Core Specification v0.9](docs/DIGIEMU_CORE_SPEC_v0.9.md) — public review draft consolidating the current deterministic snapshot, hashing and replay verification contracts.
+- [Test Vectors v0.9](docs/TEST_VECTORS_v0.9.md) — minimal reproducible examples with canonical JSON, expected SHA-256 hashes and tampered FAIL variants.
 - [Spec Index v1.0](docs/SPEC_INDEX_v1.0.md) — index of normative DigiEmu Core documents.
 - [Snapshot Hash v1.0](docs/SNAPSHOT_HASH_v1.0.md) — canonical JSON and SHA-256 snapshot identity.
 - [Verify Spec v1.0](docs/VERIFY_SPEC_v1.0.md) — replay verification and PASS / FAIL result contract.
-
 ---
 
 ## Quick Start
