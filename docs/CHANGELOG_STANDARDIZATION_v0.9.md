@@ -22,7 +22,7 @@ DigiEmu Core is being structured as an emerging public standard for deterministi
 The current public standard structure is:
 
 ```text
-Specification → Test Vectors → Conformance → Conformance Declaration → Verify Report Examples → Verify Report Schema```
+Specification → Test Vectors → Negative Test Vectors → Conformance → Conformance Declaration → Conformance Declaration Schema → Verify Report Examples → Verify Report Schema```
 
 Meaning:
 
@@ -92,6 +92,36 @@ The test vectors provide:
 This makes DigiEmu Core easier to test across independent implementations.
 
 ---
+
+---
+
+### DigiEmu Core Negative Test Vectors v0.9
+
+File:
+
+```text
+docs/NEGATIVE_TEST_VECTORS_v0.9.md
+```
+
+Purpose:
+
+Defines intentional FAIL and ERROR test vectors for DigiEmu Core verification.
+
+It supports validation of:
+
+- tampered snapshot behavior
+- malformed JSON behavior
+- missing snapshot handling
+- missing expected hash handling
+- unsupported hash algorithm handling
+- unsupported canonicalization handling
+- invalid field type handling
+- stable reason-code usage
+
+This helps ensure that DigiEmu Core implementations correctly distinguish between PASS, FAIL, and ERROR outcomes.
+
+---
+
 
 ### DigiEmu Core Conformance v0.9
 
