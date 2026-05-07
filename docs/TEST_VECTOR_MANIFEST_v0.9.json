@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://digiemu.org/manifests/test-vectors-v0.9.json",
+  "title": "DigiEmu Core Test Vector Manifest v0.9",
+  "description": "Machine-readable manifest for DigiEmu Core positive and negative test vectors. Public Review Draft v0.9.",
+  "manifest_type": "digiemu_core_test_vector_manifest",
+  "manifest_version": "v0.9",
+  "specification": "DigiEmu Core Specification v0.9",
+  "implementation_baseline": "v1.0.0",
+  "canonicalization": "canonical_json_v1",
+  "hash_algorithm": "SHA-256",
+  "documents": {
+    "positive_test_vectors": "docs/TEST_VECTORS_v0.9.md",
+    "negative_test_vectors": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+    "verify_report_schema": "docs/VERIFY_REPORT_SCHEMA_v0.9.json",
+    "conformance": "docs/CONFORMANCE_v0.9.md",
+    "conformance_declaration": "docs/CONFORMANCE_DECLARATION_v0.9.md"
+  },
+  "positive_test_vectors": [
+    {
+      "id": "CORE-TV-001",
+      "title": "Minimal Decision State",
+      "document": "docs/TEST_VECTORS_v0.9.md",
+      "expected_result": "PASS",
+      "canonical_json": "{\"case_id\":\"CORE-TV-001\",\"decision\":\"allow\",\"policy\":\"policy_v1\",\"risk_level\":\"low\"}",
+      "expected_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "reason": null
+    },
+    {
+      "id": "GZC-CASE-001",
+      "title": "Medical Triage Style State",
+      "document": "docs/TEST_VECTORS_v0.9.md",
+      "expected_result": "PASS",
+      "canonical_json": "{\"case_id\":\"GZC-CASE-001\",\"red_flags\":{\"chest_pain\":false,\"confusion\":false,\"severe_breathing_difficulty\":false,\"unconscious\":false},\"symptoms\":[\"cough\",\"fever\"],\"triage_level\":\"low\",\"vitals\":{\"oxygen_saturation_percent\":97,\"respiratory_rate_per_min\":18}}",
+      "expected_hash": "e796de537dab5cd5a42f2258fc2c0536ea9f210a32910cf416708ad54e3210f8",
+      "reason": null
+    }
+  ],
+  "negative_test_vectors": [
+    {
+      "id": "CORE-NTV-FAIL-001",
+      "title": "Changed Decision",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "FAIL",
+      "expected_result": "FAIL",
+      "canonical_json": "{\"case_id\":\"CORE-TV-001\",\"decision\":\"deny\",\"policy\":\"policy_v1\",\"risk_level\":\"low\"}",
+      "expected_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "computed_hash": "547cfdfc0f1cbd4074b0df84a70a2dcf9f1ca9223535a0c46b8bda4372d9f0f0",
+      "reason": "computed_hash_does_not_match_expected_hash"
+    },
+    {
+      "id": "CORE-NTV-FAIL-002",
+      "title": "Changed Risk Level",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "FAIL",
+      "expected_result": "FAIL",
+      "canonical_json": "{\"case_id\":\"CORE-TV-001\",\"decision\":\"allow\",\"policy\":\"policy_v1\",\"risk_level\":\"high\"}",
+      "expected_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "computed_hash": null,
+      "reason": "computed_hash_does_not_match_expected_hash"
+    },
+    {
+      "id": "CORE-NTV-FAIL-003",
+      "title": "Changed Policy Reference",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "FAIL",
+      "expected_result": "FAIL",
+      "canonical_json": "{\"case_id\":\"CORE-TV-001\",\"decision\":\"allow\",\"policy\":\"policy_v2\",\"risk_level\":\"low\"}",
+      "expected_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "computed_hash": null,
+      "reason": "computed_hash_does_not_match_expected_hash"
+    },
+    {
+      "id": "CORE-NTV-ERROR-001",
+      "title": "Malformed JSON",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "ERROR",
+      "expected_result": "ERROR",
+      "reason": "malformed_json"
+    },
+    {
+      "id": "CORE-NTV-ERROR-002",
+      "title": "Missing Snapshot",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "ERROR",
+      "expected_result": "ERROR",
+      "reason": "missing_snapshot"
+    },
+    {
+      "id": "CORE-NTV-ERROR-003",
+      "title": "Missing Expected Hash",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "ERROR",
+      "expected_result": "ERROR",
+      "reason": "missing_expected_hash"
+    },
+    {
+      "id": "CORE-NTV-ERROR-004",
+      "title": "Unsupported Hash Algorithm",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "ERROR",
+      "expected_result": "ERROR",
+      "reason": "unsupported_hash_algorithm"
+    },
+    {
+      "id": "CORE-NTV-ERROR-005",
+      "title": "Unsupported Canonicalization Method",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "ERROR",
+      "expected_result": "ERROR",
+      "reason": "unsupported_canonicalization"
+    },
+    {
+      "id": "CORE-NTV-ERROR-006",
+      "title": "Invalid Field Type",
+      "document": "docs/NEGATIVE_TEST_VECTORS_v0.9.md",
+      "category": "ERROR",
+      "expected_result": "ERROR",
+      "reason": "invalid_field_type",
+      "note": "Implementations that treat this as a generic processable JSON snapshot may return FAIL instead of ERROR. Structure-validating implementations SHOULD return ERROR."
+    }
+  ],
+  "expected_results": [
+    "PASS",
+    "FAIL",
+    "ERROR"
+  ],
+  "reason_codes": [
+    "computed_hash_does_not_match_expected_hash",
+    "malformed_json",
+    "missing_snapshot",
+    "missing_expected_hash",
+    "unsupported_hash_algorithm",
+    "unsupported_canonicalization",
+    "invalid_bundle_layout",
+    "invalid_field_type",
+    "unreadable_artifact",
+    "internal_verifier_error"
+  ],
+  "status": "Public Review Draft"
+}
