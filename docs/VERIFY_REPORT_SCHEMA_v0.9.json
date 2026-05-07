@@ -89,15 +89,7 @@
         "required": ["result"]
       },
       "then": {
-        "required": ["computed_hash", "expected_hash"],
-        "properties": {
-          "computed_hash": {
-            "const": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023"
-          },
-          "expected_hash": {
-            "const": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023"
-          }
-        }
+        "required": ["computed_hash", "expected_hash"]
       }
     },
     {
