@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://digiemu.dev/schemas/VERIFY_RESULT_SCHEMA_v1.json",
-  "title": "DigiEmu Core Verify Result (v1)",
+  "title": "DigiEmu Core Verify Result Schema v1",
+  "description": "Schema for DigiEmu Core implementation-facing verify results produced by the v1 verification pipeline.",
   "type": "object",
   "additionalProperties": true,
   "required": [
@@ -20,7 +21,7 @@
   "properties": {
     "ok": {
       "type": "boolean",
-      "description": "True if computed hash matches expected_hash_v1."
+      "description": "True if the computed hash matches the expected hash."
     },
     "ref": {
       "type": "string",
@@ -28,22 +29,22 @@
     },
     "expected": {
       "type": "string",
-      "description": "Declared expected_hash_v1 value read from snapshot.json.",
+      "description": "Declared expected hash value read from snapshot.json. May be empty or a placeholder before assembly or computation.",
       "pattern": "^(|REPLACE_AFTER_ASSEMBLE|REPLACE_AFTER_COMPUTE|[A-Fa-f0-9]{64})$"
     },
     "got": {
       "type": "string",
-      "description": "Computed digest of the replayed state under canonical_json_v1.",
+      "description": "Computed SHA-256 digest of the replayed state under the canonical JSON v1 scope.",
       "pattern": "^[A-Fa-f0-9]{64}$"
     },
     "hash_alg": {
       "type": "string",
-      "description": "Hash algorithm identifier.",
+      "description": "Hash algorithm identifier used by the verifier.",
       "const": "sha256(canonical_json_v1)"
     },
     "canonical_scope": {
       "type": "string",
-      "description": "Canonicalization scope identifier.",
+      "description": "Canonicalization scope identifier used for hash computation.",
       "const": "canonical_json_v1_excluding_expected_hash_v1"
     },
     "trace": {
@@ -55,19 +56,19 @@
     },
     "message": {
       "type": "string",
-      "description": "Human-readable status message."
+      "description": "Human-readable verification status message."
     },
     "wrote_expected": {
       "type": "boolean",
-      "description": "True if expected_hash_v1 was written to snapshot.json by policy."
+      "description": "True if the expected hash was written to snapshot.json by policy."
     },
     "write_blocked": {
       "type": "boolean",
-      "description": "True if a write was attempted/considered but blocked by policy or error."
+      "description": "True if writing the expected hash was attempted or considered but blocked by policy or error."
     },
     "write_reason": {
       "type": "string",
-      "description": "Reason code describing write outcome or write blockage.",
+      "description": "Machine-readable reason code describing write outcome or write blockage.",
       "enum": [
         "none",
         "flag_not_set",
@@ -79,5 +80,41 @@
         "invalid_hash"
       ]
     }
-  }
+  },
+  "examples": [
+    {
+      "ok": true,
+      "ref": "snapshot.json",
+      "expected": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "got": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "hash_alg": "sha256(canonical_json_v1)",
+      "canonical_scope": "canonical_json_v1_excluding_expected_hash_v1",
+      "trace": [
+        "loaded snapshot.json",
+        "computed canonical_json_v1 hash",
+        "expected hash matched computed hash"
+      ],
+      "message": "Verification passed.",
+      "wrote_expected": false,
+      "write_blocked": false,
+      "write_reason": "none"
+    },
+    {
+      "ok": false,
+      "ref": "snapshot.json",
+      "expected": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "got": "547cfdfc0f1cbd4074b0df84a70a2dcf9f1ca9223535a0c46b8bda4372d9f0f0",
+      "hash_alg": "sha256(canonical_json_v1)",
+      "canonical_scope": "canonical_json_v1_excluding_expected_hash_v1",
+      "trace": [
+        "loaded snapshot.json",
+        "computed canonical_json_v1 hash",
+        "expected hash did not match computed hash"
+      ],
+      "message": "Verification failed.",
+      "wrote_expected": false,
+      "write_blocked": false,
+      "write_reason": "none"
+    }
+  ]
 }
