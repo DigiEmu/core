@@ -17,7 +17,7 @@ import (
 // Format (one record per line):
 //
 //	UNIT|<unitID>|<key>|<title>|<desc>|<headVersionID>
-//	VER|<id>|<label>|<prev>|<contentHash>|<actor>|<createdAtUnix>
+//	VER|<id>|<prev>|<contentHash>
 //	AUD|<id>|<type>|<atUnix>|<actor>|<unit>|<ver>|<dataCanonical>
 func snapshotCanonicalLines(u ports.UnitDTO, vs []ports.VersionDTO) []string {
 	lines := make([]string, 0, 1+len(vs))
@@ -27,8 +27,8 @@ func snapshotCanonicalLines(u ports.UnitDTO, vs []ports.VersionDTO) []string {
 	))
 	for _, v := range vs {
 		lines = append(lines, fmt.Sprintf(
-			"VER|%s|%s|%s|%s|%s|%d",
-			v.ID, v.Label, v.PrevVersionID, v.ContentHash, v.ActorID, v.CreatedAtUnix,
+			"VER|%s|%s|%s",
+			v.ID, v.PrevVersionID, v.ContentHash,
 		))
 	}
 	return lines
