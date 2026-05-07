@@ -22,11 +22,34 @@ The system ensures that knowledge snapshots can always be reconstructed and veri
 
 ## Specification
 
-- [DigiEmu Core Specification v0.9](docs/DIGIEMU_CORE_SPEC_v0.9.md) — public review draft consolidating the current deterministic snapshot, hashing and replay verification contracts.
-- [Test Vectors v0.9](docs/TEST_VECTORS_v0.9.md) — minimal reproducible examples with canonical JSON, expected SHA-256 hashes and tampered FAIL variants.
-- [Spec Index v1.0](docs/SPEC_INDEX_v1.0.md) — index of normative DigiEmu Core documents.
-- [Snapshot Hash v1.0](docs/SNAPSHOT_HASH_v1.0.md) — canonical JSON and SHA-256 snapshot identity.
-- [Verify Spec v1.0](docs/VERIFY_SPEC_v1.0.md) — replay verification and PASS / FAIL result contract.
+DigiEmu Core is moving toward a public standard structure for deterministic AI decision verification.
+
+### Public review drafts
+
+- [DigiEmu Core Specification v0.9](docs/DIGIEMU_CORE_SPEC_v0.9.md)
+- [Test Vectors v0.9](docs/TEST_VECTORS_v0.9.md)
+- [Conformance v0.9](docs/CONFORMANCE_v0.9.md)
+- [Verify Report Examples v0.9](docs/VERIFY_REPORT_EXAMPLES_v0.9.md)
+
+### Specification index and implementation contracts
+
+- [Spec Index v1.0](docs/SPEC_INDEX_v1.0.md)
+- [Snapshot Hash v1.0](docs/SNAPSHOT_HASH_v1.0.md)
+- [Verify Spec v1.0](docs/VERIFY_SPEC_v1.0.md)
+- [Verify Result Schema v1](docs/VERIFY_RESULT_SCHEMA_v1.json)
+- [Snapshot Bundle v1.0](docs/SNAPSHOT_BUNDLE_v1.0.md)
+
+### Public standard path
+
+```text
+Specification → Test Vectors → Conformance → Verify Report Examples
+```
+
+The specification explains the model.  
+The test vectors make verification reproducible.  
+The conformance document defines implementation requirements.  
+The verify report examples define machine-readable verification outcomes.
+
 ---
 
 ## Quick Start
