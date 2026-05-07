@@ -29,6 +29,7 @@ DigiEmu Core is moving toward a public standard structure for deterministic AI d
 - [DigiEmu Core Specification v0.9](docs/DIGIEMU_CORE_SPEC_v0.9.md)
 - [Test Vectors v0.9](docs/TEST_VECTORS_v0.9.md)
 - [Conformance v0.9](docs/CONFORMANCE_v0.9.md)
+- [Conformance Declaration v0.9](docs/CONFORMANCE_DECLARATION_v0.9.md)
 - [Verify Report Examples v0.9](docs/VERIFY_REPORT_EXAMPLES_v0.9.md)
 
 ### Specification index and implementation contracts
