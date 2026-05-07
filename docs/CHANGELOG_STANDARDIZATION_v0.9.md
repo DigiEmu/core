@@ -22,7 +22,7 @@ DigiEmu Core is being structured as an emerging public standard for deterministi
 The current public standard structure is:
 
 ```text
-Specification → Test Vectors → Negative Test Vectors → Conformance → Conformance Declaration → Conformance Declaration Schema → Verify Report Examples → Verify Report Schema```
+Specification → Test Vectors → Negative Test Vectors → Test Vector Manifest → Conformance → Conformance Declaration → Conformance Declaration Schema → Verify Report Examples → Verify Report Schema```
 
 Meaning:
 
@@ -122,6 +122,33 @@ This helps ensure that DigiEmu Core implementations correctly distinguish betwee
 
 ---
 
+---
+
+### DigiEmu Core Test Vector Manifest v0.9
+
+File:
+
+```text
+docs/TEST_VECTOR_MANIFEST_v0.9.json
+```
+
+Purpose:
+
+Defines a machine-readable manifest for DigiEmu Core positive and negative test vectors.
+
+It supports:
+
+- discovery of positive PASS test vectors
+- discovery of negative FAIL test vectors
+- discovery of negative ERROR test vectors
+- expected hash lookup
+- computed hash lookup where available
+- expected reason-code lookup
+- links to related specification documents
+
+This makes DigiEmu Core test vectors easier to discover and run consistently across independent implementations and future conformance tooling.
+
+---
 
 ### DigiEmu Core Conformance v0.9
 
@@ -335,11 +362,11 @@ This standardization work moves DigiEmu Core from a code-and-docs repository tow
 
 Before this phase, DigiEmu Core already contained implementation logic and supporting documentation.
 
+````md
 After this phase, DigiEmu Core has a recognizable public standard skeleton:
 
 ```text
-Spec → Test Vectors → Conformance → Verify Report Examples → Verify Report Schema → Spec Index → README
-```
+Spec → Test Vectors → Negative Test Vectors → Test Vector Manifest → Conformance → Conformance Declaration → Conformance Declaration Schema → Verify Report Examples → Verify Report Schema → Spec Index → README
 
 This improves:
 
