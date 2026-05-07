@@ -28,6 +28,7 @@ DigiEmu Core is moving toward a public standard structure for deterministic AI d
 
 - [DigiEmu Core Specification v0.9](docs/DIGIEMU_CORE_SPEC_v0.9.md)
 - [Test Vectors v0.9](docs/TEST_VECTORS_v0.9.md)
+- [Negative Test Vectors v0.9](docs/NEGATIVE_TEST_VECTORS_v0.9.md)
 - [Conformance v0.9](docs/CONFORMANCE_v0.9.md)
 - [Conformance Declaration v0.9](docs/CONFORMANCE_DECLARATION_v0.9.md)
 - [Conformance Declaration Schema v0.9](docs/CONFORMANCE_DECLARATION_SCHEMA_v0.9.json)
@@ -46,8 +47,7 @@ DigiEmu Core is moving toward a public standard structure for deterministic AI d
 ### Public standard path
 
 ```text
-Specification → Test Vectors → Conformance → Verify Report Examples → Verify Report Schema
-```
+Specification → Test Vectors → Negative Test Vectors → Conformance → Conformance Declaration → Conformance Declaration Schema → Verify Report Examples → Verify Report Schema```
 
 The specification explains the model.  
 The test vectors make verification reproducible.  
