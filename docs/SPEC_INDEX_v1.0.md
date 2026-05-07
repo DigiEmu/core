@@ -25,6 +25,7 @@ These documents define the emerging public standard structure for DigiEmu Core.
 - `docs/DIGIEMU_CORE_SPEC_v0.9.md`
 - `docs/TEST_VECTORS_v0.9.md`
 - `docs/CONFORMANCE_v0.9.md`
+- `docs/CONFORMANCE_DECLARATION_v0.9.md`
 - `docs/VERIFY_REPORT_EXAMPLES_v0.9.md`
 - `docs/VERIFY_REPORT_SCHEMA_v0.9.json`
 

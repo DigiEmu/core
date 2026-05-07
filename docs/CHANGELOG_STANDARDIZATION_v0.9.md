@@ -22,8 +22,7 @@ DigiEmu Core is being structured as an emerging public standard for deterministi
 The current public standard structure is:
 
 ```text
-Specification → Test Vectors → Conformance → Verify Report Examples → Verify Report Schema
-```
+Specification → Test Vectors → Conformance → Conformance Declaration → Verify Report Examples → Verify Report Schema```
 
 Meaning:
 
@@ -121,6 +120,35 @@ PASS
 FAIL
 ERROR
 ```
+
+---
+
+---
+
+### DigiEmu Core Conformance Declaration v0.9
+
+File:
+
+```text
+docs/CONFORMANCE_DECLARATION_v0.9.md
+```
+
+Purpose:
+
+Defines how implementations can declare claimed DigiEmu Core conformance levels.
+
+It supports:
+
+- implementation identification
+- declared conformance levels
+- supported capabilities
+- supported test vectors
+- known limitations
+- declaration status
+- relationship to Conformance v0.9
+- relationship to Verify Report Schema v0.9
+
+This gives implementers a reviewable way to state which DigiEmu Core conformance level they claim to support.
 
 ---
 
