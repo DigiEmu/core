@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://digiemu.org/schemas/verify-report-v0.9.json",
+  "title": "DigiEmu Core Verify Report Schema v0.9",
+  "description": "JSON Schema for machine-readable DigiEmu Core verification reports. Public Review Draft v0.9.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["result"],
+  "properties": {
+    "result": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "ERROR"],
+      "description": "Verification result."
+    },
+    "case_id": {
+      "type": "string",
+      "description": "Optional identifier of the verified case."
+    },
+    "test_vector_id": {
+      "type": "string",
+      "description": "Optional test vector identifier."
+    },
+    "computed_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash computed from the canonical snapshot."
+    },
+    "expected_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Expected SHA-256 hash provided by the bundle, test vector, or verification target."
+    },
+    "canonicalization": {
+      "type": "string",
+      "enum": ["canonical_json_v1"],
+      "description": "Canonicalization method used by the verifier."
+    },
+    "hash_algorithm": {
+      "type": "string",
+      "enum": ["SHA-256"],
+      "description": "Hash algorithm used by the verifier."
+    },
+    "reason": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Machine-readable reason code for FAIL or ERROR results."
+    },
+    "message": {
+      "type": "string",
+      "description": "Optional human-readable explanation."
+    },
+    "spec_version": {
+      "type": "string",
+      "description": "Specification version used for verification."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional audit metadata outside the deterministic snapshot hash boundary.",
+      "additionalProperties": true,
+      "properties": {
+        "verified_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when verification was performed. Outside deterministic hash boundary."
+        },
+        "verifier": {
+          "type": "string",
+          "description": "Verifier implementation name."
+        },
+        "verifier_version": {
+          "type": "string",
+          "description": "Verifier implementation version."
+        },
+        "runtime_environment": {
+          "type": "string",
+          "description": "Optional runtime environment description."
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "PASS"
+          }
+        },
+        "required": ["result"]
+      },
+      "then": {
+        "required": ["computed_hash", "expected_hash"],
+        "properties": {
+          "computed_hash": {
+            "const": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023"
+          },
+          "expected_hash": {
+            "const": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "FAIL"
+          }
+        },
+        "required": ["result"]
+      },
+      "then": {
+        "required": ["computed_hash", "expected_hash", "reason"],
+        "properties": {
+          "reason": {
+            "enum": ["computed_hash_does_not_match_expected_hash"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "ERROR"
+          }
+        },
+        "required": ["result"]
+      },
+      "then": {
+        "required": ["reason"]
+      }
+    }
+  ],
+  "$defs": {
+    "reason_codes": {
+      "type": "string",
+      "enum": [
+        "computed_hash_does_not_match_expected_hash",
+        "malformed_json",
+        "missing_snapshot",
+        "missing_expected_hash",
+        "unsupported_hash_algorithm",
+        "unsupported_canonicalization",
+        "invalid_bundle_layout",
+        "invalid_field_type",
+        "unreadable_artifact",
+        "internal_verifier_error"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "result": "PASS",
+      "case_id": "CORE-TV-001",
+      "test_vector_id": "CORE-TV-001",
+      "computed_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "expected_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "canonicalization": "canonical_json_v1",
+      "hash_algorithm": "SHA-256",
+      "spec_version": "DigiEmu Core Specification v0.9"
+    },
+    {
+      "result": "FAIL",
+      "case_id": "CORE-TV-001",
+      "test_vector_id": "CORE-TV-001",
+      "computed_hash": "547cfdfc0f1cbd4074b0df84a70a2dcf9f1ca9223535a0c46b8bda4372d9f0f0",
+      "expected_hash": "bcc9c8ee5e6e269d598adaa26cb4e3875726da29b3568ab83f05001bae2ce023",
+      "canonicalization": "canonical_json_v1",
+      "hash_algorithm": "SHA-256",
+      "reason": "computed_hash_does_not_match_expected_hash",
+      "spec_version": "DigiEmu Core Specification v0.9"
+    },
+    {
+      "result": "ERROR",
+      "reason": "malformed_json",
+      "message": "Verification could not be completed because the input snapshot is not valid JSON.",
+      "canonicalization": "canonical_json_v1",
+      "hash_algorithm": "SHA-256",
+      "spec_version": "DigiEmu Core Specification v0.9"
+    }
+  ]
+}
