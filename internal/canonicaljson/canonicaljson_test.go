@@ -30,3 +30,73 @@ func TestStructFieldOrder(t *testing.T) {
 		t.Fatalf("unexpected struct output: %s", string(b))
 	}
 }
+
+func TestNestedMapKeyOrdering(t *testing.T) {
+	m := map[string]any{
+		"z": 3,
+		"a": map[string]any{
+			"b": 2,
+			"a": 1,
+		},
+		"m": []any{
+			map[string]any{
+				"y": 2,
+				"x": 1,
+			},
+		},
+	}
+
+	b, err := Marshal(m)
+	if err != nil {
+		t.Fatalf("Marshal error: %v", err)
+	}
+
+	got := string(b)
+	want := "{\"a\":{\"a\":1,\"b\":2},\"m\":[{\"x\":1,\"y\":2}],\"z\":3}"
+
+	if got != want {
+		t.Fatalf("unexpected nested canonical output:\n got: %s\nwant: %s", got, want)
+	}
+}
+
+func TestEquivalentNestedMapsWithDifferentInputOrderProduceSameCanonicalJSON(t *testing.T) {
+	a := map[string]any{
+		"outer_b": map[string]any{
+			"beta":  2,
+			"alpha": 1,
+		},
+		"outer_a": []any{
+			map[string]any{
+				"delta": 4,
+				"gamma": 3,
+			},
+		},
+	}
+
+	b := map[string]any{
+		"outer_a": []any{
+			map[string]any{
+				"gamma": 3,
+				"delta": 4,
+			},
+		},
+		"outer_b": map[string]any{
+			"alpha": 1,
+			"beta":  2,
+		},
+	}
+
+	canonA, err := Marshal(a)
+	if err != nil {
+		t.Fatalf("Marshal A error: %v", err)
+	}
+
+	canonB, err := Marshal(b)
+	if err != nil {
+		t.Fatalf("Marshal B error: %v", err)
+	}
+
+	if string(canonA) != string(canonB) {
+		t.Fatalf("equivalent nested maps must produce identical canonical JSON:\n A: %s\n B: %s", canonA, canonB)
+	}
+}
