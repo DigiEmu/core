@@ -1,171 +1,299 @@
-# DigiEmu Core — CLI_CONTRACT_v1.0
-Status: DRAFT (Phase 5)
+# DigiEmu Core — CLI Contract v1.0
 
-This document defines the **normative, stable external contract** of the `digiemu` CLI.
-It is intentionally minimal: it specifies what is guaranteed, what is not, and what must remain stable.
+Status: DRAFT  
+Scope: `digiemu` CLI external contract
+
+This document defines the normative, stable external contract of the `digiemu` CLI.
+
+It is intentionally minimal: it specifies what is guaranteed, what is not guaranteed, and what must remain stable across v1.x releases.
 
 ---
-## 1. Scope (normative)
 
-This contract applies to the `digiemu` CLI shipped from `./cmd/digiemu`.
+## 1. Scope
 
-The CLI is considered a **tool interface** and therefore MUST:
+This contract applies to the `digiemu` CLI shipped from:
+
+```text
+./cmd/digiemu
+```
+
+The CLI is considered a tool interface and therefore MUST:
+
 - be scriptable
-- be deterministic (for deterministic commands)
-- provide stable JSON output (where defined)
-- provide governance-stable exit codes (where defined)
+- be deterministic for deterministic commands
+- provide stable JSON output where defined
+- provide governance-stable exit codes where defined
 
-This contract does **not** define internal package APIs.
+This contract does not define internal Go package APIs.
 
 ---
-## 2. Stability levels (normative)
 
-**MUST remain stable in v1.x:**
+## 2. Stability Levels
+
+The following MUST remain stable in v1.x:
+
 - command names and subcommand structure listed in this document
-- flag names listed in this document (behavior as specified)
+- flag names listed in this document, with behavior as specified
 - stable JSON output fields for commands that define JSON output
 - exit code semantics for commands that define exit codes
 - determinism rules for deterministic commands
 
-**MAY change in v1.x:**
-- human-readable (non-JSON) output formatting
+The following MAY change in v1.x:
+
+- human-readable non-JSON output formatting
 - help text wording
-- internal trace details beyond the normative rules
+- internal trace details beyond the normative trace rules
 - performance characteristics
 
-**NOT guaranteed:**
-- any undocumented flag, command alias, or output field
+The following are NOT guaranteed:
+
+- undocumented flags
+- undocumented command aliases
+- undocumented output fields
 - internal package behavior not covered by this contract
 
 ---
-## 3. Supported commands (normative)
 
-The following commands are part of the stable CLI surface:
+## 3. Supported Commands
 
-- `digiemu verify`
-- `digiemu replay`
-- `digiemu unit create`
-- `digiemu version create`
-- `digiemu audit verify`
-- `digiemu audit tail`
-- `digiemu export unit`
-- `digiemu serve`
-- `digiemu meaning set`, `digiemu meaning show`
-- `digiemu claim set`, `digiemu claim show`
-- `digiemu uncertainty set`, `digiemu uncertainty show`
+The following commands are part of the documented CLI surface:
+
+```text
+digiemu verify
+digiemu replay
+digiemu unit create
+digiemu version create
+digiemu audit verify
+digiemu audit tail
+digiemu export unit
+digiemu meaning set
+digiemu meaning show
+digiemu claim set
+digiemu claim show
+digiemu uncertainty set
+digiemu uncertainty show
+```
+
+The following command is available but considered experimental unless otherwise specified:
+
+```text
+digiemu serve
+```
 
 Notes:
-- This contract focuses on `verify` and `replay` as the Phase 4/5 deterministic tool core.
-- Other commands remain supported, but their detailed schemas are governed by their own docs/specs.
+
+- This contract focuses on `verify` and `replay` as the deterministic v1.0 tool core.
+- Other commands remain supported, but their detailed schemas may be governed by their own documents or future contracts.
 
 ---
-## 4. `verify` contract (normative)
+
+## 4. `verify` Contract
 
 ### 4.1 Command
-`digiemu verify`
 
-### 4.2 Flags (stable)
-- `--ref <ref>` (required unless `--bundle` is set)
-- `--bundle <path>` (optional; when set, it is the single source of truth)
-- `--data <dir>` (default `./data`)
-- `--fixture-root <dir>` (default `data/test-fixtures`)
-- `--prefer-data` (resolver order when `--bundle` is not set)
-- `--json` (emit stable JSON)
-- `--write-expected` (governed write policy; never overwrite)
-- `--strict` (legacy; does not override exit codes)
+```text
+digiemu verify
+```
 
-### 4.3 Bundle vs ref (normative)
-- If `--bundle` is set, the bundle root MUST be used as the source of truth.
-- If `--bundle` is set and `--ref` is missing, the ref MUST be derived from the bundle directory name (`snapshots/<ref>`).
-- When `--bundle` is set, resolver flags (`--data`, `--fixture-root`, `--prefer-data`) MUST NOT affect which bundle is used.
+### 4.2 Stable Flags
 
-When `--bundle` is not set:
-- Resolver behavior MUST follow `docs/SNAPSHOT_BUNDLE_v1.0.md` (Bundle root resolution section).
+```text
+--ref <ref>
+--bundle <path>
+--data <dir>
+--fixture-root <dir>
+--prefer-data
+--json
+--write-expected
+--strict
+```
 
-### 4.4 JSON output (normative)
-When `--json` is set, `verify` MUST output JSON that conforms to:
-- `docs/VERIFY_RESULT_SCHEMA_v1.json`
+Flag semantics:
 
-Required high-level properties (minimum):
-- `ok` (boolean)
-- `ref` (string)
-- `expected` (string or empty)
-- `got` (string or empty)
-- `hash_alg` (string)
-- `canonical_scope` (string)
-- `trace` (array of strings)
-- `message` (string)
+- `--ref <ref>` identifies the snapshot reference. It is required unless `--bundle` is set.
+- `--bundle <path>` points directly to a bundle root. When set, it is the single source of truth.
+- `--data <dir>` defines the runtime data root. Default: `./data`.
+- `--fixture-root <dir>` defines the fixture root. Default: `data/test-fixtures`.
+- `--prefer-data` changes resolver order when `--bundle` is not set.
+- `--json` emits stable JSON output.
+- `--write-expected` enables governed expected-hash write behavior. It MUST NOT overwrite a non-placeholder expected hash.
+- `--strict` is legacy-compatible and MUST NOT override documented exit code semantics.
 
-If write policy is in play, the following MUST be present:
-- `wrote_expected` (boolean)
-- `write_blocked` (boolean)
-- `write_reason` (string enum)
+### 4.3 Bundle vs Ref Resolution
 
-### 4.5 Determinism (normative)
+If `--bundle` is set:
+
+- the provided bundle root MUST be used as the source of truth
+- resolver flags such as `--data`, `--fixture-root`, and `--prefer-data` MUST NOT affect which bundle is used
+- if `--ref` is missing, the reference SHOULD be derived from the bundle directory name when possible
+
+If `--bundle` is not set:
+
+- resolver behavior MUST follow `docs/SNAPSHOT_BUNDLE_v1.0.md`
+
+### 4.4 JSON Output
+
+When `--json` is set, `verify` MUST output JSON conforming to:
+
+```text
+docs/VERIFY_RESULT_SCHEMA_v1.json
+```
+
+Required high-level fields include:
+
+```text
+ok
+ref
+expected
+got
+hash_alg
+canonical_scope
+trace
+message
+```
+
+If write policy is in play, the following fields MUST be present:
+
+```text
+wrote_expected
+write_blocked
+write_reason
+```
+
+### 4.5 Determinism
+
 For a fixed bundle, `verify --json` MUST be deterministic in:
+
 - computed hash values
 - exit code
-- JSON field values (including `trace` ordering) EXCEPT for absolute path prefixes on different machines
+- JSON field values
+- trace ordering
+
+Exception:
+
+- absolute path prefixes may differ across machines
 
 Path determinism rule:
-- Trace entries MUST be stable relative ordering and stable suffixes.
-- Absolute prefix differences (workspace paths) are allowed across machines.
 
-### 4.6 Exit codes (normative)
-Exit codes are governed by `docs/CLI_VERIFY_v1.0.md` (“Exit codes (normative)” section).
-This contract references that document as normative for exit code semantics.
+- trace entries MUST preserve stable relative ordering
+- trace entries SHOULD preserve stable suffixes
+- absolute workspace prefixes MAY differ across machines
+
+### 4.6 Exit Codes
+
+Exit codes are governed by:
+
+```text
+docs/CLI_VERIFY_v1.0.md
+```
+
+This contract references that document as normative for `verify` exit code semantics.
 
 ---
-## 5. `replay` contract (normative)
+
+## 5. `replay` Contract
 
 ### 5.1 Command
-`digiemu replay`
 
-### 5.2 Flags (stable)
-- `--bundle <path>` (required)
-- `--json` (emit stable JSON)
+```text
+digiemu replay
+```
 
-### 5.3 JSON output (normative)
-When `--json` is set, `replay` MUST emit JSON with:
-- `snapshot` object (containing at minimum `ref` and `state`)
-- `claims` array (may be empty)
-- `trace` array (strings)
+### 5.2 Stable Flags
 
-### 5.4 Determinism (normative)
-For a fixed bundle, `replay --json` MUST be byte-identical across repeated runs **on the same machine**.
+```text
+--bundle <path>
+--json
+```
+
+Flag semantics:
+
+- `--bundle <path>` points to the bundle root and is required.
+- `--json` emits stable JSON output.
+
+### 5.3 JSON Output
+
+When `--json` is set, `replay` MUST emit JSON containing:
+
+```text
+snapshot
+claims
+trace
+```
+
+Minimum expectations:
+
+- `snapshot` MUST be an object containing at least `ref` and `state` when available.
+- `claims` MUST be an array and MAY be empty.
+- `trace` MUST be an array of strings.
+
+### 5.4 Determinism
+
+For a fixed bundle, `replay --json` MUST be byte-stable across repeated runs on the same machine.
 
 Across machines:
-- Absolute path prefixes may differ, but the trace ordering and the `used:` marker rule MUST hold.
+
+- absolute path prefixes may differ
+- trace ordering MUST remain deterministic
+- the `used:` marker rule MUST hold
 
 ---
-## 6. Trace rules (normative)
 
-For deterministic commands that emit trace (`verify`, `replay`):
-- Trace MUST include the files read (at least snapshot.json, and claims files if present).
-- Trace MUST end with **exactly one** final entry: `used:<bundle-root>`
-- The `used:` marker MUST be the last trace entry.
+## 6. Trace Rules
 
----
-## 7. Compatibility rules (normative)
+For deterministic commands that emit trace, including `verify` and `replay`:
 
-- Minor releases (v1.x) MUST NOT break JSON schema or exit code semantics.
-- New optional JSON fields MAY be added, but existing fields MUST retain meaning.
-- New commands MAY be added, but existing commands MUST remain available.
+- trace MUST include the files read, at minimum `snapshot.json`
+- claim files MUST be included in trace if present and read
+- trace MUST end with exactly one final `used:<bundle-root>` entry
+- the `used:` marker MUST be the last trace entry
+- trace ordering MUST be deterministic
 
 ---
-## 8. Non-goals (explicit)
+
+## 7. Compatibility Rules
+
+Minor releases in v1.x MUST NOT break:
+
+- documented command names
+- documented flag names
+- JSON schema meaning
+- exit code semantics
+- deterministic behavior for deterministic commands
+
+Minor releases in v1.x MAY add:
+
+- new optional JSON fields
+- new commands
+- new flags
+- additional trace entries, provided normative trace ordering remains stable
+
+Existing documented fields MUST retain their meaning.
+
+---
+
+## 8. Non-Goals
 
 This contract does not guarantee:
+
 - stable formatting of non-JSON output
-- stable ordering of map keys in *non-canonical* contexts
-- stable performance or memory use
-- stable internal package names/types
+- stable ordering of map keys in non-canonical contexts
+- stable performance characteristics
+- stable memory use
+- stable internal package names
+- stable internal Go types
+- production stability of experimental commands such as `digiemu serve`
 
 ---
+
 ## 9. References
 
 Normative:
-- `docs/CLI_VERIFY_v1.0.md`
-- `docs/SNAPSHOT_BUNDLE_v1.0.md`
-- `docs/VERIFY_RESULT_SCHEMA_v1.json`
-- `docs/VERIFY_SPEC_v1.0.md`
+
+```text
+docs/CLI_VERIFY_v1.0.md
+docs/SNAPSHOT_BUNDLE_v1.0.md
+docs/VERIFY_RESULT_SCHEMA_v1.json
+docs/VERIFY_SPEC_v1.0.md
+docs/SNAPSHOT_HASH_v1.0.md
+```
