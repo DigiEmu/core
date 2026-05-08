@@ -1,6 +1,7 @@
 package canonicaljson
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -98,5 +99,49 @@ func TestEquivalentNestedMapsWithDifferentInputOrderProduceSameCanonicalJSON(t *
 
 	if string(canonA) != string(canonB) {
 		t.Fatalf("equivalent nested maps must produce identical canonical JSON:\n A: %s\n B: %s", canonA, canonB)
+	}
+}
+
+func TestCanonicalJSONIgnoresInputWhitespace(t *testing.T) {
+	compactJSON := []byte(`{"a":1,"b":{"x":2,"y":[3,4]}}`)
+
+	formattedJSON := []byte(`{
+		"b": {
+			"y": [
+				3,
+				4
+			],
+			"x": 2
+		},
+		"a": 1
+	}`)
+
+	var compact any
+	if err := json.Unmarshal(compactJSON, &compact); err != nil {
+		t.Fatalf("unmarshal compact JSON: %v", err)
+	}
+
+	var formatted any
+	if err := json.Unmarshal(formattedJSON, &formatted); err != nil {
+		t.Fatalf("unmarshal formatted JSON: %v", err)
+	}
+
+	canonCompact, err := Marshal(compact)
+	if err != nil {
+		t.Fatalf("Marshal compact JSON: %v", err)
+	}
+
+	canonFormatted, err := Marshal(formatted)
+	if err != nil {
+		t.Fatalf("Marshal formatted JSON: %v", err)
+	}
+
+	if string(canonCompact) != string(canonFormatted) {
+		t.Fatalf("canonical JSON must ignore input whitespace:\n compact:   %s\n formatted: %s", canonCompact, canonFormatted)
+	}
+
+	want := `{"a":1,"b":{"x":2,"y":[3,4]}}`
+	if string(canonCompact) != want {
+		t.Fatalf("unexpected canonical output:\n got:  %s\nwant: %s", canonCompact, want)
 	}
 }
