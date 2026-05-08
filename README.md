@@ -36,7 +36,9 @@ DigiEmu Core is moving toward a public standard structure for deterministic AI d
 - [Verify Report Examples v0.9](docs/VERIFY_REPORT_EXAMPLES_v0.9.md)
 
 ### Specification index and implementation contracts
+
 - [Spec Index v1.0](docs/SPEC_INDEX_v1.0.md)
+- [CLI Contract v1.0](docs/CLI_CONTRACT_v1.0.md)
 - [Snapshot Hash v1.0](docs/SNAPSHOT_HASH_v1.0.md)
 - [Verify Spec v1.0](docs/VERIFY_SPEC_v1.0.md)
 - [Verify Result Schema v1](docs/VERIFY_RESULT_SCHEMA_v1.json)
@@ -44,11 +46,12 @@ DigiEmu Core is moving toward a public standard structure for deterministic AI d
 - [Snapshot Bundle v1.0](docs/SNAPSHOT_BUNDLE_v1.0.md)
 
 ---
-````md
+
 ### Public standard path
 
 ```text
-Specification → Test Vectors → Negative Test Vectors → Test Vector Manifest → Conformance → Conformance Declaration → Conformance Declaration Schema → Verify Report Examples → Verify Report Schema```
+Specification -> Test Vectors -> Negative Test Vectors -> Test Vector Manifest -> Conformance -> Conformance Declaration -> Conformance Declaration Schema -> Verify Report Examples -> Verify Report Schema
+```
 
 The specification explains the model.  
 The test vectors make verification reproducible.  
