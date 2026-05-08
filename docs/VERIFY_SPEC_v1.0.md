@@ -158,7 +158,14 @@ Verification success (`ok=true`) MAY still return exit 3 if `--write-expected` i
 
 - BOM-safe decode MUST be applied.
 - Canonical JSON MUST be stable for the same logical content.
+- Object/map key ordering MUST NOT affect canonical JSON output.
+- Nested object/map key ordering MUST NOT affect canonical JSON output.
+- Pretty-printed or compact JSON MUST produce the same canonical JSON if logical content is identical.
 - Trace ordering MUST be deterministic.
+- ReplayV1 MUST be idempotent for the same bundle input.
+- `expected_hash_v1` MUST be excluded from replay/hash scope.
+- Verification metadata MUST NOT change deterministic reconstructed state identity.
+- Tampered deterministic snapshot state MUST result in verification failure.
 
 ## 11. Security & Governance Notes
 
