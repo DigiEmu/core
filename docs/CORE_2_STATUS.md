@@ -31,6 +31,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
  - Conformance quickstart (partner-facing)
  - Core 2.0 versioning guidance (partner-facing)
  - Core 2.0 compatibility matrix (partner-facing)
+ - Core 2.0 partner integration notes (partner-facing)
 
 ## Draft Artifacts
 
