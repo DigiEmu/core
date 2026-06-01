@@ -14,6 +14,17 @@ Usage
 - The runner is implemented in `internal/conformance` and exposes `RunAll(root)` which returns a list of per-case `Result` objects.
 - It discovers case directories under the provided `root` (for repository tests this is `testdata/core_2_conformance`).
 
+Experimental CLI
+----------------
+
+An experimental CLI entrypoint is available under the main `digiemu` binary:
+
+```
+digiemu experimental conformance run <path-to-conformance-dir>
+```
+
+This command is intentionally experimental and draft-only. It invokes the internal conformance runner and prints a brief summary of total/passed/failed cases. It is not a public or stable CLI yet.
+
 Limitations
 -----------
 
