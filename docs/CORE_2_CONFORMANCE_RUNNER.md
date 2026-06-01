@@ -25,6 +25,11 @@ digiemu experimental conformance run <path-to-conformance-dir>
 
 This command is intentionally experimental and draft-only. It invokes the internal conformance runner and prints a brief summary of total/passed/failed cases. It is not a public or stable CLI yet.
 
+Quickstart
+---------
+
+See the partner-facing quickstart for a concise how-to and example invocation: `docs/CORE_2_CONFORMANCE_QUICKSTART.md`.
+
 Limitations
 -----------
 

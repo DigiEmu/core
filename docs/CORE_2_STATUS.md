@@ -28,6 +28,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
  - Internal conformance runner MVP (draft)
  - Internal conformance runner MVP (draft)
  - Experimental conformance CLI (draft)
+ - Conformance quickstart (partner-facing)
 
 ## Draft Artifacts
 
