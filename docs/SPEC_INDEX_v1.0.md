@@ -94,3 +94,5 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_COMPATIBILITY_MATRIX.md`
  - `docs/CORE_2_RELEASE_NOTES_DRAFT.md`
  - `docs/CORE_2_ROADMAP_NEXT.md`
+ - `docs/CORE_2_CONFORMANCE_REPORT.md`
+ - `schemas/core_2_conformance_report.schema.json`

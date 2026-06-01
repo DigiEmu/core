@@ -25,6 +25,11 @@ digiemu experimental conformance run <path-to-conformance-dir>
 
 This command is intentionally experimental and draft-only. It invokes the internal conformance runner and prints a brief summary of total/passed/failed cases. It is not a public or stable CLI yet.
 
+JSON output
+-----------
+
+The experimental CLI accepts a `--json` flag to emit a machine-readable conformance report. See `docs/CORE_2_CONFORMANCE_REPORT.md` and `schemas/core_2_conformance_report.schema.json` for details and schema.
+
 Quickstart
 ---------
 
