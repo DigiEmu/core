@@ -89,3 +89,5 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_CANONICALIZATION_DECISIONS.md`
  - `docs/CORE_2_CONFORMANCE_RUNNER.md`
  - `docs/CORE_2_CONFORMANCE_QUICKSTART.md`
+ - `docs/CORE_2_VERSIONING.md`
+ - `docs/CORE_2_COMPATIBILITY_MATRIX.md`
