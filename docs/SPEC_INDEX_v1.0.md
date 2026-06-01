@@ -63,3 +63,15 @@ Conformance defines implementer requirements.
 Verify report examples define machine-readable outcomes.
 Verify report schema makes verification reports formally validatable.
 ```
+
+---
+
+## Core 2.0 hardening drafts
+
+These documents are forward-compatible Core 2.0 hardening drafts and do not replace or break the current v1.0 contract.
+
+- `docs/CORE_2_BOUNDARY_MODEL.md`
+- `docs/CORE_2_HARDENING_PLAN.md`
+- `docs/CORE_2_CRYPTO_AGILITY.md`
+- `docs/CORE_2_VERIFY_RESULT_v2_DRAFT.md`
+- `docs/CORE_2_MIGRATION_FROM_v1.md`
