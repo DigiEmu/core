@@ -40,6 +40,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 
 - `docs/CORE_2_OPENAPI_DRAFT.md` — OpenAPI contract draft describing intended HTTP surfaces for future partner integrations (documentation-only). This is a draft and does not implement or expose any network API in the repository.
 - `openapi/core_2_conformance_api.yaml` — Draft OpenAPI 3.x specification for the above.
+ - `docs/CORE_2_DOCKER_USAGE.md` — Optional Docker-based partner usage path for running the experimental conformance CLI without installing Go.
 
 ## Draft Artifacts
 
