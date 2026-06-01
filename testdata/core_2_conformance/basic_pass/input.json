@@ -1,0 +1,7 @@
+{
+  "input_state": {
+    "id": "basic-1",
+    "value": 42,
+    "description": "Minimal deterministic input for conformance basic_pass"
+  }
+}
