@@ -10,8 +10,17 @@ import (
 
 // Result holds the outcome for a single conformance case
 type Result struct {
-	CaseName            string `json:"case_name"`
-	Result              string `json:"result"`
+	CaseName string `json:"case_name"`
+	// Result is the expected Verify Result value from the case file (PASS/FAIL/ERROR).
+	// Keep for backward-compatibility with older consumers.
+	Result string `json:"result"`
+	// ExpectedResult mirrors Result and makes intent clearer for consumers.
+	ExpectedResult string `json:"expected_result"`
+	// CasePassed indicates whether the conformance runner considered the
+	// case successful (i.e., the expected_verify_result.json was structurally
+	// valid and satisfied required fields). This is distinct from the
+	// Verify Result value which may be PASS/FAIL/ERROR.
+	CasePassed          bool   `json:"case_passed"`
 	ReasonCode          string `json:"reason_code"`
 	VerifyResultVersion string `json:"verify_result_version"`
 	Err                 string `json:"error,omitempty"`
@@ -85,7 +94,12 @@ func RunCase(caseDir string) Result {
 		// ok
 	default:
 		r.Err = "invalid 'result' value; must be PASS, FAIL, or ERROR"
+		return r
 	}
+
+	// mirror expected result and mark case passed when no structural errors
+	r.ExpectedResult = r.Result
+	r.CasePassed = (r.Err == "")
 
 	return r
 }

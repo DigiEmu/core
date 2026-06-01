@@ -56,6 +56,8 @@ func main() {
 		runSign(os.Args[2:])
 	case "identity":
 		runIdentity(os.Args[2:])
+	case "experimental":
+		runExperimental(os.Args[2:])
 	case "serve":
 		runServe(os.Args[2:])
 	case "--help", "-h", "help":
