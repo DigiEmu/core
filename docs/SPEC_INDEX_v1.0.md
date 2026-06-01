@@ -87,3 +87,4 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_HASH_BOUNDARY_VECTORS.md`
  - `testdata/core_2_hash_boundary/`
  - `docs/CORE_2_CANONICALIZATION_DECISIONS.md`
+ - `docs/CORE_2_CONFORMANCE_RUNNER.md`
