@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: DigiEmu Core 2.0 — Conformance API (Draft)
+  version: "0.1.0-draft"
+  description: |
+    Draft OpenAPI contract for Core 2.0 conformance and validation operations.
+    This is a documentation artifact only and does not imply a server
+    implementation in this repository.
+
+servers:
+  - url: https://api.example.org
+    description: Example host (not provided by this repo)
+
+paths:
+  /v1/core2/version:
+    get:
+      summary: API draft version information
+      responses:
+        '200':
+          description: Draft API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api:
+                    type: string
+                  version:
+                    type: string
+                  draft:
+                    type: boolean
+
+  /v1/core2/profiles:
+    get:
+      summary: List known profile identifiers
+      responses:
+        '200':
+          description: Array of profile identifiers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      type: string
+
+  /v1/core2/conformance/run:
+    post:
+      summary: Run or validate a conformance case-set and return a report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                  description: |
+                    Optional reference to a bundle or testdata location. For
+                    this draft the server MAY accept an inline bundle or a
+                    URI referencing a repository path.
+                cases:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Conformance report
+          content:
+            application/json:
+              schema:
+                $ref: '../schemas/core_2_conformance_report.schema.json'
+
+  /v1/core2/verify-result/validate:
+    post:
+      summary: Validate a Verify Result v2 document structurally
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/verify_result_v2.schema.json'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /v1/core2/conformance-report/validate:
+    post:
+      summary: Validate a Core 2.0 conformance report structurally
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/core_2_conformance_report.schema.json'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  schemas:
+    ProfileRegistry:
+      $ref: '../schemas/core_2_profile_registry.schema.json'

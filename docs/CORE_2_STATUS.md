@@ -36,6 +36,11 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Core 2.0 roadmap (next)
 - JSON conformance report schema (draft/schema-backed)
 
+## OpenAPI contract draft
+
+- `docs/CORE_2_OPENAPI_DRAFT.md` — OpenAPI contract draft describing intended HTTP surfaces for future partner integrations (documentation-only). This is a draft and does not implement or expose any network API in the repository.
+- `openapi/core_2_conformance_api.yaml` — Draft OpenAPI 3.x specification for the above.
+
 ## Draft Artifacts
 
 - `docs/CORE_2_VERIFY_RESULT_v2_DRAFT.md` — v2 draft and rationale
