@@ -22,6 +22,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Core 2.0 Conformance Pack (draft)
 - Canonicalization audit
 - Canonicalization behavior tests
+ - Profile Registry (draft)
 
 ## Draft Artifacts
 
@@ -30,6 +31,9 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - `docs/CORE_2_REASON_CODES.md` — proposed reason-code registry
 - `docs/CORE_2_CONFORMANCE_PACK.md` and `testdata/core_2_conformance/` — draft conformance vectors
 - `docs/CORE_2_CANONICALIZATION_AUDIT.md` — audit and recommendations
+ - `docs/CORE_2_PROFILE_REGISTRY.md` — Core 2.0 profile registry (draft)
+ - `schemas/core_2_profile_registry.schema.json` — profile registry JSON Schema (draft)
+ - `testdata/core_2_profiles/profile_registry_valid.json` — example registry
 
 ## Tested Guarantees
 
