@@ -25,6 +25,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
  - Profile Registry (draft)
  - Hash boundary vectors and tests
  - Canonicalization decision record (draft)
+ - Internal conformance runner MVP (draft)
 
 ## Draft Artifacts
 
