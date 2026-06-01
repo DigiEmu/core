@@ -11,6 +11,7 @@ Next phase
 - Add optional JSON output for the experimental conformance CLI
 - Add machine-readable conformance report format
 - Prepare OpenAPI contract draft for a future HTTP API
+ - Prepare OpenAPI contract draft for a future HTTP API (draft created)
 - Prepare Docker-based usage path for easier partner evaluation
 - Plan Secure Layer signature MVP separately
 - Plan Post-Quantum migration profile separately
