@@ -98,6 +98,16 @@ Planned but not implemented in this draft:
 - Promotion of stable CLI commands for conformance
 - An HTTP API / OpenAPI specification for remote validation
 - Docker images and SDKs for non-Go users
+ - Docker images and SDKs for non-Go users
+
+Docker usage (optional)
+-----------------------
+
+For partners who prefer not to install Go locally, the repository includes a
+minimal Docker build and companion documentation (`docs/CORE_2_DOCKER_USAGE.md`)
+that produce a small container with the `digiemu` CLI and the default conformance
+testdata. This is an optional, partner-facing evaluation path and does not
+change any runtime or CLI behavior.
 - Secure layer signatures and post-quantum migration profiles
 
 Compatibility statement

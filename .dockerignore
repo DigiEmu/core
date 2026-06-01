@@ -1,0 +1,16 @@
+/.git
+/tmp
+/.github
+/.vscode
+node_modules
+**/*.md
+**/docs/**
+**/openapi/**
+**/examples/**
+**/*.log
+**/*.tmp
+Dockerfile
+.dockerignore
+go.work
+build/
+vendor/

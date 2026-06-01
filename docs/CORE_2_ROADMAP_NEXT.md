@@ -13,6 +13,7 @@ Next phase
 - Prepare OpenAPI contract draft for a future HTTP API
  - Prepare OpenAPI contract draft for a future HTTP API (draft created)
 - Prepare Docker-based usage path for easier partner evaluation
+ - Prepare Docker-based usage path for easier partner evaluation (draft prepared)
 - Plan Secure Layer signature MVP separately
 - Plan Post-Quantum migration profile separately
 
