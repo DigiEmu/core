@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DigiEmu Verify Result v2 (draft)",
+  "description": "Draft JSON Schema for Verify Result v2 outputs produced by DigiEmu Core 2.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verify_result_version",
+    "result",
+    "reason_code",
+    "canonicalization_profile",
+    "hash_algorithm",
+    "reconstruction_profile",
+    "verifier_version"
+  ],
+  "properties": {
+    "verify_result_version": { "type": "string", "examples": ["v2-draft"] },
+    "result": { "type": "string", "enum": ["PASS","FAIL","ERROR"] },
+    "reason_code": {
+      "type": "string",
+      "enum": [
+        "STATE_RECONSTRUCTED",
+        "HASH_MISMATCH",
+        "RECONSTRUCTION_RULE_MISMATCH",
+        "CHAIN_BROKEN",
+        "TRANSITION_INVALID",
+        "INSIDE_HASH_FIELD_CHANGED",
+        "CANONICALIZATION_ERROR",
+        "INVALID_SNAPSHOT_SCHEMA",
+        "MISSING_REQUIRED_FIELD",
+        "UNSUPPORTED_HASH_ALGORITHM",
+        "UNSUPPORTED_CANONICALIZATION_PROFILE",
+        "UNSUPPORTED_RECONSTRUCTION_PROFILE",
+        "INTERNAL_ERROR"
+      ]
+    },
+    "canonicalization_profile": { "type": "string", "examples": ["digiemu-canonical-json-v1"] },
+    "hash_algorithm": { "type": "string", "examples": ["sha256"] },
+    "reconstruction_profile": { "type": "string", "examples": ["digiemu-reconstruct-v1"] },
+    "verifier_version": { "type": "string" },
+    "snapshot_hash": { "type": "string" },
+    "snapshot_hash_expected": { "type": "string" },
+    "snapshot_hash_actual": { "type": "string" },
+    "failure_path": { "type": "string", "description": "JSON Pointer or dotpath to failing field" },
+    "evidence_references": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "signature_status": { "type": "string" },
+    "crypto_profile": { "type": "string" },
+    "outside_hash_metadata_status": { "type": "string" }
+  },
+  "examples": [
+    {
+      "verify_result_version": "v2-draft",
+      "result": "PASS",
+      "reason_code": "STATE_RECONSTRUCTED",
+      "canonicalization_profile": "digiemu-canonical-json-v1",
+      "hash_algorithm": "sha256",
+      "reconstruction_profile": "digiemu-reconstruct-v1",
+      "verifier_version": "0.0.0-draft",
+      "snapshot_hash": "sha256:examplehash"
+    }
+  ]
+}

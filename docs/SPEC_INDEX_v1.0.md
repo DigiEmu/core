@@ -75,3 +75,5 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
 - `docs/CORE_2_CRYPTO_AGILITY.md`
 - `docs/CORE_2_VERIFY_RESULT_v2_DRAFT.md`
 - `docs/CORE_2_MIGRATION_FROM_v1.md`
+ - `docs/CORE_2_REASON_CODES.md`
+ - `schemas/verify_result_v2.schema.json`

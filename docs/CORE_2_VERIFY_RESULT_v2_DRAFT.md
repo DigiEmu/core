@@ -63,3 +63,7 @@ Semantics notes (normative)
 Compatibility
 -------------
 Core 2.0 SHALL continue to emit existing v1.0 `Verify Result` outputs. v2 outputs are OPTIONAL and MUST NOT be emitted by default for v1.0 CLI commands unless explicitly enabled.
+
+Registry and schema
+-------------------
+The canonical reason-code registry is published in `docs/CORE_2_REASON_CODES.md` and a machine-readable JSON Schema draft is available at `schemas/verify_result_v2.schema.json`. Example v2 `Verify Result` documents are provided in `testdata/verify_result_v2/` for PASS/FAIL/ERROR cases.
