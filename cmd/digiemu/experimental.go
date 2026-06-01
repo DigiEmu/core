@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	conftool "digiemu-core/internal/conformance"
@@ -12,24 +13,31 @@ func runExperimental(args []string) {
 	os.Exit(runExperimentalWithIO(args, os.Stdout, os.Stderr))
 }
 
-func runExperimentalWithIO(args []string, stdout, stderr interface{}) int {
+func runExperimentalWithIO(args []string, stdout, stderr io.Writer) int {
+	if stdout == nil {
+		stdout = os.Stdout
+	}
+	if stderr == nil {
+		stderr = os.Stderr
+	}
+
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "experimental subcommands: conformance")
+		fmt.Fprintln(stderr, "experimental subcommands: conformance")
 		return 2
 	}
 
 	switch args[0] {
 	case "conformance":
-		return runExperimentalConformance(args[1:])
+		return runExperimentalConformanceWithIO(args[1:], stdout, stderr)
 	default:
-		fmt.Fprintln(os.Stderr, "experimental subcommands: conformance")
+		fmt.Fprintln(stderr, "experimental subcommands: conformance")
 		return 2
 	}
 }
 
-func runExperimentalConformance(args []string) int {
+func runExperimentalConformanceWithIO(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "usage: digiemu experimental conformance run <path-to-conformance-dir>")
+		fmt.Fprintln(stderr, "usage: digiemu experimental conformance run <path-to-conformance-dir>")
 		return 2
 	}
 
@@ -39,14 +47,14 @@ func runExperimentalConformance(args []string) int {
 		_ = fs.Parse(args[1:])
 		rem := fs.Args()
 		if len(rem) < 1 {
-			fmt.Fprintln(os.Stderr, "usage: digiemu experimental conformance run <path-to-conformance-dir>")
+			fmt.Fprintln(stderr, "usage: digiemu experimental conformance run <path-to-conformance-dir>")
 			return 2
 		}
 		root := rem[0]
 		// run the internal conformance runner
 		results, err := conftool.RunAll(root)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "conformance run error: %v\n", err)
+			fmt.Fprintf(stderr, "conformance run error: %v\n", err)
 			return 1
 		}
 
@@ -61,13 +69,13 @@ func runExperimentalConformance(args []string) int {
 			}
 		}
 
-		fmt.Printf("Conformance run summary: total=%d passed=%d failed=%d\n", total, passed, failed)
+		fmt.Fprintf(stdout, "Conformance run summary: total=%d passed=%d failed=%d\n", total, passed, failed)
 		if failed > 0 {
 			return 3
 		}
 		return 0
 	default:
-		fmt.Fprintln(os.Stderr, "usage: digiemu experimental conformance run <path-to-conformance-dir>")
+		fmt.Fprintln(stderr, "usage: digiemu experimental conformance run <path-to-conformance-dir>")
 		return 2
 	}
 }
