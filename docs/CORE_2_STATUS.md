@@ -58,6 +58,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Canonical JSON behavior is locked by tests.
 - Snapshot Hash v1 mutation behavior is tested.
 - Replay outside-hash behavior is tested.
+ - OpenAPI draft YAML parses and contains required paths (structural test).
 
 ## Known Risks
 

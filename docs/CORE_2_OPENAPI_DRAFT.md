@@ -49,3 +49,11 @@ Feedback
 Open issues and feedback should be recorded as PR comments against the
 `core-2-openapi-contract-draft` branch. When ready, maintainers may choose to
 promote, adapt or split the contract into an integration repository.
+
+Validation
+
+This draft is structurally validated by a repository test that parses the
+`openapi/core_2_conformance_api.yaml` file and asserts presence of the
+`openapi` version, `info.title`, required paths and `components.schemas`.
+The test is documentation-only and enforces basic structural correctness
+but does NOT imply a running API server.
