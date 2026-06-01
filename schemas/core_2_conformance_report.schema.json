@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Core 2.0 Conformance Report",
+  "type": "object",
+  "required": ["report_version", "status", "total", "passed", "failed", "cases"],
+  "properties": {
+    "report_version": {"type": "string"},
+    "status": {"type": "string", "enum": ["PASS", "FAIL"]},
+    "total": {"type": "integer", "minimum": 0},
+    "passed": {"type": "integer", "minimum": 0},
+    "failed": {"type": "integer", "minimum": 0},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "case_passed", "expected_result", "reason_code"],
+        "properties": {
+          "name": {"type": "string"},
+          "case_passed": {"type": "boolean"},
+          "expected_result": {"type": "string", "enum": ["PASS", "FAIL", "ERROR"]},
+          "reason_code": {"type": "string"},
+          "error": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

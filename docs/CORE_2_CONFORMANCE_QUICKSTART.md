@@ -106,6 +106,18 @@ On a healthy checkout of the current draft conformance pack you should see a sho
 Conformance run summary: total=3 passed=3 failed=0
 ```
 
+Optional JSON output
+--------------------
+
+The CLI supports an experimental `--json` flag which emits a machine-readable
+report. Example:
+
+```bash
+go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance --json
+```
+
+See `docs/CORE_2_CONFORMANCE_REPORT.md` and `schemas/core_2_conformance_report.schema.json` for details.
+
 Conformance case structure
 --------------------------
 

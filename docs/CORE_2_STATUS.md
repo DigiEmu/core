@@ -34,6 +34,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
  - Core 2.0 partner integration notes (partner-facing)
 - Core 2.0 release notes (draft)
 - Core 2.0 roadmap (next)
+- JSON conformance report schema (draft/schema-backed)
 
 ## Draft Artifacts
 

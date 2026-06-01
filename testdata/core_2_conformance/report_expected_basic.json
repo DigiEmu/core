@@ -1,0 +1,30 @@
+{
+  "report_version": "core-2-conformance-report-v1",
+  "status": "PASS",
+  "total": 3,
+  "passed": 3,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "basic_pass",
+      "case_passed": true,
+      "expected_result": "PASS",
+      "reason_code": "OK",
+      "error": null
+    },
+    {
+      "name": "hash_mismatch_fail",
+      "case_passed": true,
+      "expected_result": "FAIL",
+      "reason_code": "HASH_MISMATCH",
+      "error": null
+    },
+    {
+      "name": "invalid_schema_error",
+      "case_passed": true,
+      "expected_result": "ERROR",
+      "reason_code": "SCHEMA_INVALID",
+      "error": null
+    }
+  ]
+}
