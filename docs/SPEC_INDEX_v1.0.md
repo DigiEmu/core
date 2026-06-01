@@ -80,3 +80,4 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_CONFORMANCE_PACK.md`
  - `docs/CORE_2_TEST_VECTOR_RULES.md`
  - `testdata/core_2_conformance/`  
+ - `docs/CORE_2_STATUS.md`
