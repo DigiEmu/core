@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DigiEmu Core 2.0 Profile Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "canonicalization_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {"type": "array", "items": {"type": "string"}},
+        "planned": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["active"]
+    },
+    "hash_algorithms": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {"type": "array", "items": {"type": "string"}},
+        "planned": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["active"]
+    },
+    "reconstruction_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {"type": "array", "items": {"type": "string"}},
+        "planned": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["active"]
+    },
+    "verify_result_versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["active"]
+    },
+    "conformance_levels": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["active"]
+    },
+    "crypto_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {"type": "array", "items": {"type": "string"}},
+        "planned": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["active"]
+    }
+  },
+  "required": ["canonicalization_profiles","hash_algorithms","reconstruction_profiles","verify_result_versions","conformance_levels","crypto_profiles"]
+}

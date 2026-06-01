@@ -1,0 +1,24 @@
+{
+  "canonicalization_profiles": {
+    "active": ["digiemu-canonical-json-v1"],
+    "planned": ["digiemu-canonical-json-v2-planned"]
+  },
+  "hash_algorithms": {
+    "active": ["sha256"],
+    "planned": ["sha3-256-planned"]
+  },
+  "reconstruction_profiles": {
+    "active": ["digiemu-reconstruct-v1"],
+    "planned": ["digiemu-reconstruct-v2-planned"]
+  },
+  "verify_result_versions": {
+    "active": ["2.0-draft"]
+  },
+  "conformance_levels": {
+    "active": ["core-2-draft-basic", "core-2-draft-conformance"]
+  },
+  "crypto_profiles": {
+    "active": ["none", "external-signature"],
+    "planned": ["classical-signature-planned", "hybrid-pq-planned", "pq-migration-ready-planned"]
+  }
+}

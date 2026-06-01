@@ -81,3 +81,6 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_TEST_VECTOR_RULES.md`
  - `testdata/core_2_conformance/`  
  - `docs/CORE_2_STATUS.md`
+ - `docs/CORE_2_PROFILE_REGISTRY.md`
+ - `schemas/core_2_profile_registry.schema.json`
+ - `testdata/core_2_profiles/profile_registry_valid.json`
