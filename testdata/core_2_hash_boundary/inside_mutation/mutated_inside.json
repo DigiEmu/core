@@ -1,0 +1,6 @@
+{
+  "id": "snap-001",
+  "value": 5,
+  "items": [1, 2, 4],
+  "meta": {"author": "tester", "sequence": 1}
+}

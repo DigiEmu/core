@@ -84,3 +84,5 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_PROFILE_REGISTRY.md`
  - `schemas/core_2_profile_registry.schema.json`
  - `testdata/core_2_profiles/profile_registry_valid.json`
+ - `docs/CORE_2_HASH_BOUNDARY_VECTORS.md`
+ - `testdata/core_2_hash_boundary/`

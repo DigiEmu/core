@@ -23,6 +23,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Canonicalization audit
 - Canonicalization behavior tests
  - Profile Registry (draft)
+ - Hash boundary vectors and tests
 
 ## Draft Artifacts
 
