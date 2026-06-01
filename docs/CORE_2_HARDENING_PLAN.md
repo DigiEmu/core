@@ -21,6 +21,10 @@ Phase 2 — Verify Result v2 Pilots (non-breaking)
 - Implement optional v2 output mode behind a feature flag.  
 - Add machine-readable conformance tests for v2 (SHOULD be separate from v1 vectors).
 
+Phase 2.5 — Conformance Pack
+- Publish a Core 2.0 Conformance Pack containing minimal deterministic test vectors and rules to validate external implementations.  
+- Acceptance: conformance pack documents and testdata are added to the repository under `testdata/core_2_conformance/`.
+
 Phase 3 — Hash Agility Hooks
 - Add support for multi-hash validation (e.g., accept additional verification layers) in a way that does NOT invalidate historical proofs.  
 - Provide canonical migration patterns and examples.

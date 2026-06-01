@@ -1,0 +1,7 @@
+{
+  "input_state": {
+    "id": "mismatch-1",
+    "value": 100,
+    "notes": "This input is expected to produce a different snapshot hash than declared in expected_verify_result.json"
+  }
+}
