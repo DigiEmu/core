@@ -233,3 +233,55 @@ See [LICENSE](LICENSE) for details.
 
 - [Security Policy](SECURITY.md)
 - [Determinism Exceptions](docs/security/DETERMINISM_EXCEPTIONS.md)
+
+## Core 2.0 Draft 1 — Partner-Testable Milestone
+
+Status: draft / pre-release / not stable
+
+Core 2.0 Draft 1 (tag example: `v2.0.0-draft.1`) is a partner-testable milestone.
+It is intended for evaluation and feedback; it is NOT a stable release and does
+not change any v1.0 behavior.
+
+Short positioning
+- DigiEmu Core provides deterministic knowledge infrastructure for AI systems.
+- Core 2.0 Draft 1 is partner-testable and draft-only.
+- v1.0 behavior remains unchanged and is the baseline for compatibility.
+
+Core 2.0 capabilities (draft)
+- Experimental conformance CLI
+- Human-readable conformance output
+- JSON conformance reports
+- Conformance report schema
+- OpenAPI contract draft
+- Docker usage path (documentation)
+- CI conformance checks
+
+Quickstart commands (for evaluation)
+```bash
+go test ./...
+go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance
+go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance --json
+```
+
+Docker (optional evaluation)
+```bash
+docker build -t digiemu-core .
+docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_conformance
+docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_conformance --json
+```
+
+Expected output
+- `Conformance run summary: total=3 passed=3 failed=0`
+
+Important notes
+- Core 2.0 remains draft unless explicitly marked stable.
+- Experimental commands remain under the `experimental` namespace.
+- This is not a stable `v2.0.0` release.
+
+Links
+- [Conformance Quickstart](docs/CORE_2_CONFORMANCE_QUICKSTART.md)
+- [Partner Integration Notes](docs/CORE_2_PARTNER_INTEGRATION_NOTES.md)
+- [Docker Usage](docs/CORE_2_DOCKER_USAGE.md)
+- [OpenAPI Draft](docs/CORE_2_OPENAPI_DRAFT.md)
+- [Release Checklist](docs/CORE_2_RELEASE_CHECKLIST.md)
+- [Tagging Plan](docs/CORE_2_TAGGING_PLAN.md)

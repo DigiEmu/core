@@ -92,3 +92,6 @@ All Core 2.0 drafts and tests are designed to be forward-compatible and to avoid
 ---
 
 If you want, I can open a follow-up PR that adds the conformance runner and extends the conformance vectors — otherwise, the current branch is ready to commit the documentation snapshot.
+
+Note: The repository README now highlights the Core 2.0 Draft 1 partner-testable milestone
+and links to the conformance quickstart and release checklist (docs/CORE_2_RELEASE_CHECKLIST.md).
