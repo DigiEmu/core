@@ -77,6 +77,11 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	concise partner-facing checklist and review guidance for draft tags like
 	`v2.0.0-draft.2`.
 
+- Feedback intake: partner feedback templates and a short feedback process
+	(`docs/CORE_2_FEEDBACK_PROCESS.md`) were added to streamline issue intake
+	and triage for conformance feedback, integration blockers, and spec
+	clarifications.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.

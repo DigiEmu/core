@@ -92,6 +92,7 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_PARTNER_INTEGRATION_NOTES.md`
  - `docs/CORE_2_PARTNER_HANDOFF.md`
  - `docs/CORE_2_VERSIONING.md`
+ - `docs/CORE_2_FEEDBACK_PROCESS.md`
  - `docs/CORE_2_COMPATIBILITY_MATRIX.md`
  - `docs/CORE_2_RELEASE_NOTES_DRAFT.md`
  - `docs/CORE_2_RELEASE_CHECKLIST.md`
