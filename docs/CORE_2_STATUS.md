@@ -73,6 +73,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
   experimental conformance CLI inside the container (human-readable + `--json`) to
   validate the Docker usage path.
 
+- Partner handoff package: `docs/CORE_2_PARTNER_HANDOFF.md` added to provide a
+	concise partner-facing checklist and review guidance for draft tags like
+	`v2.0.0-draft.2`.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.

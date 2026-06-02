@@ -110,6 +110,9 @@ testdata. This is an optional, partner-facing evaluation path and does not
 change any runtime or CLI behavior.
 - Secure layer signatures and post-quantum migration profiles
 
+See also: `docs/CORE_2_PARTNER_HANDOFF.md` for a concise partner handoff
+package describing what to test and review for `v2.0.0-draft.2`.
+
 Compatibility statement
 -----------------------
 
