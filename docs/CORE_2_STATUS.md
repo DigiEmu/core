@@ -17,6 +17,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Migration from v1 guidance
 - Verify Result v2 draft
 - Reason Codes registry
+- Reason code review and stabilization notes
 - Verify Result v2 JSON Schema draft
 - Verify Result v2 example validation test
 - Core 2.0 Conformance Pack (draft)
@@ -51,6 +52,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - `docs/CORE_2_VERIFY_RESULT_v2_DRAFT.md` — v2 draft and rationale
 - `schemas/verify_result_v2.schema.json` — v2 JSON Schema (draft)
 - `docs/CORE_2_REASON_CODES.md` — proposed reason-code registry
+- `docs/CORE_2_REASON_CODE_REVIEW.md` — reason-code review and stabilization notes
 - `docs/CORE_2_CONFORMANCE_PACK.md` and `testdata/core_2_conformance/` — draft conformance vectors
 - `docs/CORE_2_CANONICALIZATION_AUDIT.md` — audit and recommendations
  - `docs/CORE_2_PROFILE_REGISTRY.md` — Core 2.0 profile registry (draft)
@@ -88,6 +90,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	automated/Copilot review outcome, confirmed strengths, out-of-scope items,
 	and recommended next steps for `v2.0.0-draft.2`.
 
+- Reason-code stabilization review: `docs/CORE_2_REASON_CODE_REVIEW.md` records
+	the current draft reason-code set, release risks, and stable-readiness
+	checklist without changing schemas, testdata, CLI behavior, or production code.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
@@ -95,13 +101,14 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Unicode normalization is documented but not changed; normalization policy remains an open decision.
 - `json.RawMessage` handling is documented and tests lock current behavior, but it may require a future profile decision.
 - Core 2.0 conformance pack is draft and not yet an executable certification suite.
+- Reason-code identifiers are draft but compatibility-sensitive for partner automation.
 
 ## Next Recommended Steps
 
-1. Define a Core 2.0 profile registry to pin canonicalization and hashing profiles.
-2. Add an executable conformance runner or CLI mode to exercise the conformance pack.
-3. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
-4. Expand inside/outside-hash conformance vectors to cover more real-world fixtures.
+1. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
+2. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
+3. Expand inside/outside-hash conformance vectors to cover more real-world fixtures.
+4. Collect partner feedback on reason-code clarity before stable promotion.
 5. Plan secure-layer signature work and post-quantum migration as separate engineering projects.
 
 ## Compatibility Statement
