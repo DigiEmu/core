@@ -93,3 +93,36 @@ jobs:
           grep '"total": 3' conformance-report.json
           grep '"passed": 3' conformance-report.json
           grep '"failed": 0' conformance-report.json
+
+  docker-conformance:
+    name: Docker Core 2.0 Conformance Validation
+    runs-on: ubuntu-latest
+    needs: [gate_all_ubuntu]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t digiemu-core .
+
+      - name: Run conformance in Docker (human-readable)
+        run: |
+          set -e
+          echo "Running Docker experimental conformance (human-readable)"
+          docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_conformance | tee docker-conformance.out
+          if ! grep -q "Conformance run summary" docker-conformance.out; then
+            echo "Missing human-readable summary in docker output" >&2
+            exit 1
+          fi
+
+      - name: Run conformance in Docker (JSON)
+        run: |
+          set -e
+          echo "Running Docker experimental conformance (JSON)"
+          docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_conformance --json > docker-conformance.json
+          cat docker-conformance.json
+          grep '"status": "PASS"' docker-conformance.json
+          grep '"total": 3' docker-conformance.json
+          grep '"passed": 3' docker-conformance.json
+          grep '"failed": 0' docker-conformance.json
