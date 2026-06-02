@@ -69,6 +69,7 @@ What to review
 
 - Are the conformance cases understandable and actionable?
 - Are reason codes clear and sufficient for diagnosing failures?
+- Do the reason-code stabilization notes identify any missing partner-critical outcomes?
 - Is the JSON report shape suitable for automation and ingestion?
 - Does the OpenAPI contract draft capture the needed endpoints and data shapes?
 - Is the Docker usage path practical for partners without Go tooling?
@@ -79,6 +80,7 @@ Feedback requested
 
 - Missing conformance edge cases or gaps in coverage
 - Ambiguous or missing reason codes
+- Feedback on the reason-code stabilization notes in `docs/CORE_2_REASON_CODE_REVIEW.md`
 - Additional report fields required by partner automation
 - OpenAPI contract shape or endpoint suggestions
 - Docker usage friction or environment constraints
@@ -105,6 +107,7 @@ Links
 -----
 
 - Conformance Quickstart: `docs/CORE_2_CONFORMANCE_QUICKSTART.md`
+- Reason Code Review: `docs/CORE_2_REASON_CODE_REVIEW.md`
 - Partner Integration Notes: `docs/CORE_2_PARTNER_INTEGRATION_NOTES.md`
 - Docker Usage: `docs/CORE_2_DOCKER_USAGE.md`
 - OpenAPI Draft: `docs/CORE_2_OPENAPI_DRAFT.md`
@@ -119,6 +122,9 @@ Feedback and review
 See also: `docs/CORE_2_DRAFT_2_REVIEW_SUMMARY.md` for a short review outcome and
 recommended next steps for `v2.0.0-draft.2`.
 
+See also: `docs/CORE_2_REASON_CODE_REVIEW.md` for the current reason-code review,
+release risks, and stable-readiness checklist.
+
 If you have feedback, please use the partner feedback issue templates in
 `.github/ISSUE_TEMPLATE/` and consult `docs/CORE_2_FEEDBACK_PROCESS.md` for
 guidance on what to include and how issues will be triaged.
@@ -127,3 +133,4 @@ Change history
 --------------
 
 - 2026-06-02 — Initial partner handoff draft for v2.0.0-draft.2
+- 2026-06-02 — Added reason-code review link and partner feedback prompts.

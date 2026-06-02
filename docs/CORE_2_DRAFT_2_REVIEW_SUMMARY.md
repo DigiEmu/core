@@ -39,6 +39,7 @@ Confirmed strengths
 - Docker-based usage path and CI validation
 - CI conformance checks for PRs
 - Partner handoff documentation and structured feedback intake
+- Reason-code review and stabilization notes added for draft-to-stable readiness
 
 Known out-of-scope items
 ------------------------
@@ -56,7 +57,7 @@ Recommended next PRs
 High priority
 - Conformance pack expansion (more cases) — completed in this branch (added 7 edge/negative cases; total 10)
 - Additional negative and edge-case test vectors
-- Reason code clarity and coverage review
+- Reason code clarity and coverage review — documented in `docs/CORE_2_REASON_CODE_REVIEW.md`
 
 Medium priority
 - OpenAPI contract refinement and examples
@@ -75,6 +76,7 @@ Important notes
 - This review summary does not promote Core 2.0 to stable.
 - Experimental commands remain under the `experimental` namespace.
 - Draft artifacts may still evolve before a stable `v2.0.0` release.
+- Reason-code identifiers are draft but should be treated as compatibility-sensitive before stable promotion.
 - Partner feedback should be submitted using the issue templates in
   `.github/ISSUE_TEMPLATE/` and the process described in
   `docs/CORE_2_FEEDBACK_PROCESS.md`.
@@ -83,3 +85,4 @@ Change history
 --------------
 
 - 2026-06-02 — Initial review summary added for `v2.0.0-draft.2`.
+- 2026-06-02 — Added reason-code review and stabilization-note reference.
