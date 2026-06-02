@@ -1,0 +1,8 @@
+{
+  "input_state": {
+    "id": "wrong-profile-1",
+    "value": 7,
+    "profile": "unexpected-profile",
+    "description": "Profile mismatch should be represented as FAIL"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "input_state": {
+    "id": "missing-field-1",
+    "description": "Missing required field to trigger schema error"
+  }
+}

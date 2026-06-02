@@ -1,0 +1,8 @@
+{
+  "input_state": {
+    "id": "unsupported-hash-1",
+    "value": "hash-test",
+    "hash_algorithm": "sha3-512",
+    "description": "Exercise unsupported hash algorithm handling"
+  }
+}

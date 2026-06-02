@@ -81,7 +81,7 @@ func TestConformanceReportExampleAndCLIValidateSchema(t *testing.T) {
 	if m["status"] != "PASS" {
 		t.Fatalf("expected status PASS, got %v", m["status"])
 	}
-	if int(m["total"].(float64)) != 3 {
-		t.Fatalf("expected total 3, got %v", m["total"])
+	if int(m["total"].(float64)) != 10 {
+		t.Fatalf("expected total 10, got %v", m["total"])
 	}
 }

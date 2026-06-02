@@ -55,13 +55,13 @@ Expected results
 ----------------
 
 Human:
-- `Conformance run summary: total=3 passed=3 failed=0`
+- `Conformance run summary: total=10 passed=10 failed=0`
 
 JSON:
 - `report_version: core-2-conformance-report-v1`
 - `status: PASS`
-- `total: 3`
-- `passed: 3`
+- `total: 10`
+- `passed: 10`
 - `failed: 0`
 
 What to review

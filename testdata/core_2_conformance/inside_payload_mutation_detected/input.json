@@ -1,0 +1,7 @@
+{
+  "input_state": {
+    "id": "mutated-1",
+    "value": 99,
+    "description": "Payload mutated inside hashed boundary"
+  }
+}
