@@ -82,6 +82,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	and triage for conformance feedback, integration blockers, and spec
 	clarifications.
 
+- Draft 2 review summary: `docs/CORE_2_DRAFT_2_REVIEW_SUMMARY.md` documents the
+	automated/Copilot review outcome, confirmed strengths, out-of-scope items,
+	and recommended next steps for `v2.0.0-draft.2`.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
