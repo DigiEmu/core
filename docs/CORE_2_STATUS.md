@@ -31,6 +31,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
  - Internal conformance runner MVP (draft)
  - Internal conformance runner MVP (draft)
  - Core 2.0 runner real execution design (draft / not implemented)
+ - Core 2.0 runner Phase 2 input JSON parsing (malformed JSON classification)
  - Experimental conformance CLI (draft)
  - Conformance quickstart (partner-facing)
  - Core 2.0 versioning guidance (partner-facing)
@@ -100,10 +101,15 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	real `input.json` parsing, verify execution, and actual-vs-expected comparison
 	without changing current runner behavior.
 
+- Runner input parsing: the internal conformance runner now reads `input.json`
+	and deterministically maps malformed JSON to `ERROR` /
+	`INVALID_SNAPSHOT_SCHEMA` for expected-result comparison while preserving
+	representative expected-result behavior for well-formed inputs.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
-- Runner real execution is design-only and not yet implemented.
+- Full runner verify execution remains unimplemented; current hardening is limited to input JSON parsing.
 - Post-quantum support is migration-readiness only; no PQC primitives are enabled.
 - Unicode normalization is documented but not changed; normalization policy remains an open decision.
 - `json.RawMessage` handling is documented and tests lock current behavior, but it may require a future profile decision.
@@ -112,7 +118,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 
 ## Next Recommended Steps
 
-1. Use the runner execution design to scope a Phase 2 implementation for deterministic `input.json` parsing.
+1. Extend runner Phase 2 from JSON parsing into deterministic input shape/schema classification.
 2. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
 3. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
 4. Collect partner feedback on reason-code clarity before stable promotion.

@@ -66,7 +66,8 @@ Execution implications
 ----------------------
 
 - Real execution will clarify `INTERNAL_ERROR` boundaries by separating implementation failures from expected verification errors.
-- Real execution will clarify whether malformed JSON should remain `INVALID_SNAPSHOT_SCHEMA` or become a future `INVALID_JSON` code.
+- Current runner input parsing maps malformed JSON to `INVALID_SNAPSHOT_SCHEMA`.
+- Future real execution may clarify whether malformed JSON should remain `INVALID_SNAPSHOT_SCHEMA` or become a future `INVALID_JSON` code.
 - Real execution may require representable cases for unsupported profiles and missing references before stable promotion.
 
 Stable-readiness checklist
@@ -86,3 +87,4 @@ Change history
 
 - 2026-06-02 — Added reason-code review and stabilization notes for Core 2.0 draft stabilization.
 - 2026-06-02 — Added runner real execution implications for future reason-code validation.
+- 2026-06-02 — Documented current malformed JSON mapping to `INVALID_SNAPSHOT_SCHEMA`.
