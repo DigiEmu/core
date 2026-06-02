@@ -30,6 +30,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
  - Canonicalization decision record (draft)
  - Internal conformance runner MVP (draft)
  - Internal conformance runner MVP (draft)
+ - Core 2.0 runner real execution design (draft / not implemented)
  - Experimental conformance CLI (draft)
  - Conformance quickstart (partner-facing)
  - Core 2.0 versioning guidance (partner-facing)
@@ -94,9 +95,15 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	the current draft reason-code set, release risks, and stable-readiness
 	checklist without changing schemas, testdata, CLI behavior, or production code.
 
+- Runner execution design: `docs/CORE_2_RUNNER_EXECUTION_DESIGN.md` defines a
+	post-`v2.0.0-draft.2` path from structural expected-result validation toward
+	real `input.json` parsing, verify execution, and actual-vs-expected comparison
+	without changing current runner behavior.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
+- Runner real execution is design-only and not yet implemented.
 - Post-quantum support is migration-readiness only; no PQC primitives are enabled.
 - Unicode normalization is documented but not changed; normalization policy remains an open decision.
 - `json.RawMessage` handling is documented and tests lock current behavior, but it may require a future profile decision.
@@ -105,9 +112,9 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 
 ## Next Recommended Steps
 
-1. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
-2. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
-3. Expand inside/outside-hash conformance vectors to cover more real-world fixtures.
+1. Use the runner execution design to scope a Phase 2 implementation for deterministic `input.json` parsing.
+2. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
+3. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
 4. Collect partner feedback on reason-code clarity before stable promotion.
 5. Plan secure-layer signature work and post-quantum migration as separate engineering projects.
 

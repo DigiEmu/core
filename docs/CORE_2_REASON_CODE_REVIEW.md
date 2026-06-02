@@ -12,6 +12,7 @@ Review scope
 - `schemas/verify_result_v2.schema.json`
 - `testdata/core_2_conformance/`
 - Experimental conformance runner report fields that surface `reason_code`
+- Future runner real execution design in `docs/CORE_2_RUNNER_EXECUTION_DESIGN.md`
 
 Review outcome
 --------------
@@ -59,6 +60,14 @@ Release risks
 - The distinction between `FAIL` and `ERROR` must remain clear for partners: `FAIL` means verification completed with a negative result; `ERROR` means verification could not complete normally.
 - Adding codes without updating the registry, Verify Result v2 draft, schema enum, examples, and conformance cases would create compatibility drift.
 - Partner automation may begin depending on draft identifiers before stable release, so draft/stable boundaries must remain explicit.
+- Real runner execution will help validate whether reason-code semantics are specific enough for actual-vs-expected comparison.
+
+Execution implications
+----------------------
+
+- Real execution will clarify `INTERNAL_ERROR` boundaries by separating implementation failures from expected verification errors.
+- Real execution will clarify whether malformed JSON should remain `INVALID_SNAPSHOT_SCHEMA` or become a future `INVALID_JSON` code.
+- Real execution may require representable cases for unsupported profiles and missing references before stable promotion.
 
 Stable-readiness checklist
 --------------------------
@@ -68,10 +77,12 @@ Before promoting Core 2.0 reason codes to stable:
 1. Confirm the registry, Verify Result v2 draft, JSON schema enum, examples, and conformance fixtures contain the same reason-code set.
 2. Confirm every code has a clear `result` group and non-overlapping meaning.
 3. Confirm partner feedback has not identified missing high-priority diagnostic codes.
-4. Confirm stable release notes state that reason-code identifiers are compatibility-sensitive.
-5. Confirm future additions follow an additive, non-renaming compatibility policy.
+4. Confirm runner real execution does not expose ambiguous or overloaded reason-code meanings.
+5. Confirm stable release notes state that reason-code identifiers are compatibility-sensitive.
+6. Confirm future additions follow an additive, non-renaming compatibility policy.
 
 Change history
 --------------
 
 - 2026-06-02 — Added reason-code review and stabilization notes for Core 2.0 draft stabilization.
+- 2026-06-02 — Added runner real execution implications for future reason-code validation.
