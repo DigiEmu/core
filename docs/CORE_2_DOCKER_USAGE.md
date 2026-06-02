@@ -47,3 +47,11 @@ Notes
 - For faster iterative development, prefer building locally with `go build`
   and running the binary directly — the Docker path is primarily for
   partner evaluation where Go is not available.
+
+CI validation
+-------------
+
+The repository's GitHub Actions CI includes a `docker-conformance` job that
+builds the `digiemu-core` image and runs both the human-readable and `--json`
+conformance checks inside the container to validate the Docker usage path.
+This ensures the Docker evaluation path remains reproducible for partners.
