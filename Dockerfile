@@ -1,5 +1,5 @@
 ## Multi-stage build: compile the digiemu CLI and produce a minimal runtime image
-FROM golang:1.21-alpine AS builder
+FROM golang:1.25.7-alpine AS builder
 RUN apk add --no-cache git ca-certificates
 WORKDIR /src
 COPY go.mod go.sum ./
