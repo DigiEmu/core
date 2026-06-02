@@ -66,3 +66,11 @@ Guidance for partners
 - Do not treat draft artifacts as production guarantees.
 - Coordinate profile registration and canonicalization decisions with the
   DigiEmu team before relying on non-default behavior.
+
+Release checklist and tagging
+----------------------------
+
+Before creating a draft release tag (for example `v2.0.0-draft.1`) follow the
+checklist in `docs/CORE_2_RELEASE_CHECKLIST.md` and the tagging guidance in
+`docs/CORE_2_TAGGING_PLAN.md` to ensure the milestone is reproducible and
+partner-testable.

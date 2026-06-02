@@ -35,6 +35,8 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Core 2.0 release notes (draft)
 - Core 2.0 roadmap (next)
 - JSON conformance report schema (draft/schema-backed)
+ - Core 2.0 release checklist (docs/CORE_2_RELEASE_CHECKLIST.md)
+ - Core 2.0 tagging plan (docs/CORE_2_TAGGING_PLAN.md)
 
 ## OpenAPI contract draft
 
