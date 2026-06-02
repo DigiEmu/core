@@ -113,6 +113,16 @@ Links
 - OpenAPI spec: `openapi/core_2_conformance_api.yaml`
 - Conformance report schema: `schemas/core_2_conformance_report.schema.json`
 
+Feedback and review
+-------------------
+
+See also: `docs/CORE_2_DRAFT_2_REVIEW_SUMMARY.md` for a short review outcome and
+recommended next steps for `v2.0.0-draft.2`.
+
+If you have feedback, please use the partner feedback issue templates in
+`.github/ISSUE_TEMPLATE/` and consult `docs/CORE_2_FEEDBACK_PROCESS.md` for
+guidance on what to include and how issues will be triaged.
+
 Change history
 --------------
 
