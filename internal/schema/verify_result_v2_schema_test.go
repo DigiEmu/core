@@ -37,6 +37,13 @@ func TestVerifyResultV2ExamplesValidateSchema(t *testing.T) {
 		filepath.Join(repoRoot, "testdata", "core_2_conformance", "basic_pass", "expected_verify_result.json"),
 		filepath.Join(repoRoot, "testdata", "core_2_conformance", "hash_mismatch_fail", "expected_verify_result.json"),
 		filepath.Join(repoRoot, "testdata", "core_2_conformance", "invalid_schema_error", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "missing_required_field_error", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "malformed_json_error", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "unknown_reason_code_error", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "unsupported_hash_algorithm_error", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "wrong_profile_fail", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "inside_payload_mutation_detected", "expected_verify_result.json"),
+		filepath.Join(repoRoot, "testdata", "core_2_conformance", "outside_metadata_ignored", "expected_verify_result.json"),
 	}
 
 	for _, rel := range examples {

@@ -1,0 +1,10 @@
+{
+  "verify_result_version": "v2-draft",
+  "result": "FAIL",
+  "reason_code": "RECONSTRUCTION_RULE_MISMATCH",
+  "canonicalization_profile": "digiemu-canonical-json-v1",
+  "hash_algorithm": "sha256",
+  "reconstruction_profile": "digiemu-reconstruct-v1",
+  "verifier_version": "0.0.0-draft",
+  "failure_path": "/input_state/profile"
+}

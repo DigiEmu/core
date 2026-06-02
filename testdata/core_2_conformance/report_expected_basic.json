@@ -1,15 +1,15 @@
 {
   "report_version": "core-2-conformance-report-v1",
   "status": "PASS",
-  "total": 3,
-  "passed": 3,
+  "total": 10,
+  "passed": 10,
   "failed": 0,
   "cases": [
     {
       "name": "basic_pass",
       "case_passed": true,
       "expected_result": "PASS",
-      "reason_code": "OK",
+      "reason_code": "STATE_RECONSTRUCTED",
       "error": null
     },
     {
@@ -23,7 +23,57 @@
       "name": "invalid_schema_error",
       "case_passed": true,
       "expected_result": "ERROR",
-      "reason_code": "SCHEMA_INVALID",
+      "reason_code": "INVALID_SNAPSHOT_SCHEMA",
+      "error": null
+    }
+    ,
+    {
+      "name": "missing_required_field_error",
+      "case_passed": true,
+      "expected_result": "ERROR",
+      "reason_code": "INVALID_SNAPSHOT_SCHEMA",
+      "error": null
+    },
+    {
+      "name": "malformed_json_error",
+      "case_passed": true,
+      "expected_result": "ERROR",
+      "reason_code": "INVALID_SNAPSHOT_SCHEMA",
+      "error": null
+    },
+    {
+      "name": "unknown_reason_code_error",
+      "case_passed": true,
+      "expected_result": "ERROR",
+      "reason_code": "INTERNAL_ERROR",
+      "error": null
+    },
+    {
+      "name": "unsupported_hash_algorithm_error",
+      "case_passed": true,
+      "expected_result": "ERROR",
+      "reason_code": "UNSUPPORTED_HASH_ALGORITHM",
+      "error": null
+    },
+    {
+      "name": "wrong_profile_fail",
+      "case_passed": true,
+      "expected_result": "FAIL",
+      "reason_code": "RECONSTRUCTION_RULE_MISMATCH",
+      "error": null
+    },
+    {
+      "name": "inside_payload_mutation_detected",
+      "case_passed": true,
+      "expected_result": "FAIL",
+      "reason_code": "HASH_MISMATCH",
+      "error": null
+    },
+    {
+      "name": "outside_metadata_ignored",
+      "case_passed": true,
+      "expected_result": "PASS",
+      "reason_code": "STATE_RECONSTRUCTED",
       "error": null
     }
   ]

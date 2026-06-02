@@ -15,9 +15,9 @@ The following MUST be true before creating a draft tag:
 - The `main` branch is clean and up-to-date with the intended release content.
 - `go test ./...` passes across the repository.
 - The experimental conformance CLI human-readable run passes against
-  `testdata/core_2_conformance` (shows a summary like `total=3 passed=3 failed=0`).
+  `testdata/core_2_conformance` (shows a summary like `total=10 passed=10 failed=0`).
 - The experimental conformance CLI `--json` run passes and emits a machine
-  report containing `"status": "PASS"`, `"total": 3`, `"passed": 3`,
+  report containing `"status": "PASS"`, `"total": 10`, `"passed": 10`,
   and `"failed": 0` for the included conformance pack.
 - CI conformance checks (GitHub Actions) pass for the branch and PR.
 - Verify Result v2 schema exists (`schemas/verify_result_v2.schema.json`).

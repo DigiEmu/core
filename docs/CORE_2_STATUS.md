@@ -20,6 +20,8 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Verify Result v2 JSON Schema draft
 - Verify Result v2 example validation test
 - Core 2.0 Conformance Pack (draft)
+ - Core 2.0 Conformance Pack (draft)
+ - Expanded conformance pack (10 cases) including additional negative and edge-case vectors (testdata/core_2_conformance)
 - Canonicalization audit
 - Canonicalization behavior tests
  - Profile Registry (draft)

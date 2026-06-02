@@ -36,8 +36,8 @@ docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_c
 
 Expected sample outputs
 
-- Human summary: `Conformance run summary: total=3 passed=3 failed=0`
-- JSON report: top-level `status: PASS`, `total: 3`, `passed: 3`, `failed: 0`
+- Human summary: `Conformance run summary: total=10 passed=10 failed=0`
+- JSON report: top-level `status: PASS`, `total: 10`, `passed: 10`, `failed: 0`
 
 Notes
 

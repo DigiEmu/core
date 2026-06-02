@@ -1,0 +1,10 @@
+{
+  "verify_result_version": "v2-draft",
+  "result": "PASS",
+  "reason_code": "STATE_RECONSTRUCTED",
+  "canonicalization_profile": "digiemu-canonical-json-v1",
+  "hash_algorithm": "sha256",
+  "reconstruction_profile": "digiemu-reconstruct-v1",
+  "verifier_version": "0.0.0-draft",
+  "snapshot_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

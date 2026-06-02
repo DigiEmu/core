@@ -1,0 +1,7 @@
+{
+  "input_state": {
+    "id": "meta-1",
+    "value": 123,
+    "metadata": {"note": "this should be ignored for reconstruction"}
+  }
+}

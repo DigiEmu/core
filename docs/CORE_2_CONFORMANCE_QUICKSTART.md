@@ -16,7 +16,7 @@ Expected output
 On a healthy checkout of the current draft conformance pack you should see a short summary like:
 
 ```
-Conformance run summary: total=3 passed=3 failed=0
+Conformance run summary: total=10 passed=10 failed=0
 ```
 
 Conformance case structure
@@ -106,7 +106,7 @@ Expected output
 On a healthy checkout of the current draft conformance pack you should see a short summary like:
 
 ```
-Conformance run summary: total=3 passed=3 failed=0
+Conformance run summary: total=10 passed=10 failed=0
 ```
 
 Optional JSON output
