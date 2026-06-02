@@ -66,3 +66,30 @@ func TestRunCaseInvalidResultValue(t *testing.T) {
 		t.Fatalf("expected error for invalid result value")
 	}
 }
+
+func TestRunCaseMalformedInputMatchesExpectedError(t *testing.T) {
+	r := RunCase(filepath.Join(repoTestdataPath(), "malformed_json_error"))
+	if r.Err != "" {
+		t.Fatalf("expected malformed_json_error to pass, got error: %s", r.Err)
+	}
+	if !r.CasePassed {
+		t.Fatalf("expected malformed_json_error case_passed true")
+	}
+	if r.Result != "ERROR" || r.ReasonCode != "INVALID_SNAPSHOT_SCHEMA" {
+		t.Fatalf("expected ERROR/INVALID_SNAPSHOT_SCHEMA, got %s/%s", r.Result, r.ReasonCode)
+	}
+}
+
+func TestRunCaseMalformedInputMismatchFails(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"PASS","reason_code":"STATE_RECONSTRUCTED","verify_result_version":"v2-draft"}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "input.json"), []byte(`{`), 0o644)
+
+	r := RunCase(dir)
+	if r.Err == "" {
+		t.Fatalf("expected observed result mismatch for malformed input")
+	}
+	if r.CasePassed {
+		t.Fatalf("expected case_passed false for malformed input mismatch")
+	}
+}

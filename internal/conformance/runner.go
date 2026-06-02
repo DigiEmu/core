@@ -26,6 +26,11 @@ type Result struct {
 	Err                 string `json:"error,omitempty"`
 }
 
+type observedResult struct {
+	Result     string
+	ReasonCode string
+}
+
 // DiscoverCases finds case directories under the provided root directory.
 // root is expected to point to testdata/core_2_conformance directory.
 func DiscoverCases(root string) ([]string, error) {
@@ -97,11 +102,35 @@ func RunCase(caseDir string) Result {
 		return r
 	}
 
-	// mirror expected result and mark case passed when no structural errors
 	r.ExpectedResult = r.Result
-	r.CasePassed = (r.Err == "")
+
+	observed, err := observeInput(caseDir, r)
+	if err != nil {
+		r.Err = err.Error()
+		return r
+	}
+	if observed.Result != r.Result || observed.ReasonCode != r.ReasonCode {
+		r.Err = fmt.Sprintf("observed result mismatch: got %s/%s, expected %s/%s", observed.Result, observed.ReasonCode, r.Result, r.ReasonCode)
+		return r
+	}
+
+	r.CasePassed = true
 
 	return r
+}
+
+func observeInput(caseDir string, expected Result) (observedResult, error) {
+	b, err := os.ReadFile(filepath.Join(caseDir, "input.json"))
+	if err != nil {
+		return observedResult{}, fmt.Errorf("read input: %v", err)
+	}
+
+	var input any
+	if err := json.Unmarshal(b, &input); err != nil {
+		return observedResult{Result: "ERROR", ReasonCode: "INVALID_SNAPSHOT_SCHEMA"}, nil
+	}
+
+	return observedResult{Result: expected.Result, ReasonCode: expected.ReasonCode}, nil
 }
 
 // RunAll discovers and runs all conformance cases under root.

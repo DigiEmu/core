@@ -27,7 +27,7 @@ Each conformance case is a directory containing at minimum the following files:
 - `input.json`
 - `expected_verify_result.json`
 
-The `expected_verify_result.json` file is a lightweight declaration used by the runner to assert the expected Verify Result for the case. The runner performs minimal structural validation of this file (fields required: `result`, `reason_code`, `verify_result_version`).
+The `expected_verify_result.json` file is a lightweight declaration used by the runner to assert the expected Verify Result for the case. The runner performs minimal structural validation of this file (fields required: `result`, `reason_code`, `verify_result_version`). The runner also parses `input.json`; malformed JSON is handled deterministically as `ERROR` / `INVALID_SNAPSHOT_SCHEMA`.
 
 Meaning of PASS / FAIL / ERROR
 -----------------------------
@@ -51,7 +51,7 @@ Current limitations
 -------------------
 
 - The CLI command is experimental.
-- The command currently validates Core 2.0 draft conformance case structure.
+- The command currently validates Core 2.0 draft conformance case structure and parses `input.json`.
 - It is not yet a full certification suite.
 - It does not perform signing, key custody, network API calls, or policy judgement.
 - It does not change v1.0 CLI behavior.
@@ -129,7 +129,7 @@ Each conformance case is a directory containing at minimum the following files:
 - `input.json`
 - `expected_verify_result.json`
 
-The `expected_verify_result.json` file is a lightweight declaration used by the runner to assert the expected Verify Result for the case. The runner performs minimal structural validation of this file (fields required: `result`, `reason_code`, `verify_result_version`).
+The `expected_verify_result.json` file is a lightweight declaration used by the runner to assert the expected Verify Result for the case. The runner performs minimal structural validation of this file (fields required: `result`, `reason_code`, `verify_result_version`). The runner also parses `input.json`; malformed JSON is handled deterministically as `ERROR` / `INVALID_SNAPSHOT_SCHEMA`.
 
 Meaning of PASS / FAIL / ERROR
 -----------------------------
@@ -153,7 +153,7 @@ Current limitations
 -------------------
 
 - The CLI command is experimental.
-- The command currently validates Core 2.0 draft conformance case structure.
+- The command currently validates Core 2.0 draft conformance case structure and parses `input.json`.
 - It is not yet a full certification suite.
 - It does not perform signing, key custody, network API calls, or policy judgement.
 - It does not change v1.0 CLI behavior.

@@ -1,6 +1,6 @@
 # Core 2.0 Runner Real Execution Design
 
-Status: design / draft / not implemented
+Status: design / draft / Phase 2 input parsing started
 
 Milestone: post-v2.0.0-draft.2
 
@@ -39,12 +39,13 @@ Behavior:
 
 ### Phase 2: Input parsing
 
-Status: next implementation candidate
+Status: implemented for JSON parsing and malformed JSON classification
 
 Behavior:
 - Read `input.json`.
 - Fail malformed JSON cases deterministically.
-- Map parse/schema failures to expected reason codes.
+- Map malformed JSON to `ERROR` / `INVALID_SNAPSHOT_SCHEMA`.
+- Preserve representative expected-result behavior for well-formed inputs until full verify execution exists.
 
 ### Phase 3: Verify execution
 
@@ -74,7 +75,7 @@ Reason-code implications
 ------------------------
 
 - Real execution will clarify `INTERNAL_ERROR` boundaries.
-- Real execution will clarify whether malformed JSON should remain `INVALID_SNAPSHOT_SCHEMA` or become `INVALID_JSON`.
+- Phase 2 currently maps malformed JSON to `INVALID_SNAPSHOT_SCHEMA`; future review may decide whether a separate `INVALID_JSON` code is needed.
 - Real execution will enable stronger tests for `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE`.
 
 Non-goals
@@ -91,10 +92,10 @@ Non-goals
 Recommended next PRs
 --------------------
 
-1. Runner Phase 2: parse `input.json` and classify malformed JSON deterministically.
-2. Add tests for malformed input execution behavior.
-3. Add actual-vs-expected comparison design for future report schema.
-4. Add representable `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` cases.
+1. Extend Phase 2 beyond JSON syntax into deterministic input shape/schema classification.
+2. Add actual-vs-expected comparison design for future report schema.
+3. Add representable `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` cases.
+4. Scope Phase 3 verify execution without changing v1.0 behavior.
 
 Compatibility statement
 -----------------------
@@ -105,3 +106,4 @@ Change history
 --------------
 
 - 2026-06-02 — Added runner real execution design for post-`v2.0.0-draft.2` stabilization planning.
+- 2026-06-02 — Marked Phase 2 JSON parsing and malformed JSON classification as started.
