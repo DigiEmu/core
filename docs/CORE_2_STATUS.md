@@ -61,6 +61,12 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - Replay outside-hash behavior is tested.
  - OpenAPI draft YAML parses and contains required paths (structural test).
 
+## CI Conformance Checks
+
+- A GitHub Actions CI job now runs `go test ./...` and the experimental Core 2.0 conformance
+	CLI (human-readable and `--json`) against the `testdata/core_2_conformance` pack to
+	exercise the draft conformance vectors automatically on pull requests.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.

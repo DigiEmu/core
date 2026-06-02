@@ -97,6 +97,9 @@ Use the repository-local experimental entrypoint to run the conformance pack shi
 go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance
 ```
 
+CI note: The same commands are used by the repository's GitHub Actions CI to verify the
+conformance pack on pull requests (human-readable summary and `--json` machine report).
+
 Expected output
 ---------------
 

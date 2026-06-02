@@ -52,3 +52,44 @@ jobs:
         shell: bash
         run: |
           ./scripts/gate_all.sh _release/digiemu-ci-ubuntu-amd64
+
+  conformance:
+    name: Core 2.0 Conformance Checks
+    runs-on: ubuntu-latest
+    needs: [gate_all_ubuntu]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Go test
+        run: |
+          go test ./...
+
+      - name: Run conformance (human-readable)
+        run: |
+          set -e
+          echo "Running experimental conformance (human-readable)"
+          go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance | tee conformance.out
+          if ! grep -q "Conformance run summary" conformance.out; then
+            echo "Missing human-readable summary in conformance output" >&2
+            exit 2
+          fi
+
+      - name: Run conformance (JSON)
+        run: |
+          set -e
+          echo "Running experimental conformance (JSON)"
+          go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance --json > conformance-report.json
+          cat conformance-report.json
+
+          # Verify expected JSON fields
+          grep '"status": "PASS"' conformance-report.json
+          grep '"total": 3' conformance-report.json
+          grep '"passed": 3' conformance-report.json
+          grep '"failed": 0' conformance-report.json

@@ -7,8 +7,8 @@ eventual stabilization path.
 Next phase
 ----------
 
-- Stabilize conformance runner output
-- Add optional JSON output for the experimental conformance CLI
+- Stabilize conformance runner output (CI job added for automated checks)
+- Add optional JSON output for the experimental conformance CLI (implemented)
 - Add machine-readable conformance report format
 - Prepare OpenAPI contract draft for a future HTTP API
  - Prepare OpenAPI contract draft for a future HTTP API (draft created)
