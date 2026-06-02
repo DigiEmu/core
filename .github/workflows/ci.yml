@@ -85,23 +85,11 @@ jobs:
         run: |
           set -e
           echo "Running experimental conformance (JSON)"
-          go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance --json | tee conformance.json
-          if ! grep -q "PASS" conformance.json; then
-            echo "JSON output missing PASS status" >&2
-            cat conformance.json
-            exit 3
-          fi
-          if ! grep -q "\"total\"[[:space:]]*:[[:space:]]*3" conformance.json; then
-            echo "JSON output missing total count 3" >&2
-            cat conformance.json
-            exit 4
-          fi
-          if ! grep -q "\"passed\"[[:space:]]*:[[:space:]]*3" conformance.json; then
-            echo "JSON output missing passed count 3" >&2
-            cat conformance.json
-            exit 5
-          fi
-          if ! grep -q "\"failed\"[[:space:]]*:[[:space:]]*0" conformance.json; then
-            echo "JSON output missing failed count 0" >&2
-            cat conformance.json
-            exit 6
+          go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance --json > conformance-report.json
+          cat conformance-report.json
+
+          # Verify expected JSON fields
+          grep '"status": "PASS"' conformance-report.json
+          grep '"total": 3' conformance-report.json
+          grep '"passed": 3' conformance-report.json
+          grep '"failed": 0' conformance-report.json
