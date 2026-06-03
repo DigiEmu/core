@@ -3,6 +3,7 @@ package conformance
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -91,5 +92,43 @@ func TestRunCaseMalformedInputMismatchFails(t *testing.T) {
 	}
 	if r.CasePassed {
 		t.Fatalf("expected case_passed false for malformed input mismatch")
+	}
+}
+
+func TestRunCaseMissingInputFailsDeterministically(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"ERROR","reason_code":"INVALID_SNAPSHOT_SCHEMA","verify_result_version":"v2-draft"}`), 0o644)
+
+	r := RunCase(dir)
+	if r.Err == "" {
+		t.Fatalf("expected error for missing input.json")
+	}
+	if !strings.Contains(r.Err, "read input") {
+		t.Fatalf("expected missing input error to mention read input, got: %s", r.Err)
+	}
+	if r.CasePassed {
+		t.Fatalf("expected case_passed false for missing input.json")
+	}
+	if r.ExpectedResult != "ERROR" || r.ReasonCode != "INVALID_SNAPSHOT_SCHEMA" {
+		t.Fatalf("expected parsed expected ERROR/INVALID_SNAPSHOT_SCHEMA, got %s/%s", r.ExpectedResult, r.ReasonCode)
+	}
+}
+
+func TestRunCaseMissingExpectedVerifyResultFailsDeterministically(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "input.json"), []byte(`{}`), 0o644)
+
+	r := RunCase(dir)
+	if r.Err == "" {
+		t.Fatalf("expected error for missing expected_verify_result.json")
+	}
+	if !strings.Contains(r.Err, "read expected_verify_result") {
+		t.Fatalf("expected missing expected result error to mention expected_verify_result, got: %s", r.Err)
+	}
+	if r.CasePassed {
+		t.Fatalf("expected case_passed false for missing expected_verify_result.json")
+	}
+	if r.Result != "" || r.ExpectedResult != "" || r.ReasonCode != "" {
+		t.Fatalf("expected no fabricated expected result fields, got result=%q expected=%q reason=%q", r.Result, r.ExpectedResult, r.ReasonCode)
 	}
 }
