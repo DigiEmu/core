@@ -42,6 +42,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 - JSON conformance report schema (draft/schema-backed)
  - Core 2.0 release checklist (docs/CORE_2_RELEASE_CHECKLIST.md)
  - Core 2.0 tagging plan (docs/CORE_2_TAGGING_PLAN.md)
+ - Core 2.0 Draft 3 readiness notes (docs/CORE_2_DRAFT_3_READINESS.md)
 
 ## OpenAPI contract draft
 
@@ -106,6 +107,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	`INVALID_SNAPSHOT_SCHEMA` for expected-result comparison while preserving
 	representative expected-result behavior for well-formed inputs.
 
+- Draft 3 readiness notes: `docs/CORE_2_DRAFT_3_READINESS.md` summarizes
+	planned `v2.0.0-draft.3` milestone readiness, required pre-tag checks, and
+	non-goals without creating tags or promoting Core 2.0 to stable.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
@@ -118,11 +123,11 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 
 ## Next Recommended Steps
 
-1. Extend runner Phase 2 from JSON parsing into deterministic input shape/schema classification.
-2. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
-3. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
-4. Collect partner feedback on reason-code clarity before stable promotion.
-5. Plan secure-layer signature work and post-quantum migration as separate engineering projects.
+1. Complete Draft 3 readiness checks before any future `v2.0.0-draft.3` tag.
+2. Extend runner Phase 2 from JSON parsing into deterministic input shape/schema classification.
+3. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
+4. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
+5. Collect partner feedback on reason-code clarity before stable promotion.
 
 ## Compatibility Statement
 
