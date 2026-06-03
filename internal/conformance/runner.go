@@ -104,12 +104,7 @@ func RunCase(caseDir string) Result {
 
 	r.ExpectedResult = r.Result
 
-	observed, err := observeInput(caseDir, r)
-	if err != nil {
-		r.Err = err.Error()
-		return r
-	}
-	if err := compareObservedExpected(observed, r); err != nil {
+	if err := compareObservedCase(caseDir, r); err != nil {
 		r.Err = err.Error()
 		return r
 	}
@@ -117,6 +112,14 @@ func RunCase(caseDir string) Result {
 	r.CasePassed = true
 
 	return r
+}
+
+func compareObservedCase(caseDir string, expected Result) error {
+	observed, err := observeInput(caseDir, expected)
+	if err != nil {
+		return err
+	}
+	return compareObservedExpected(observed, expected)
 }
 
 func compareObservedExpected(observed observedResult, expected Result) error {
