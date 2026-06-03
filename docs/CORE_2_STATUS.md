@@ -136,6 +136,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	official conformance pack remains at 11 cases. Schema consideration is
 	documented in `docs/CORE_2_MISSING_REFERENCE_SCHEMA_CONSIDERATION.md`.
 
+- Draft 4 readiness planning: `docs/CORE_2_DRAFT_4_READINESS.md` prepares a
+	future `v2.0.0-draft.4` milestone without tagging it and records the current
+	11-case conformance status (`total=11 passed=11 failed=0`).
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
