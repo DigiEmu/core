@@ -58,6 +58,13 @@ Before tagging Draft 4
 - Confirm v1.0 behavior remains unchanged
 - Confirm no unexpected files are modified
 
+Post-tag review-fix note
+------------------------
+
+- After `v2.0.0-draft.4` was tagged, a follow-up review-fix on main updated the basic conformance report fixture to the current 11-case pack and added a semantic regression assertion.
+- See `docs/CORE_2_DRAFT_4_POST_TAG_NOTE.md`.
+- Do not move or recreate the `v2.0.0-draft.4` tag.
+
 Proposed tag
 ------------
 

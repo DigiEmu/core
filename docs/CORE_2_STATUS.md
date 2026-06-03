@@ -140,6 +140,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	future `v2.0.0-draft.4` milestone without tagging it and records the current
 	11-case conformance status (`total=11 passed=11 failed=0`).
 
+- Draft 4 post-tag note: `docs/CORE_2_DRAFT_4_POST_TAG_NOTE.md` records that
+	main includes a post-`v2.0.0-draft.4` review-fix for the basic conformance
+	report fixture without moving or recreating the draft tag.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
