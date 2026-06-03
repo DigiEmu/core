@@ -16,7 +16,7 @@ Next phase
  - Prepare Docker-based usage path for easier partner evaluation
  - Prepare Docker-based usage path for easier partner evaluation (draft prepared)
  - Docker usage path validated in CI (docker-conformance job)
-- Prepare Draft 3 readiness notes as the next milestone preparation step
+- Prepare Draft 4 readiness notes as the next milestone preparation step
 - Plan Secure Layer signature MVP separately
 - Plan Post-Quantum migration profile separately
 
@@ -32,7 +32,7 @@ Medium
 - Docker image for partner usage
 - Non-Go partner examples and SDK snippets
 - Release tagging and clear drafting process
-- Draft 3 readiness validation before any future `v2.0.0-draft.3` tag
+- Draft 4 readiness validation before any future `v2.0.0-draft.4` tag
 
 Later
 - Secure Layer Ed25519 signatures MVP
