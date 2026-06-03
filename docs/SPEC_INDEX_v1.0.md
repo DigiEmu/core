@@ -90,6 +90,7 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_CANONICALIZATION_DECISIONS.md`
  - `docs/CORE_2_CONFORMANCE_RUNNER.md`
  - `docs/CORE_2_RUNNER_EXECUTION_DESIGN.md`
+ - `docs/CORE_2_ACTUAL_EXPECTED_COMPARISON_DESIGN.md`
  - `docs/CORE_2_CONFORMANCE_QUICKSTART.md`
  - `docs/CORE_2_PARTNER_INTEGRATION_NOTES.md`
  - `docs/CORE_2_PARTNER_HANDOFF.md`
