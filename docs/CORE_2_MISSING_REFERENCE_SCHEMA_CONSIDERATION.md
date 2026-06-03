@@ -55,3 +55,9 @@ If added later, `MISSING_REFERENCE` should have narrow and deterministic semanti
 ## Compatibility Statement
 
 This consideration does not implement `MISSING_REFERENCE`. Core 2.0 remains draft and pre-release, the current conformance pack remains at 11 cases, and the latest stable line remains `v1.0.0`.
+
+1.0.0 remains the stable/latest release; Core 2.0 remains draft/pre-release.
+
+1.0.0 remains stable/latest; Core 2.0 remains draft/pre-release.
+
+v1.0.0 remains stable/latest; Core 2.0 remains draft/pre-release.

@@ -51,6 +51,7 @@ Before tagging Draft 4
 - Run `go test ./...`
 - Run experimental conformance CLI human-readable
 - Run experimental conformance CLI `--json`
+- Optionally run `powershell -ExecutionPolicy Bypass -File scripts/audit_core2_draft4.ps1` as a pre/post-tag verification helper.
 - Confirm output remains total=11 passed=11 failed=0
 - Confirm GitHub Actions are green
 - Confirm README reflects 11-case draft status

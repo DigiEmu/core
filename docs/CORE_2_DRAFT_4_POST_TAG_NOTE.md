@@ -35,6 +35,7 @@ Release note suggestion
 Validation
 ----------
 
+- Recommended local self-audit command: `powershell -ExecutionPolicy Bypass -File scripts/audit_core2_draft4.ps1`.
 - `go test ./...` passes.
 - Experimental conformance CLI reports total=11 passed=11 failed=0.
 - Experimental conformance CLI `--json` reports status PASS, total 11, passed 11, failed 0.

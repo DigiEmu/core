@@ -101,6 +101,7 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_DRAFT_3_READINESS.md`
  - `docs/CORE_2_DRAFT_4_READINESS.md`
  - `docs/CORE_2_DRAFT_4_POST_TAG_NOTE.md`
+ - `scripts/audit_core2_draft4.ps1`
  - `docs/CORE_2_POST_DRAFT_3_HARDENING_SUMMARY.md`
  - `docs/CORE_2_MISSING_REFERENCE_SCHEMA_CONSIDERATION.md`
  - `docs/CORE_2_RELEASE_NOTES_DRAFT.md`

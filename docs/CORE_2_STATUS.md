@@ -144,6 +144,11 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	main includes a post-`v2.0.0-draft.4` review-fix for the basic conformance
 	report fixture without moving or recreating the draft tag.
 
+- Draft 4 self-audit helper: `scripts/audit_core2_draft4.ps1` provides a local
+	read-only audit for the current Draft 4 / post-tag state, including tag
+	presence, clean tree, tests, conformance output, fixture consistency, and
+	documentation guardrails.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
