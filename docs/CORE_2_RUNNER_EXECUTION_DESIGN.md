@@ -70,6 +70,7 @@ Report model notes
 - Keep `report_version` stable for the current draft unless schema changes are required.
 - Consider adding `actual_result` and expected-result comparison fields in a future report schema.
 - Do not change the current JSON report schema in this design step.
+- See `docs/CORE_2_ACTUAL_EXPECTED_COMPARISON_DESIGN.md` for the post-draft.3 comparison semantics design.
 
 Reason-code implications
 ------------------------
@@ -92,8 +93,8 @@ Non-goals
 Recommended next PRs
 --------------------
 
-1. Extend Phase 2 beyond JSON syntax into deterministic input shape/schema classification.
-2. Add actual-vs-expected comparison design for future report schema.
+1. Use `docs/CORE_2_ACTUAL_EXPECTED_COMPARISON_DESIGN.md` to guide actual-vs-expected runner comparison implementation.
+2. Extend Phase 2 beyond JSON syntax into deterministic input shape/schema classification.
 3. Add representable `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` cases.
 4. Scope Phase 3 verify execution without changing v1.0 behavior.
 
@@ -107,3 +108,4 @@ Change history
 
 - 2026-06-02 — Added runner real execution design for post-`v2.0.0-draft.2` stabilization planning.
 - 2026-06-02 — Marked Phase 2 JSON parsing and malformed JSON classification as started.
+- 2026-06-03 — Referenced actual-vs-expected comparison design as the next post-draft.3 refinement.

@@ -77,7 +77,7 @@ Non-goals
 Recommended next after Draft 3
 ------------------------------
 
-- Runner actual-vs-expected comparison model
+- Runner actual-vs-expected comparison model, documented in `docs/CORE_2_ACTUAL_EXPECTED_COMPARISON_DESIGN.md`
 - Additional representable `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` cases
 - OpenAPI contract refinement
 - Partner feedback triage

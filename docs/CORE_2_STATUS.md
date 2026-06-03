@@ -111,6 +111,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	planned `v2.0.0-draft.3` milestone readiness, required pre-tag checks, and
 	non-goals without creating tags or promoting Core 2.0 to stable.
 
+- Actual-vs-expected comparison design: `docs/CORE_2_ACTUAL_EXPECTED_COMPARISON_DESIGN.md`
+	defines the next post-draft.3 runner hardening step for comparing observed
+	verify results with `expected_verify_result.json` before implementation.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
@@ -123,7 +127,7 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 
 ## Next Recommended Steps
 
-1. Complete Draft 3 readiness checks before any future `v2.0.0-draft.3` tag.
+1. Design and implement runner actual-vs-expected comparison while keeping the public JSON report shape unchanged.
 2. Extend runner Phase 2 from JSON parsing into deterministic input shape/schema classification.
 3. Keep the reason-code registry, Verify Result v2 draft, schema enum, examples, and conformance fixtures aligned.
 4. Decide `json.RawMessage` handling for future canonicalization profiles and document migration steps.
