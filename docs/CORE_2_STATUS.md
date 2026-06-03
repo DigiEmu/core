@@ -127,6 +127,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	11 cases, including an unsupported canonicalization profile case represented
 	as `ERROR` / `UNSUPPORTED_CANONICALIZATION_PROFILE`.
 
+- Post-draft.3 hardening summary: `docs/CORE_2_POST_DRAFT_3_HARDENING_SUMMARY.md`
+	summarizes the completed runner/conformance hardening checkpoint and records
+	the current 11-case conformance status (`total=11 passed=11 failed=0`).
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.

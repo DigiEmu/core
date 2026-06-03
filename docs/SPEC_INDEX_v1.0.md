@@ -99,6 +99,7 @@ These documents are forward-compatible Core 2.0 hardening drafts and do not repl
  - `docs/CORE_2_COMPATIBILITY_MATRIX.md`
  - `docs/CORE_2_DRAFT_2_REVIEW_SUMMARY.md`
  - `docs/CORE_2_DRAFT_3_READINESS.md`
+ - `docs/CORE_2_POST_DRAFT_3_HARDENING_SUMMARY.md`
  - `docs/CORE_2_RELEASE_NOTES_DRAFT.md`
  - `docs/CORE_2_RELEASE_CHECKLIST.md`
  - `docs/CORE_2_TAGGING_PLAN.md`
