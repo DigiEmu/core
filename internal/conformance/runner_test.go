@@ -112,6 +112,19 @@ func TestRunCaseMalformedInputReasonCodeMismatchFails(t *testing.T) {
 	}
 }
 
+func TestRunCaseUnsupportedCanonicalizationProfileMatchesExpectedError(t *testing.T) {
+	r := RunCase(filepath.Join(repoTestdataPath(), "unsupported_canonicalization_profile_error"))
+	if r.Err != "" {
+		t.Fatalf("expected unsupported_canonicalization_profile_error to pass, got error: %s", r.Err)
+	}
+	if !r.CasePassed {
+		t.Fatalf("expected unsupported_canonicalization_profile_error case_passed true")
+	}
+	if r.Result != "ERROR" || r.ReasonCode != "UNSUPPORTED_CANONICALIZATION_PROFILE" {
+		t.Fatalf("expected ERROR/UNSUPPORTED_CANONICALIZATION_PROFILE, got %s/%s", r.Result, r.ReasonCode)
+	}
+}
+
 func TestCompareObservedExpectedExactMatch(t *testing.T) {
 	observed := observedResult{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED"}
 	expected := Result{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED"}

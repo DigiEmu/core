@@ -56,7 +56,7 @@ Recommended next PRs
 --------------------
 
 High priority
-- Conformance pack expansion (more cases) — completed in this branch (added 7 edge/negative cases; total 10)
+- Conformance pack expansion (more cases) — completed in this branch (added 7 edge/negative cases; total 10; later expanded to 11)
 - Additional negative and edge-case test vectors
 - Reason code clarity and coverage review — documented in `docs/CORE_2_REASON_CODE_REVIEW.md`
 - Runner real execution design — documented in `docs/CORE_2_RUNNER_EXECUTION_DESIGN.md`

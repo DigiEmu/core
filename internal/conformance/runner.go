@@ -139,8 +139,24 @@ func observeInput(caseDir string, expected Result) (observedResult, error) {
 	if err := json.Unmarshal(b, &input); err != nil {
 		return observedResult{Result: "ERROR", ReasonCode: "INVALID_SNAPSHOT_SCHEMA"}, nil
 	}
+	if hasUnsupportedCanonicalizationProfile(input) {
+		return observedResult{Result: "ERROR", ReasonCode: "UNSUPPORTED_CANONICALIZATION_PROFILE"}, nil
+	}
 
 	return observedResult{Result: expected.Result, ReasonCode: expected.ReasonCode}, nil
+}
+
+func hasUnsupportedCanonicalizationProfile(input any) bool {
+	root, ok := input.(map[string]any)
+	if !ok {
+		return false
+	}
+	state, ok := root["input_state"].(map[string]any)
+	if !ok {
+		return false
+	}
+	profile, ok := state["canonicalization_profile"].(string)
+	return ok && profile != "" && profile != "digiemu-canonical-json-v1"
 }
 
 // RunAll discovers and runs all conformance cases under root.

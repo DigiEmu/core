@@ -55,7 +55,7 @@ Expected results
 ----------------
 
 Human:
-- `Conformance run summary: total=10 passed=10 failed=0`
+- `Conformance run summary: total=11 passed=11 failed=0`
 
 JSON:
 - `report_version: core-2-conformance-report-v1`

@@ -123,6 +123,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	through the centralized observed-vs-expected comparison path, preserving
 	`ERROR` / `INVALID_SNAPSHOT_SCHEMA` behavior.
 
+- Unsupported profile coverage: the official Core 2.0 conformance pack now has
+	11 cases, including an unsupported canonicalization profile case represented
+	as `ERROR` / `UNSUPPORTED_CANONICALIZATION_PROFILE`.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.

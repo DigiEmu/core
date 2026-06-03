@@ -32,7 +32,7 @@ Human-readable summary (default):
 
 ```
 go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance
-Conformance run summary: total=10 passed=10 failed=0
+Conformance run summary: total=11 passed=11 failed=0
 ```
 
 Machine-readable JSON output:
