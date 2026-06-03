@@ -19,7 +19,7 @@ Current state
 - The runner reads and parses `input.json`.
 - Malformed input JSON is handled deterministically.
 - Missing conformance case files are covered by tests.
-- The official conformance pack reports total=10 passed=10 failed=0.
+- The official conformance pack reports total=11 passed=11 failed=0.
 - Full verify execution is not implemented yet.
 
 Target state
@@ -101,7 +101,7 @@ Reason-code implications
 - Exact `reason_code` comparison will make reason code semantics stricter.
 - `INTERNAL_ERROR` boundaries may need refinement.
 - `INVALID_SNAPSHOT_SCHEMA` may later split into `INVALID_JSON` if partner feedback requires it.
-- `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` should become stronger candidates for representable execution cases.
+- `UNSUPPORTED_CANONICALIZATION_PROFILE` is represented by an official conformance case; unsupported reconstruction profile and missing-reference cases remain candidates for future coverage.
 
 Non-goals
 ---------
@@ -118,7 +118,7 @@ Recommended next PRs
 
 - Expand observed-result comparison coverage where new observed results are introduced.
 - Keep public JSON report shape unchanged.
-- Add representable `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` cases after comparison helper exists.
+- Add representable unsupported reconstruction profile and missing-reference cases after comparison helper exists.
 
 Change history
 --------------

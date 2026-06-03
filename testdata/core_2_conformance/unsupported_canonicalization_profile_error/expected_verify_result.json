@@ -1,0 +1,10 @@
+{
+  "verify_result_version": "v2-draft",
+  "result": "ERROR",
+  "reason_code": "UNSUPPORTED_CANONICALIZATION_PROFILE",
+  "canonicalization_profile": "digiemu-canonical-json-v999",
+  "hash_algorithm": "sha256",
+  "reconstruction_profile": "digiemu-reconstruct-v1",
+  "verifier_version": "0.0.0-draft",
+  "failure_path": "/input_state/canonicalization_profile"
+}

@@ -1,0 +1,8 @@
+{
+  "input_state": {
+    "id": "unsupported-canonicalization-profile-1",
+    "value": "profile-test",
+    "canonicalization_profile": "digiemu-canonical-json-v999",
+    "description": "Exercise unsupported canonicalization profile handling"
+  }
+}

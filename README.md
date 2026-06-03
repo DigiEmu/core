@@ -271,7 +271,7 @@ docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_c
 ```
 
 Expected output
-- `Conformance run summary: total=10 passed=10 failed=0`
+- `Conformance run summary: total=11 passed=11 failed=0`
 
 Important notes
 - Core 2.0 remains draft unless explicitly marked stable.

@@ -68,7 +68,8 @@ Execution implications
 - Real execution will clarify `INTERNAL_ERROR` boundaries by separating implementation failures from expected verification errors.
 - Current runner input parsing maps malformed JSON to `INVALID_SNAPSHOT_SCHEMA`.
 - Future real execution may clarify whether malformed JSON should remain `INVALID_SNAPSHOT_SCHEMA` or become a future `INVALID_JSON` code.
-- Real execution may require representable cases for unsupported profiles and missing references before stable promotion.
+- The official conformance pack now includes a representable unsupported canonicalization profile case for `UNSUPPORTED_CANONICALIZATION_PROFILE`.
+- Real execution may require additional representable cases for unsupported reconstruction profiles and missing references before stable promotion.
 
 Stable-readiness checklist
 --------------------------

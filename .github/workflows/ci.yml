@@ -90,8 +90,8 @@ jobs:
 
           # Verify expected JSON fields
           grep '"status": "PASS"' conformance-report.json
-          grep '"total": 10' conformance-report.json
-          grep '"passed": 10' conformance-report.json
+          grep '"total": 11' conformance-report.json
+          grep '"passed": 11' conformance-report.json
           grep '"failed": 0' conformance-report.json
 
   docker-conformance:
@@ -123,6 +123,6 @@ jobs:
           docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_conformance --json > docker-conformance.json
           cat docker-conformance.json
           grep '"status": "PASS"' docker-conformance.json
-          grep '"total": 10' docker-conformance.json
-          grep '"passed": 10' docker-conformance.json
+          grep '"total": 11' docker-conformance.json
+          grep '"passed": 11' docker-conformance.json
           grep '"failed": 0' docker-conformance.json
