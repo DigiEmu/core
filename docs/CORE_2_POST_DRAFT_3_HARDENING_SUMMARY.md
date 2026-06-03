@@ -42,7 +42,7 @@ This document summarizes Core 2.0 hardening work completed after `v2.0.0-draft.3
 
 ## Recommended Next Steps
 
-- Add `MISSING_REFERENCE` as a representable conformance case if schema support is added.
+- Use `docs/CORE_2_MISSING_REFERENCE_SCHEMA_CONSIDERATION.md` to plan whether `MISSING_REFERENCE` belongs in Verify Result v2 before adding schema support or a conformance case.
 - Consider another draft milestone only after additional conformance coverage.
 - Prepare full verify execution design/phase only after runner semantics remain stable.
 - Collect partner feedback on the 11-case conformance pack.
