@@ -119,6 +119,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	now compares observed and expected `result` / `reason_code` values through a
 	dedicated helper while keeping the public JSON report shape unchanged.
 
+- Runner comparison integration: malformed input JSON observed results now flow
+	through the centralized observed-vs-expected comparison path, preserving
+	`ERROR` / `INVALID_SNAPSHOT_SCHEMA` behavior.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.

@@ -4,7 +4,7 @@ Status
 ------
 
 - Milestone: post-v2.0.0-draft.3
-- Stability: design / draft / Phase 3a helper started
+- Stability: design / draft / Phase 3b runner integration started
 - Purpose: Define future runner comparison semantics before implementation.
 
 Purpose
@@ -74,6 +74,8 @@ Behavior:
 
 ### Phase 3b: Actual-vs-expected unit tests
 
+Status: implemented for helper-level and malformed-input runner integration coverage
+
 Behavior:
 
 - Add tests for matched and mismatched result/reason_code.
@@ -123,6 +125,7 @@ Change history
 
 - 2026-06-03 — Added actual-vs-expected comparison design for post-draft.3 runner hardening.
 - 2026-06-03 — Marked Phase 3a internal `result` / `reason_code` comparison helper as implemented.
+- 2026-06-03 — Marked Phase 3b runner integration coverage as started for observed-result paths.
 
 Compatibility statement
 -----------------------

@@ -95,6 +95,23 @@ func TestRunCaseMalformedInputMismatchFails(t *testing.T) {
 	}
 }
 
+func TestRunCaseMalformedInputReasonCodeMismatchFails(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"ERROR","reason_code":"INTERNAL_ERROR","verify_result_version":"v2-draft"}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "input.json"), []byte(`{`), 0o644)
+
+	r := RunCase(dir)
+	if r.Err == "" {
+		t.Fatalf("expected observed reason_code mismatch for malformed input")
+	}
+	if !strings.Contains(r.Err, "observed result mismatch: got ERROR/INVALID_SNAPSHOT_SCHEMA, expected ERROR/INTERNAL_ERROR") {
+		t.Fatalf("expected malformed input to compare observed reason_code through helper, got: %s", r.Err)
+	}
+	if r.CasePassed {
+		t.Fatalf("expected case_passed false for malformed input reason_code mismatch")
+	}
+}
+
 func TestCompareObservedExpectedExactMatch(t *testing.T) {
 	observed := observedResult{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED"}
 	expected := Result{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED"}
