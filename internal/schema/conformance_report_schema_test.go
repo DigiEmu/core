@@ -40,6 +40,36 @@ func TestConformanceReportExampleAndCLIValidateSchema(t *testing.T) {
 	if err := sch.Validate(v); err != nil {
 		t.Fatalf("schema validation failed for example: %v", err)
 	}
+	exampleReport, ok := v.(map[string]interface{})
+	if !ok {
+		t.Fatalf("unexpected example report shape")
+	}
+	if int(exampleReport["total"].(float64)) != 11 {
+		t.Fatalf("expected example total 11, got %v", exampleReport["total"])
+	}
+	if int(exampleReport["passed"].(float64)) != 11 {
+		t.Fatalf("expected example passed 11, got %v", exampleReport["passed"])
+	}
+	exampleCases, ok := exampleReport["cases"].([]interface{})
+	if !ok || len(exampleCases) != 11 {
+		t.Fatalf("expected example 11 cases, got %v", exampleReport["cases"])
+	}
+	foundUnsupportedCanonicalizationProfile := false
+	for _, c := range exampleCases {
+		caseReport, ok := c.(map[string]interface{})
+		if !ok {
+			t.Fatalf("unexpected example case shape")
+		}
+		if caseReport["name"] == "unsupported_canonicalization_profile_error" {
+			foundUnsupportedCanonicalizationProfile = true
+			if caseReport["expected_result"] != "ERROR" || caseReport["reason_code"] != "UNSUPPORTED_CANONICALIZATION_PROFILE" {
+				t.Fatalf("unexpected unsupported canonicalization profile case: %v", caseReport)
+			}
+		}
+	}
+	if !foundUnsupportedCanonicalizationProfile {
+		t.Fatalf("missing unsupported_canonicalization_profile_error in example report")
+	}
 
 	// Run CLI to produce JSON output and validate
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
