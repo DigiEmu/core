@@ -4,7 +4,7 @@ Status
 ------
 
 - Milestone: post-v2.0.0-draft.3
-- Stability: design / draft / not implemented
+- Stability: design / draft / Phase 3a helper started
 - Purpose: Define future runner comparison semantics before implementation.
 
 Purpose
@@ -64,6 +64,8 @@ Phased implementation
 
 ### Phase 3a: Internal observed-result model
 
+Status: implemented for internal `result` / `reason_code` comparison helper
+
 Behavior:
 
 - Introduce internal observed verify result representation.
@@ -112,10 +114,15 @@ Non-goals
 Recommended next PRs
 --------------------
 
-- Introduce internal observed-result comparison helper.
-- Add tests for observed-vs-expected match and mismatch.
+- Expand observed-result comparison coverage where new observed results are introduced.
 - Keep public JSON report shape unchanged.
 - Add representable `UNSUPPORTED_PROFILE` and `MISSING_REFERENCE` cases after comparison helper exists.
+
+Change history
+--------------
+
+- 2026-06-03 — Added actual-vs-expected comparison design for post-draft.3 runner hardening.
+- 2026-06-03 — Marked Phase 3a internal `result` / `reason_code` comparison helper as implemented.
 
 Compatibility statement
 -----------------------

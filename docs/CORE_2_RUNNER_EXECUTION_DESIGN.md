@@ -49,9 +49,10 @@ Behavior:
 
 ### Phase 3: Verify execution
 
-Status: future
+Status: future; internal observed-vs-expected comparison helper started
 
 Behavior:
+- Compare observed and expected `result` / `reason_code` through an internal helper.
 - Run canonicalization/reconstruction/hash validation where representable.
 - Produce actual Verify Result v2.
 - Compare actual result to expected result.
@@ -109,3 +110,4 @@ Change history
 - 2026-06-02 — Added runner real execution design for post-`v2.0.0-draft.2` stabilization planning.
 - 2026-06-02 — Marked Phase 2 JSON parsing and malformed JSON classification as started.
 - 2026-06-03 — Referenced actual-vs-expected comparison design as the next post-draft.3 refinement.
+- 2026-06-03 — Noted internal observed-vs-expected comparison helper as the first Phase 3 implementation step.

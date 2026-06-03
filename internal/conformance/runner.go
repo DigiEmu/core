@@ -109,14 +109,21 @@ func RunCase(caseDir string) Result {
 		r.Err = err.Error()
 		return r
 	}
-	if observed.Result != r.Result || observed.ReasonCode != r.ReasonCode {
-		r.Err = fmt.Sprintf("observed result mismatch: got %s/%s, expected %s/%s", observed.Result, observed.ReasonCode, r.Result, r.ReasonCode)
+	if err := compareObservedExpected(observed, r); err != nil {
+		r.Err = err.Error()
 		return r
 	}
 
 	r.CasePassed = true
 
 	return r
+}
+
+func compareObservedExpected(observed observedResult, expected Result) error {
+	if observed.Result != expected.Result || observed.ReasonCode != expected.ReasonCode {
+		return fmt.Errorf("observed result mismatch: got %s/%s, expected %s/%s", observed.Result, observed.ReasonCode, expected.Result, expected.ReasonCode)
+	}
+	return nil
 }
 
 func observeInput(caseDir string, expected Result) (observedResult, error) {

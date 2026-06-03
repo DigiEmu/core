@@ -95,6 +95,41 @@ func TestRunCaseMalformedInputMismatchFails(t *testing.T) {
 	}
 }
 
+func TestCompareObservedExpectedExactMatch(t *testing.T) {
+	observed := observedResult{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED"}
+	expected := Result{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED"}
+
+	if err := compareObservedExpected(observed, expected); err != nil {
+		t.Fatalf("expected exact match, got error: %s", err)
+	}
+}
+
+func TestCompareObservedExpectedResultMismatch(t *testing.T) {
+	observed := observedResult{Result: "ERROR", ReasonCode: "INVALID_SNAPSHOT_SCHEMA"}
+	expected := Result{Result: "PASS", ReasonCode: "INVALID_SNAPSHOT_SCHEMA"}
+
+	err := compareObservedExpected(observed, expected)
+	if err == nil {
+		t.Fatalf("expected result mismatch")
+	}
+	if !strings.Contains(err.Error(), "observed result mismatch") {
+		t.Fatalf("expected deterministic mismatch error, got: %s", err)
+	}
+}
+
+func TestCompareObservedExpectedReasonCodeMismatch(t *testing.T) {
+	observed := observedResult{Result: "ERROR", ReasonCode: "INVALID_SNAPSHOT_SCHEMA"}
+	expected := Result{Result: "ERROR", ReasonCode: "INTERNAL_ERROR"}
+
+	err := compareObservedExpected(observed, expected)
+	if err == nil {
+		t.Fatalf("expected reason_code mismatch")
+	}
+	if !strings.Contains(err.Error(), "observed result mismatch") {
+		t.Fatalf("expected deterministic mismatch error, got: %s", err)
+	}
+}
+
 func TestRunCaseMissingInputFailsDeterministically(t *testing.T) {
 	dir := t.TempDir()
 	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"ERROR","reason_code":"INVALID_SNAPSHOT_SCHEMA","verify_result_version":"v2-draft"}`), 0o644)
