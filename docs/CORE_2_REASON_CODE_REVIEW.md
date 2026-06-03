@@ -69,6 +69,7 @@ Execution implications
 - Current runner input parsing maps malformed JSON to `INVALID_SNAPSHOT_SCHEMA`.
 - Future real execution may clarify whether malformed JSON should remain `INVALID_SNAPSHOT_SCHEMA` or become a future `INVALID_JSON` code.
 - The official conformance pack now includes a representable unsupported canonicalization profile case for `UNSUPPORTED_CANONICALIZATION_PROFILE`.
+- `MISSING_REFERENCE` remains pending because it is not currently part of the Verify Result v2 schema reason-code enum.
 - Real execution may require additional representable cases for unsupported reconstruction profiles and missing references before stable promotion.
 
 Stable-readiness checklist

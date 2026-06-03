@@ -131,6 +131,10 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	summarizes the completed runner/conformance hardening checkpoint and records
 	the current 11-case conformance status (`total=11 passed=11 failed=0`).
 
+- Missing-reference coverage: `MISSING_REFERENCE` is not currently supported by
+	the Verify Result v2 schema reason-code enum, so it remains pending and the
+	official conformance pack remains at 11 cases.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
