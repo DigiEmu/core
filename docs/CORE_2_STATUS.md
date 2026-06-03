@@ -115,10 +115,14 @@ This document summarizes the current hardening status for DigiEmu Core 2.0: what
 	defines the next post-draft.3 runner hardening step for comparing observed
 	verify results with `expected_verify_result.json` before implementation.
 
+- Runner observed-vs-expected comparison helper: the internal conformance runner
+	now compares observed and expected `result` / `reason_code` values through a
+	dedicated helper while keeping the public JSON report shape unchanged.
+
 ## Known Risks
 
 - Verify Result v2 remains draft and is not yet active CLI behavior.
-- Full runner verify execution remains unimplemented; current hardening is limited to input JSON parsing.
+- Full runner verify execution remains unimplemented; current hardening is limited to input JSON parsing and internal observed-vs-expected comparison scaffolding.
 - Post-quantum support is migration-readiness only; no PQC primitives are enabled.
 - Unicode normalization is documented but not changed; normalization policy remains an open decision.
 - `json.RawMessage` handling is documented and tests lock current behavior, but it may require a future profile decision.
