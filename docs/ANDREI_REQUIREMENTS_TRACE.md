@@ -1,0 +1,15 @@
+# Andrei Requirements Trace — DigiEmu Core 2.0 Hardening
+
+| External / partner impulse | Interpreted requirement | DigiEmu Core 2.0 implementation | Status | Evidence / file reference | Remaining work |
+|---|---|---|---|---|---|
+| Minimal standardizable core | Keep Core small and reproducible | Core functions limited to canonicalization, hashing, replay, verify result | In progress | `cmd/digiemu/verify.go`, `cmd/digiemu/json_output.go`, `schemas/VERIFY_RESULT_SCHEMA_v1.json` | Finalize docs: `docs/CONFORMANCE.md`, prune non-core mentions in `README.md` |
+| Deterministic state representation | Stable snapshot structure | Canonical JSON v1 scope and stable fields for hashing | In progress | `internal/canonicaljson/`, `docs/SNAPSHOT_HASH_v1.0.md` (if present), `testdata/core_2_conformance/*` | Document explicit field scope in `CONFORMANCE.md` |
+| Canonical JSON serialization | Same input produces same canonical representation | `--json=canonical` path and internal canonicalization for verify outputs | Implemented | `cmd/digiemu/json_output.go`, `internal/canonicaljson/` | Add conformance note linking to schema validation |
+| SHA-256 state identity | Stable hash identity for snapshots | `sha256(canonical_json_v1)` for snapshot hashing | Implemented | `schemas/VERIFY_RESULT_SCHEMA_v1.json`, `cmd/digiemu/verify_*_test.go` | Expand vector coverage across edge cases |
+| Independent replay / reconstruction | External verifier can reproduce verification result | Replay + verify pipeline with deterministic profiles | In progress | `cmd/digiemu/replay_*.go`, `cmd/digiemu/verify_replay.go` | Publish minimal reconstruction profile note |
+| PASS / FAIL / ERROR semantics | Clear machine-readable verification outcome | PASS/FAIL/ERROR with reason codes | Implemented | `schemas/verify_result_v2.schema.json`, `schemas/VERIFY_RESULT_SCHEMA_v1.json` | Align README examples with schema naming |
+| Verify result schema | Standard report format | v1 stable schema; v2 draft | Implemented | `schemas/VERIFY_RESULT_SCHEMA_v1.json`, `schemas/verify_result_v2.schema.json` | Confirm CI validation step |
+| Test vectors | Conformance examples and edge cases | Core 2.0 conformance vectors | Implemented | `testdata/core_2_conformance/` | Keep vectors stable; add negative cases as needed |
+| CLI conformance path | Developer-testable verification path | `--json` pretty/canonical, deterministic stdout/stderr contract | Implemented | `cmd/digiemu/json_output.go`, `cmd/digiemu/verify.go` | Add explicit CLI examples in `CONFORMANCE.md` |
+| Separation from enterprise/governance features | No dashboards or workflow logic in Core | Core has no enterprise UI/roles/workflow | Implemented | Repo scan; absence of such features | Keep boundary statement in `THREAT_MODEL.md` |
+| Separation from external trust/identity layers such as TBN | DigiEmu verifies decision-state integrity, not agent trust | Identity/trust attestation is out-of-scope for Core 2.0 | Implemented (boundary) | `docs/THREAT_MODEL.md` (to be updated), `README.md` (should avoid overclaims) | Ensure README avoids implying trust certification |
