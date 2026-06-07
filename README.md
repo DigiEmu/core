@@ -15,7 +15,7 @@ The system ensures that knowledge snapshots can always be reconstructed and veri
 - Cryptographic integrity
 - Replay verification
 - Signed knowledge bundles
-- Trusted identity layer
+- Artifact origin metadata
 - Transportable bundles
 
 ---
@@ -114,7 +114,7 @@ digiemu verify signature bundle.json
 
 ---
 
-## Identity System
+## Artifact origin / bundle signer metadata
 
 ### Show local identity
 
@@ -179,7 +179,7 @@ DigiEmu Core consists of:
 - Replay engine
 - Verification layer
 - Signature system
-- Identity trust layer
+- Artifact origin / signer metadata utilities
 - Bundle transport system
 
 ---
@@ -207,7 +207,7 @@ The system supports:
 - deterministic snapshot creation
 - replay verification
 - cryptographic integrity validation
-- identity-bound artifacts
+- origin-bound or externally attested artifacts
 
 Enterprise hardening and ecosystem integration are ongoing.
 
@@ -289,3 +289,5 @@ Links
 - [OpenAPI Draft](docs/CORE_2_OPENAPI_DRAFT.md)
 - [Release Checklist](docs/CORE_2_RELEASE_CHECKLIST.md)
 - [Tagging Plan](docs/CORE_2_TAGGING_PLAN.md)
+
+
