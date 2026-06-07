@@ -20,6 +20,10 @@ The system ensures that knowledge snapshots can always be reconstructed and veri
 
 ---
 
+## Boundary Note
+
+DigiEmu Core verifies deterministic decision-state integrity through canonical JSON, SHA-256 snapshot hashing, and replay/verify checks. It does not certify agent identity, trustworthiness, authorization, action legitimacy, or legal compliance. These concerns belong to complementary external trust and attestation layers such as TBN.
+
 ## Specification
 
 DigiEmu Core is moving toward a public standard structure for deterministic AI decision verification.

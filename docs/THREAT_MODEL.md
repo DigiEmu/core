@@ -340,3 +340,14 @@ No release should be described as enterprise-ready unless:
 - byte-exact repro tests pass
 - determinism guard findings are either zero or explicitly documented and approved
 - this threat model remains materially accurate
+---
+
+## Core 2.0 Verification Boundary Addendum
+
+DigiEmu Core 2.0 is limited to deterministic decision-state reconstruction and verification.
+
+It detects modified snapshots, hash mismatches, schema violations, non-canonical serialization problems, replay mismatches, malformed verification inputs, and incompatible schema or core versions.
+
+It does not prove that an AI decision was ethically correct, that model reasoning was truthful, that a human operator acted responsibly, that an agent identity is trusted, that an action was authorized, that a deployed system is legally compliant, or that a model or agent is certified.
+
+Agent identity, trust certification, authorization, and action attestation are outside DigiEmu Core and may be handled by complementary systems such as TBN.
