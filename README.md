@@ -264,6 +264,8 @@ Quickstart commands (for evaluation)
 ```bash
 go test ./...
 go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance
+
+“DigiEmu Core by Bruno Baumgartner © 2026”
 go run ./cmd/digiemu experimental conformance run testdata/core_2_conformance --json
 ```
 
