@@ -279,6 +279,8 @@ docker run --rm digiemu-core experimental conformance run /opt/testdata/core_2_c
 Expected output
 - `Conformance run summary: total=11 passed=11 failed=0`
 
+  “DigiEmu Core by Bruno Baumgartner © 2026”
+
 Important notes
 - Core 2.0 remains draft unless explicitly marked stable.
 - Experimental commands remain under the `experimental` namespace.
