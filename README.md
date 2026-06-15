@@ -292,6 +292,8 @@ Links
 - [OpenAPI Draft](docs/CORE_2_OPENAPI_DRAFT.md)
 - [Release Checklist](docs/CORE_2_RELEASE_CHECKLIST.md)
 - [Tagging Plan](docs/CORE_2_TAGGING_PLAN.md)
+- [Core 2.0 Interop Contract](docs/CORE_2_INTEROP_CONTRACT.md) – Defines how external systems (TBN, AntifragileOS, CLARIXO, compliance, audit) may reference DigiEmu decision-state artifacts without redefining DigiEmu state identity
+- [Core 2.0 Interop Examples](examples/interop/README.md) – Minimal examples showing DigiEmu as a deterministic decision-state verification layer consumed by external trust, compliance, and operational systems
 
 
 “DigiEmu Core by Bruno Baumgartner © 2026”
