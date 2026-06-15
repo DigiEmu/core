@@ -1,0 +1,46 @@
+{
+  "_comment": "EXAMPLE ONLY - NOT A PRODUCTION INTEGRATION - ILLUSTRATIVE FLOW",
+  "integration_context": "AntifragileOS before-splice validation example",
+  "flow_version": "antifragile-remediation-v1.0.0-example",
+  "timestamp": "2026-06-15T12:15:00Z",
+  "remediation_task": {
+    "remediation_task_id": "remediation-task-001",
+    "moment_id": "agent-moment-001",
+    "description": "Example remediation task for pre-splice validation",
+    "status": "VALIDATED"
+  },
+  "digiemu_references": {
+    "digiemu_snapshot_id": "digiemu-snapshot-001",
+    "digiemu_verification_report_id": "digiemu-report-001",
+    "digiemu_verification_outcome": "PASS"
+  },
+  "flow_action": {
+    "action": "ALLOW_CONTINUE_EXTERNAL_VALIDATION_FLOW",
+    "reason": "DigiEmu verification passed, external system may continue its own validation",
+    "constraints": [
+      "External system must complete its own validation before splice",
+      "External system must not rely solely on DigiEmu PASS outcome",
+      "External system must preserve full diagnostic chain"
+    ]
+  },
+  "preservation_rule": {
+    "pass_fail_portability": "PASS/FAIL outcome may be carried for portability to downstream systems",
+    "structured_report_preservation": "Structured DigiEmu verification report reference MUST be preserved",
+    "diagnostic_evidence_rule": "Diagnostic evidence MUST NOT be erased or replaced with unsupported summaries",
+    "reference_path": "reports/digiemu-report-001.json",
+    "explanation": "Reduced outcomes are allowed but must maintain link to full structured evidence"
+  },
+  "non_claims": {
+    "_comment": "DigiEmu does not provide the following",
+    "digiemu_decides_production_deployment": false,
+    "digiemu_certifies_agent": false,
+    "digiemu_assigns_legal_responsibility": false,
+    "explanation": "DigiEmu provides verification input to external validation flows. Production deployment decisions, agent certification, and legal responsibility assignment remain with external systems per their own policies and authorities."
+  },
+  "flow_non_claims": {
+    "external_system_does_not_recompute_digiemu_identity": true,
+    "external_system_preserves_digiemu_report_reference": true,
+    "external_system_does_not_claim_digiemu_certified_deployment": true,
+    "explanation": "The external system acts on DigiEmu results but does not redefine or overwrite DigiEmu state identity."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "_comment": "EXAMPLE ONLY - NOT A PRODUCTION REPORT - PLACEHOLDER VALUES",
+  "report_id": "digiemu-report-001",
+  "snapshot_id": "digiemu-snapshot-001",
+  "moment_id": "agent-moment-001",
+  "canonicalization_profile": "digiemu-core-2-profile",
+  "digiemu_core_version": "2.0",
+  "verification_outcome": "PASS",
+  "replay_consistency": true,
+  "hash_consistency": true,
+  "timestamp": "2026-06-15T12:05:00Z",
+  "structured_diagnostics": {
+    "checks_performed": [
+      {
+        "check": "replay_fixture_loaded",
+        "status": "PASS",
+        "detail": "Replay fixture loaded successfully"
+      },
+      {
+        "check": "decision_state_replay",
+        "status": "PASS",
+        "detail": "Decision state replay completed with matching output"
+      },
+      {
+        "check": "hash_verification",
+        "status": "PASS",
+        "detail": "All decision-state hashes verified"
+      },
+      {
+        "check": "canonicalization_profile_match",
+        "status": "PASS",
+        "detail": "Profile matches declared canonicalization"
+      }
+    ],
+    "total_checks": 4,
+    "passed_checks": 4,
+    "failed_checks": 0
+  },
+  "non_claims": {
+    "_comment": "DigiEmu does not provide the following",
+    "agent_identity_verified": false,
+    "trust_tier_certified": false,
+    "legal_liability_assigned": false,
+    "regulatory_approval_performed": false,
+    "model_alignment_guaranteed": false,
+    "full_system_safety_guaranteed": false,
+    "explanation": "DigiEmu verifies deterministic decision-state integrity and replay consistency within its declared scope."
+  }
+}
