@@ -1,0 +1,33 @@
+{
+  "_comment": "EXAMPLE ONLY - NOT A PRODUCTION RECEIPT - PLACEHOLDER SIGNATURE",
+  "receipt_version": "TBN-Receipt-v1.0.0-alignment-test-example",
+  "type": "ALIGNMENT_VERIFICATION_REFERENCE_EXAMPLE",
+  "moment_id": "agent-moment-001",
+  "timestamp": "2026-06-15T12:10:00Z",
+  "digiemu_references": {
+    "digiemu_snapshot_id": "digiemu-snapshot-001",
+    "digiemu_verification_report_id": "digiemu-report-001",
+    "digiemu_verification_outcome": "PASS",
+    "referenced_digiemu_hashes": [
+      "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    ]
+  },
+  "tbn_provided": {
+    "agent_identity_status": "UNVERIFIED_TEST",
+    "trust_status": "NOT_CERTIFIED_TEST_MODE",
+    "provenance": "tbn-example-provenance-001",
+    "explanation": "TBN provides identity and trust layers independent of DigiEmu"
+  },
+  "tbn_non_claims": {
+    "tbn_does_not_compute_digiemu_state_identity": true,
+    "tbn_does_not_redefine_digiemu_canonicalization_semantics": true,
+    "tbn_carries_digiemu_evidence_as_external_reference": true,
+    "explanation": "TBN references DigiEmu artifacts but does not produce, compute, or redefine DigiEmu state identity."
+  },
+  "signature": "PLACEHOLDER_NON_PRODUCTION_SIGNATURE",
+  "_warning": "This signature is a placeholder. Do not use for production verification."
+}

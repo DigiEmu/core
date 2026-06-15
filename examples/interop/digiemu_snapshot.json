@@ -1,0 +1,31 @@
+{
+  "_comment": "EXAMPLE ONLY - NOT A PRODUCTION SNAPSHOT - PLACEHOLDER VALUES",
+  "digiemu_core_version": "2.0",
+  "canonicalization_profile": "digiemu-core-2-profile",
+  "moment_id": "agent-moment-001",
+  "snapshot_id": "digiemu-snapshot-001",
+  "state_producer": "digiemu-example-producer",
+  "timestamp": "2026-06-15T12:00:00Z",
+  "decision_state": {
+    "input_ref": "inputs/agent-input-001.json",
+    "policy_ref": "policies/agent-policy-001.json",
+    "tool_state_ref": "tool-state/tool-state-001.json",
+    "refusal_state": "NO_REFUSAL",
+    "output_candidate_ref": "outputs/agent-output-001.json"
+  },
+  "decision_state_hashes": [
+    "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+  ],
+  "non_claims": {
+    "_comment": "DigiEmu does not provide the following",
+    "agent_identity_verified": false,
+    "trust_tier_assigned": false,
+    "legal_liability_attributed": false,
+    "regulatory_approval_granted": false,
+    "explanation": "DigiEmu verifies deterministic decision-state integrity only. Agent identity, trust tiers, legal liability, and regulatory approval are outside DigiEmu scope."
+  }
+}
