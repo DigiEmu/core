@@ -1,0 +1,46 @@
+registry:
+  id: digiemu-aggregate-ownership
+  version: "0.1"
+  architecture_baseline_revision: "0.3"
+  status: proposed
+  date: 2026-08-07
+  description: >
+    Maps mutating Core capabilities to the aggregate root that owns the authoritative
+    DigiEmu domain state they change. Read-only and interface capabilities are not
+    assigned here. Mappings are derived from repository evidence, not assumed.
+
+ownership:
+  - aggregate_id: unit
+    name: Unit
+    status: existing
+    source: internal/kernel/domain/unit.go, internal/kernel/usecases/create_unit.go, internal/kernel/usecases/create_version.go, internal/kernel/usecases/set_meaning.go, internal/kernel/usecases/set_claims.go, internal/kernel/usecases/set_uncertainty.go
+    owned_capabilities:
+      - core.unit.create
+      - core.version.create
+      - core.meaning.set
+      - core.claim.set
+      - core.uncertainty.set
+    description: >
+      Unit is the aggregate root in the Core domain. It owns its identity (ID, key,
+      title, description) and the head-version pointer. Version is an owned entity
+      beneath Unit; Meaning, ClaimSet, and Uncertainty are value objects attached to
+      a Version. All listed capabilities resolve the target Unit and operate within
+      the Unit aggregate boundary.
+
+unresolved:
+  - capability_id: core.import
+    reason: >
+      cmd/digiemu/import_bundle.go currently validates bundle file presence but does
+      not create or own Unit/Version aggregate state. It is an unimplemented
+      orchestration, not an aggregate owner.
+
+  - capability_id: core.snapshot
+    reason: >
+      cmd/digiemu/snapshot.go reads an external file and produces a snapshot bundle
+      artifact (snapshot.json, meta.json, trace.json, bundle.json). It does not create
+      or own Unit/Version aggregate state; it is artifact generation over existing or
+      external data.
+
+notes:
+  - p0.admission and rs-001 are not assigned because they are not runtime Core capabilities.
+  - Read-only capabilities (core.verify, core.replay, core.conformance, core.audit) are not listed.

@@ -35,9 +35,9 @@ capabilities:
     name: Snapshot
     status: existing
     layer: Core
-    description: Creation and canonicalization of snapshot artifacts.
+    description: Deterministic artifact generation from external input. Produces a snapshot bundle but does not mutate authoritative DigiEmu domain state (Unit/Version).
     source: cmd/digiemu/snapshot.go, docs/SNAPSHOT_HASH_v1.0.md
-    mutation: true
+    mutation: false
 
   - id: core.conformance
     name: Conformance
@@ -99,9 +99,9 @@ capabilities:
     name: Import
     status: existing
     layer: Core
-    description: Import bundles into the local data store.
-    source: cmd/digiemu/import.go
-    mutation: true
+    description: Validates required bundle files; currently an orchestration stub. It does not write Unit/Version aggregate state.
+    source: cmd/digiemu/import_bundle.go
+    mutation: false
 
   - id: p0.admission
     name: Admission
