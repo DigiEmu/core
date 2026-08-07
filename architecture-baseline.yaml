@@ -1,0 +1,113 @@
+baseline:
+  id: digiemu-core-architecture
+  revision: "0.3"
+  status: proposed
+  layer: P0
+  target_release: DigiEmu Core 2.0.x
+  base: core-2.0.0
+  date: 2026-08-07
+
+description: >
+  Human- and machine-readable architecture layer map for the DigiEmu Core P0
+  Architecture Constitution. This baseline is a documentation/specification
+  artifact; it does not introduce runtime behavior, modify canonicalization or
+  hashing, or change the released Core 2.0.0 verification boundary.
+
+core_2_0_boundary:
+  description: Existing released Core 2.0.0 deterministic verification boundary.
+  status: authoritative
+  responsible_for:
+    - canonicalization
+    - snapshot formation
+    - snapshot hashing
+    - deterministic replay
+    - verification
+    - CLI v1 contract
+    - state identity
+  authoritative_sources:
+    - docs/DIGIEMU_CORE_SPEC_v0.9.md
+    - docs/VERIFY_SPEC_v1.0.md
+    - docs/CLI_CONTRACT_v1.0.md
+    - docs/CLI_VERIFY_v1.0.md
+    - docs/SNAPSHOT_HASH_v1.0.md
+    - docs/CORE_2_INTEROP_CONTRACT.md
+    - docs/CORE_2_BOUNDARY_MODEL.md
+    - docs/CORE_2_EXTERNAL_REVIEW_NOTE.md
+    - docs/CORE_2_PROFILE_REGISTRY.md
+    - docs/CORE_2_CONFORMANCE_PACK.md
+    - docs/VERSIONING_POLICY_v1.0.md
+    - SECURITY.md
+    - docs/THREAT_MODEL.md
+    - docs/GOVERNANCE.md
+    - docs/ETHICS.md
+    - internal/kernel/
+    - internal/verify/
+    - internal/conformance/runner.go
+    - schemas/VERIFY_RESULT_SCHEMA_v1.json
+    - schemas/verify_result_v2.schema.json
+    - schemas/core_2_conformance_report.schema.json
+
+p0_architecture_constitution:
+  description: Proposed P0 Architecture Constitution and Admission boundary.
+  status: proposed
+  enforced: false
+  authoritative_sources:
+    - docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+    - 01_decisions/ADR-P0-05-Core-Admission-Constitution.md
+    - schemas/admission_result_v0.1.schema.json
+  admission:
+    description: >
+      Architectural admissibility gate. Admission is not Core verification,
+      business approval, regulatory approval, or trust assignment.
+    invariants:
+      - IR-01 through IR-12 are defined in docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+integration_classes:
+  KEEP:
+    description: Existing Core 2.0 semantics and contracts remain unchanged and authoritative.
+    examples:
+      - canonicalization
+      - snapshot formation and hashing
+      - deterministic replay and verification
+      - CLI v1 contract
+      - state identity
+  BIND:
+    description: Existing Core artifacts are conceptually mapped to constitutional concepts without renaming or refactoring.
+    examples:
+      - internal/kernel/usecases/
+      - internal/kernel/domain/
+      - internal/kernel/domain/audit_event.go
+      - internal/conformance/runner.go
+      - schemas/admission_result_v0.1.schema.json
+  ADD:
+    description: Proposed architecture artifacts that are not yet present as machine-readable runtime artifacts.
+    proposed_artifacts:
+      - architecture-baseline.yaml
+      - docs/core-capability-registry.md
+      - docs/aggregate-ownership-registry.md
+      - docs/command-event-catalogue.md
+      - docs/RS-001-Decision-Approval.md
+      - schemas/intent-envelope.schema.json
+      - schemas/command-envelope.schema.json
+      - schemas/event-envelope.schema.json
+    missing_decision_records:
+      - id: CR-05
+        note: Not found in repository. ADR-P0-05 is the proposed admission constitution binding for the integration problem addressed by this baseline.
+
+rs_001:
+  description: First executable reference and conformance scenario for the Admission Constitution.
+  status: proposed_test_and_documentation_artifact
+  runtime_feature: false
+  non_claims:
+    - The "Decision Aggregate" in RS-001 is proposed; it is not a native Core 2.0.0 runtime aggregate.
+    - RS-001 does not mean DigiEmu substantively approves a business decision.
+  authoritative_sources:
+    - docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+    - 01_decisions/ADR-P0-05-Core-Admission-Constitution.md
+
+external_authority:
+  description: Business, legal, regulatory, ethical, and trust authority remains outside the DigiEmu Core boundary.
+  authoritative_sources:
+    - docs/CORE_2_INTEROP_CONTRACT.md
+    - docs/CORE_2_EXTERNAL_REVIEW_NOTE.md
+    - docs/CORE_2_BOUNDARY_MODEL.md
