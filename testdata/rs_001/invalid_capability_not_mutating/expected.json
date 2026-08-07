@@ -1,0 +1,4 @@
+{
+  "decision": "REJECT",
+  "reason_codes": ["CAPABILITY_NOT_MUTATING"]
+}

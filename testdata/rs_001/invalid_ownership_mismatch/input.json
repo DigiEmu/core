@@ -1,0 +1,9 @@
+{
+  "schema_version": "v0.1",
+  "architecture_revision": "0.3",
+  "intent_id": "rs-001-intent-ownership",
+  "capability_ref": "core.unit.create",
+  "aggregate_ref": "unknown-aggregate",
+  "command_ref": "unit.create",
+  "payload": {}
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "v0.1",
+  "architecture_revision": "0.3",
+  "intent_id": "rs-001-intent-valid-admit",
+  "capability_ref": "core.unit.create",
+  "aggregate_ref": "unit",
+  "command_ref": "unit.create",
+  "payload": {
+    "key": "example-unit",
+    "title": "Example Unit",
+    "description": "An example unit for RS-001."
+  }
+}

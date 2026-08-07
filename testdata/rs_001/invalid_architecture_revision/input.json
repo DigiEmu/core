@@ -1,0 +1,9 @@
+{
+  "schema_version": "v0.1",
+  "architecture_revision": "0.2",
+  "intent_id": "rs-001-intent-arch-rev",
+  "capability_ref": "core.unit.create",
+  "aggregate_ref": "unit",
+  "command_ref": "unit.create",
+  "payload": {}
+}

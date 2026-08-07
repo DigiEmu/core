@@ -1,0 +1,4 @@
+{
+  "decision": "REJECT",
+  "reason_codes": ["ARCHITECTURE_REVISION_MISMATCH"]
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "v0.1",
+  "architecture_revision": "0.3",
+  "intent_id": "rs-001-intent-unknown-cap",
+  "capability_ref": "core.unknown.capability",
+  "aggregate_ref": "unit",
+  "command_ref": "unit.create",
+  "payload": {}
+}
