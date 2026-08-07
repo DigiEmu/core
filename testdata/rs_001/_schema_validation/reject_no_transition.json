@@ -1,0 +1,15 @@
+{
+  "schema_version": "v0.2",
+  "architecture_revision": "0.3",
+  "admission_id": "admission:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "decision": "REJECT",
+  "capability_ref": "core.unit.create",
+  "aggregate_ref": "unit",
+  "command_ref": "unit.create",
+  "rule_refs": [
+    "P0.ADMISSION.ARCHITECTURE_REVISION"
+  ],
+  "reason_codes": [
+    "ARCHITECTURE_REVISION_MISMATCH"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "v0.1",
+  "architecture_revision": "0.3",
+  "intent_id": "rs-001-det-order",
+  "capability_ref": "core.unit.create",
+  "aggregate_ref": "unit",
+  "command_ref": "unit.create",
+  "payload": {
+    "key": "alpha",
+    "extra": "x"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "decision": "REJECT",
+  "reason_codes": ["MISSING_REQUIRED_FIELD"]
+}

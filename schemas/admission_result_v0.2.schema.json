@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DigiEmu Core Admission Result v0.2",
+  "description": "Minimal deterministic evidence object produced by an Admission evaluation under the DigiEmu Core Architecture Constitution. This object records architectural admissibility only. An ADMIT decision does not imply successful DigiEmu Core verification and does not imply substantive approval by any business, legal, regulatory, ethical, or external trust authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_revision",
+    "admission_id",
+    "decision",
+    "capability_ref",
+    "aggregate_ref",
+    "command_ref",
+    "rule_refs",
+    "reason_codes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Version of the Admission Result schema.",
+      "examples": ["v0.2"]
+    },
+    "architecture_revision": {
+      "type": "string",
+      "description": "Revision of the authoritative architecture baseline under which the Admission was evaluated. This field references architecture-baseline.yaml: baseline.revision. The current authoritative revision is \"0.3\".",
+      "examples": ["0.3"]
+    },
+    "admission_id": {
+      "type": "string",
+      "description": "Unique identifier for this Admission evaluation. Deterministically derived as documented in docs/ADMISSION_ID_SPEC_v0.1.md."
+    },
+    "decision": {
+      "type": "string",
+      "description": "Architectural admission decision. ADMIT means the command is admissible under the constitution; it does not imply DigiEmu verification success or external authority approval. REJECT means the command is not admissible.",
+      "enum": ["ADMIT", "REJECT"]
+    },
+    "capability_ref": {
+      "type": "string",
+      "description": "Reference to a registered Core capability that the admitted or rejected command belongs to."
+    },
+    "aggregate_ref": {
+      "type": "string",
+      "description": "Reference to the aggregate owner responsible for the target of the command."
+    },
+    "command_ref": {
+      "type": "string",
+      "description": "Reference to the command being evaluated for admission."
+    },
+    "transition_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the transition that the command resolves to. Required for ADMIT. May be omitted for REJECT when the transition could not be resolved before rejection."
+    },
+    "rule_refs": {
+      "type": "array",
+      "description": "Rule identifiers from the Architecture Constitution that were evaluated during Admission. Rule identifiers are defined in admission-rule-registry.yaml.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "reason_codes": {
+      "type": "array",
+      "description": "Deterministic machine-readable reason codes explaining the Admission result. These are architectural reason codes, not DigiEmu verification result codes or trust/trustworthiness scores.",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": { "enum": ["ADMIT"] }
+        }
+      },
+      "then": {
+        "required": ["transition_ref"],
+        "properties": {
+          "reason_codes": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": { "enum": ["REJECT"] }
+        }
+      },
+      "then": {
+        "properties": {
+          "reason_codes": { "minItems": 1 }
+        }
+      }
+    }
+  ]
+}

@@ -175,7 +175,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
     - `invalid_ownership_mismatch` → `OWNERSHIP_MISMATCH`
     - `invalid_unknown_command` → `UNKNOWN_COMMAND`
     - `invalid_command_capability_mismatch` → `COMMAND_CAPABILITY_MISMATCH`
-    - `invalid_missing_required_ref` → `MISSING_REQUIRED_REFERENCE`
+    - `invalid_missing_required_field` → `MISSING_REQUIRED_FIELD`
     - `invalid_architecture_revision` → `ARCHITECTURE_REVISION_MISMATCH`
 - **Remaining gap:** Fail-closed behavior is demonstrated only in the RS-001 conformance harness, not in a production or CLI-enforced path.
 - **Next action:** Expand negative cases to cover additional mutation paths and eventually enforce the same checks at the point where a Core use case is invoked.

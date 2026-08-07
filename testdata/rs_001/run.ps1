@@ -11,7 +11,8 @@ if ([string]::IsNullOrWhiteSpace($TestDir)) {
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 
 $schemaIntent  = Join-Path $repoRoot "schemas\intent-envelope.schema.json"
-$schemaAdm     = Join-Path $repoRoot "schemas\admission_result_v0.1.schema.json"
+$schemaAdm     = Join-Path $repoRoot 'schemas/admission_result_v0.2.schema.json'
+$regRules      = Join-Path $repoRoot 'admission-rule-registry.yaml'
 $schemaCmd     = Join-Path $repoRoot "schemas\command-envelope.schema.json"
 $regCapability = Join-Path $repoRoot "core-capability-registry.yaml"
 $regAggregate  = Join-Path $repoRoot "aggregate-ownership-registry.yaml"
@@ -76,19 +77,95 @@ function Validate-Json($path, $schema) {
     return $valid, $err
 }
 
+function Sha256($s) {
+    $b = [System.Text.Encoding]::UTF8.GetBytes($s)
+    return [BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash($b)).Replace('-', '').ToLower()
+}
+
+function Canonical-Value($v) {
+    if ($v -eq $null) { return $null }
+    if ($v -is [array] -or ($v -is [System.Collections.IEnumerable] -and -not ($v -is [string]))) {
+        return @($v | ForEach-Object { Canonical-Value $_ })
+    }
+    if ($v -is [System.Collections.Specialized.OrderedDictionary] -or $v -is [hashtable]) {
+        $o = [ordered]@{}; foreach ($k in ($v.Keys | Sort-Object)) { $o[$k] = Canonical-Value $v[$k] }; return $o
+    }
+    if ($v.PSObject -and $v.PSObject.Properties -and -not ($v -is [string] -or $v -is [int] -or $v -is [double] -or $v -is [bool])) {
+        $o = [ordered]@{}; foreach ($k in ($v.PSObject.Properties.Name | Sort-Object)) { $o[$k] = Canonical-Value $v.$k }; return $o
+    }
+    return $v
+}
+
+function Get-IntentDigest($intent) {
+    $o = [ordered]@{
+        intent_digest_profile = 'P0.ADMISSION.INTENT.v0.1'
+        schema_version        = $intent.schema_version
+        architecture_revision = $intent.architecture_revision
+        capability_ref        = $intent.capability_ref
+        aggregate_ref         = $intent.aggregate_ref
+        command_ref           = $intent.command_ref
+        payload               = (Canonical-Value $intent.payload)
+    }
+    $json = ConvertTo-Json -InputObject $o -Compress -Depth 10
+    return 'p0-intent:sha256:' + (Sha256 $json)
+}
+
+function Get-AdmissionId($arch, $intentDigest, $capRef, $aggRef, $cmdRef, $transRef, $decision, $rules, $reasons) {
+    $o = [ordered]@{
+        admission_id_profile = 'P0.ADMISSION.ID.v0.1'
+        schema_version       = 'v0.1'
+        architecture_revision = $arch
+        intent_digest        = $intentDigest
+        capability_ref       = $capRef
+        aggregate_ref        = $aggRef
+        command_ref          = $cmdRef
+        transition_ref       = $transRef
+        decision             = $decision
+        rule_refs            = @($rules | Sort-Object)
+        reason_codes         = @($reasons | Sort-Object)
+    }
+    $json = ConvertTo-Json -InputObject $o -Compress -Depth 10
+    return 'admission:sha256:' + (Sha256 $json)
+}
+
 function New-AdmissionResult($admissionId, $decision, $capRef, $aggRef, $cmdRef, $transRef, $reasons, $rules) {
-    return [ordered]@{
-        schema_version        = "v0.1"
+    $o = [ordered]@{
+        schema_version        = 'v0.2'
         architecture_revision = $baselineRevision
         admission_id          = $admissionId
         decision              = $decision
         capability_ref        = $capRef
         aggregate_ref         = $aggRef
         command_ref           = $cmdRef
-        transition_ref        = $transRef
-        rule_refs             = $rules
-        reason_codes          = $reasons
+        rule_refs             = @($rules | Sort-Object)
+        reason_codes          = @($reasons | Sort-Object)
     }
+    if ($decision -eq 'ADMIT') { $o.transition_ref = $transRef }
+    return $o
+}
+
+function Parse-Rules($path) {
+    $rules = @(); $current = $null; $inRules = $false; $inMap = $false
+    foreach ($line in (Get-Content -Path $path)) {
+        $line = $line.TrimEnd()
+        if ($line -eq 'admission_rules:') { $inRules = $true; $inMap = $false; continue }
+        if ($line -eq 'reason_code_to_rule:') { $inRules = $false; $inMap = $true; continue }
+        if ($line -eq 'rejected_reason_codes:') { $inRules = $false; $inMap = $false; continue }
+        if ($inRules -and $line.StartsWith('  - rule_id: ')) { $current = $line.Substring(13).Trim(); $rules += @{ rule_id = $current } }
+        if ($inRules -and $line.StartsWith('    failure_reason_code: ')) { $rules[$rules.Count - 1].failure_reason_code = $line.Substring(25).Trim() }
+    }
+    return $rules
+}
+
+function Parse-ReasonToRule($path) {
+    $reasonToRule = @{}; $current = $null; $inMap = $false
+    foreach ($line in (Get-Content -Path $path)) {
+        $line = $line.TrimEnd()
+        if ($line -eq 'reason_code_to_rule:') { $inMap = $true; continue }
+        if ($inMap -and $line.StartsWith('  ') -and $line.Trim().EndsWith(':') -and -not $line.StartsWith('    -')) { $current = $line.Trim().TrimEnd(':'); continue }
+        if ($inMap -and $line.StartsWith('    - ')) { $reasonToRule[$current] = $line.Substring(6).Trim() }
+    }
+    return $reasonToRule
 }
 
 function Get-PropertyOrDefault($obj, $name, $default) {
@@ -100,6 +177,8 @@ $capabilities     = Parse-Capabilities $regCapability
 $ownership        = Parse-Ownership $regAggregate
 $commands         = Parse-Commands $regCommand
 $baselineRevision = Get-BaselineRevision $regBaseline
+$rules            = Parse-Rules $regRules
+$reasonToRule     = Parse-ReasonToRule $regRules
 
 $caseDirs = Get-ChildItem -Directory -Path $TestDir
 $failures = 0
@@ -122,98 +201,73 @@ foreach ($case in $caseDirs) {
 
     $validIntent, $intentErr = Validate-Json $inputFile $schemaIntent
     $reasons = @()
-    $rules   = @()
-    $decision = "ADMIT"
+    $ruleIds = @()
+    $decision = 'ADMIT'
     $capRef   = Get-PropertyOrDefault $intent 'capability_ref' ''
     $aggRef   = Get-PropertyOrDefault $intent 'aggregate_ref'  ''
     $cmdRef   = Get-PropertyOrDefault $intent 'command_ref'    ''
-    $transRef = ''
-    $admissionId = "rs-001-{0}" -f $case.Name
+    $transRef = $null
+    $admissionId = $null
+    $intentDigest = $null
 
     if (-not $validIntent) {
-        if ($intentErr -match 'Required properties \["([^"]+)"\]') {
-            $reasons += "MISSING_REQUIRED_REFERENCE"
+        $ruleIds += 'P0.ADMISSION.INTENT_REQUIRED_FIELDS'
+        if ($intent -and -not $intentDigest) { $intentDigest = Get-IntentDigest $intent }
+        if ($intentErr -match 'Required properties') {
+            $reasons += 'MISSING_REQUIRED_FIELD'
         } else {
-            $reasons += "INVALID_INTENT"
+            $reasons += 'INVALID_INTENT'
         }
-        $decision = "REJECT"
+        $decision = 'REJECT'
     } else {
-        # IR-01: architecture baseline
-        if ($intent.architecture_revision -ne $baselineRevision) {
-            $reasons += "ARCHITECTURE_REVISION_MISMATCH"
-            $rules   += "IR-01"
-        } else {
-            $rules   += "IR-01"
-        }
-
-        # IR-03: capability exists and is mutating
-        if (-not $reasons) {
-            if (-not $capabilities.ContainsKey($capRef)) {
-                $reasons += "UNKNOWN_CAPABILITY"
-                $rules   += "IR-03"
-            } elseif (-not $capabilities[$capRef]) {
-                $reasons += "CAPABILITY_NOT_MUTATING"
-                $rules   += "IR-03"
-            } else {
-                $rules   += "IR-03"
-            }
-        }
-
-        # IR-04: aggregate ownership
-        if (-not $reasons) {
-            $owner = $null
-            foreach ($agg in $ownership.Keys) {
-                if ($ownership[$agg] -contains $capRef) {
-                    $owner = $agg
-                    break
+        $intentDigest = Get-IntentDigest $intent
+        $failed = $false
+        foreach ($rule in $rules) {
+            $reason = $null
+            switch ($rule.rule_id) {
+                'P0.ADMISSION.ARCHITECTURE_REVISION' {
+                    if ($intent.architecture_revision -ne $baselineRevision) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.CAPABILITY_EXISTS' {
+                    if (-not $capabilities.ContainsKey($capRef)) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.CAPABILITY_MUTATES' {
+                    if (-not $capabilities[$capRef]) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.AGGREGATE_OWNS_CAPABILITY' {
+                    $owner = $null
+                    foreach ($agg in $ownership.Keys) { if ($ownership[$agg] -contains $capRef) { $owner = $agg; break } }
+                    if ($owner -ne $aggRef) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.COMMAND_EXISTS' {
+                    if (-not $commands.ContainsKey($cmdRef)) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.COMMAND_CAPABILITY_MATCH' {
+                    if ($commands.ContainsKey($cmdRef) -and $commands[$cmdRef].capability_id -ne $capRef) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.COMMAND_AGGREGATE_MATCH' {
+                    if ($commands.ContainsKey($cmdRef) -and $commands[$cmdRef].aggregate_id -ne $aggRef) { $reason = $rule.failure_reason_code }
+                }
+                'P0.ADMISSION.COMMAND_TRANSITION_DEFINED' {
+                    if ($commands.ContainsKey($cmdRef) -and [string]::IsNullOrWhiteSpace($commands[$cmdRef].transition_id)) {
+                        $reason = $rule.failure_reason_code
+                    } elseif ($commands.ContainsKey($cmdRef)) {
+                        $transRef = $commands[$cmdRef].transition_id
+                    }
+                }
+                'P0.ADMISSION.INTENT_REQUIRED_FIELDS' {
                 }
             }
-            if ($owner -ne $aggRef) {
-                $reasons += "OWNERSHIP_MISMATCH"
-                $rules   += "IR-04"
-            } else {
-                $rules   += "IR-04"
-            }
+            $ruleIds += $rule.rule_id
+            if ($reason) { $reasons += $reason; $failed = $true; break }
         }
-
-        # IR-05: command catalogue and mapping
-        if (-not $reasons) {
-            if (-not $commands.ContainsKey($cmdRef)) {
-                $reasons += "UNKNOWN_COMMAND"
-                $rules   += "IR-05"
-            } else {
-                $cmd = $commands[$cmdRef]
-                if ($cmd.capability_id -ne $capRef) {
-                    $reasons += "COMMAND_CAPABILITY_MISMATCH"
-                    $rules   += "IR-05"
-                } elseif ($cmd.aggregate_id -ne $aggRef) {
-                    $reasons += "COMMAND_AGGREGATE_MISMATCH"
-                    $rules   += "IR-05"
-                } elseif ([string]::IsNullOrWhiteSpace($cmd.transition_id)) {
-                    $reasons += "UNDEFINED_TRANSITION"
-                    $rules   += "IR-05"
-                } else {
-                    $transRef = $cmd.transition_id
-                    $rules   += "IR-05"
-                }
-            }
-        }
-
-        if ($reasons) {
-            $decision = "REJECT"
-        } else {
-            $rules += "IR-10"
-        }
+        if ($failed) { $decision = 'REJECT' }
     }
 
-    if ([string]::IsNullOrWhiteSpace($capRef))   { $capRef   = "not-provided" }
-    if ([string]::IsNullOrWhiteSpace($aggRef))   { $aggRef   = "not-provided" }
-    if ([string]::IsNullOrWhiteSpace($cmdRef))   { $cmdRef   = "not-provided" }
-    if ([string]::IsNullOrWhiteSpace($transRef)) { $transRef = "not-provided" }
-    if ($rules.Count -eq 0) { $rules = @("IR-03", "IR-04", "IR-05", "IR-10") }
-    if ($decision -eq "ADMIT" -and $rules.Count -eq 0) { $rules = @("IR-03", "IR-04", "IR-05", "IR-10") }
+    if ($intent -and -not $intentDigest) { $intentDigest = Get-IntentDigest $intent }
+    $admissionId = Get-AdmissionId $intent.architecture_revision $intentDigest $capRef $aggRef $cmdRef $transRef $decision $ruleIds $reasons
 
-    $result = New-AdmissionResult $admissionId $decision $capRef $aggRef $cmdRef $transRef $reasons $rules
+    $result = New-AdmissionResult $admissionId $decision $capRef $aggRef $cmdRef $transRef $reasons $ruleIds
     $resultPath = Join-Path $case.FullName "actual_admission_result.json"
     $result | ConvertTo-Json -Depth 10 | Set-Content $resultPath
 
@@ -233,17 +287,17 @@ foreach ($case in $caseDirs) {
         continue
     }
 
-    if ($decision -eq "ADMIT") {
+    if ($decision -eq 'ADMIT') {
         $cmdEnv = [ordered]@{
-            schema_version        = "v0.1"
+            schema_version        = 'v0.1'
             architecture_revision = $baselineRevision
-            command_id            = "rs-001-cmd-{0}" -f $case.Name
+            command_id            = $admissionId
             admission_ref         = $admissionId
             capability_ref        = $capRef
             aggregate_ref         = $aggRef
             command_ref           = $cmdRef
             transition_ref        = $transRef
-            payload               = $intent.payload
+            payload               = (Canonical-Value $intent.payload)
         }
         $cmdEnvPath = Join-Path $case.FullName "actual_command_envelope.json"
         $cmdEnv | ConvertTo-Json -Depth 10 | Set-Content $cmdEnvPath
@@ -256,13 +310,35 @@ foreach ($case in $caseDirs) {
         }
     }
 
-    Write-Output ("{0}: PASS (decision={1}, reason_codes=[{2}])" -f $case.Name, $result.decision, ($result.reason_codes -join ','))
+    Write-Output ('{0}: PASS (decision={1}, reason_codes=[{2}], admission_id={3})' -f $case.Name, $result.decision, ($result.reason_codes -join ','), $admissionId)
+}
+
+$schemaTestDir = Join-Path $TestDir '_schema_validation'
+if (Test-Path $schemaTestDir) {
+    $admit = Get-Content (Join-Path $schemaTestDir 'admit_no_transition.json') -Raw
+    $reject = Get-Content (Join-Path $schemaTestDir 'reject_no_transition.json') -Raw
+    $admitValid = $false
+    try { $admitValid = Test-Json -Json $admit -SchemaFile $schemaAdm } catch { $admitValid = $false }
+    if ($admitValid) {
+        Write-Output 'SCHEMA admit_no_transition: FAIL (expected invalid)'
+        $failures++
+    } else {
+        Write-Output 'SCHEMA admit_no_transition: PASS'
+    }
+    $rejectValid = $false
+    try { $rejectValid = Test-Json -Json $reject -SchemaFile $schemaAdm } catch { $rejectValid = $false }
+    if ($rejectValid) {
+        Write-Output 'SCHEMA reject_no_transition: PASS'
+    } else {
+        Write-Output 'SCHEMA reject_no_transition: FAIL'
+        $failures++
+    }
 }
 
 if ($failures -gt 0) {
-    Write-Output ("`n{0} case(s) failed." -f $failures)
+    Write-Output ('{0} case(s) failed.' -f $failures)
     exit 1
 } else {
-    Write-Output "`nAll cases passed."
+    Write-Output 'All cases passed.'
     exit 0
 }

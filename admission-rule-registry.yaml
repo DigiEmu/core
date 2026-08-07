@@ -1,0 +1,310 @@
+registry:
+  id: digiemu-admission-rules
+  version: "0.1"
+  architecture_baseline_revision: "0.3"
+  status: proposed
+  date: 2026-08-07
+  description: >
+    Stable, machine-readable Admission rule identifiers used by the DigiEmu Core
+    P0 Architecture Constitution. This registry defines architectural
+    admissibility rules only. It does not define business, legal, regulatory,
+    ethical, trust, or approval rules.
+
+constitutional_invariants:
+  - id: IR-01
+    title: No Runtime Regression
+    status: reference
+    description: >
+      Architecture integration MUST NOT silently alter existing Core 2.0 behavior
+      or stable contracts.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-02
+    title: Admission Before Mutation
+    status: reference
+    description: >
+      A mutation governed by the Architecture Constitution MUST pass Admission
+      before execution.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-03
+    title: Explicit Capability
+    status: reference
+    description: >
+      Every constitution-governed command MUST reference a registered capability.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-04
+    title: Explicit Ownership
+    status: reference
+    description: >
+      Every constitution-governed mutation MUST resolve to an authorized
+      aggregate owner.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-05
+    title: Command/Transition Correspondence
+    status: reference
+    description: >
+      Every admitted mutating command MUST resolve to a defined transition.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-06
+    title: Transition Evidence
+    status: reference
+    description: >
+      Every successfully executed constitution-governed transition MUST produce
+      or reference deterministic evidence sufficient to identify the resulting
+      transition.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-07
+    title: Verification Independence
+    status: reference
+    description: >
+      Admission MUST NOT redefine canonicalization, hashing, reconstruction, or
+      verification.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-08
+    title: Single State Identity
+    status: reference
+    description: >
+      The architecture layer MUST NOT introduce an alternative DigiEmu
+      state-identity mechanism.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-09
+    title: External Authority Preservation
+    status: reference
+    description: >
+      Admission MUST NOT absorb business, legal, regulatory, ethical, or trust
+      authority belonging outside DigiEmu Core.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-10
+    title: Fail Closed
+    status: reference
+    description: >
+      Unknown capabilities, commands, ownership mappings, or required references
+      MUST NOT silently become admissible.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-11
+    title: Deterministic Admission
+    status: reference
+    description: >
+      Given the same normalized admission input, applicable architecture version,
+      and rule set, Admission MUST return the same result.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+  - id: IR-12
+    title: Traceability
+    status: reference
+    description: >
+      An admission result SHOULD be traceable to architecture version →
+      capability → aggregate → command → rule → transition → event/evidence.
+    source: docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+
+admission_rules:
+  - rule_id: P0.ADMISSION.ARCHITECTURE_REVISION
+    title: Architecture revision matches authoritative baseline
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-01
+      - IR-11
+      - IR-12
+    description: >
+      The architecture_revision declared in the Intent Envelope must equal the
+      revision of the authoritative architecture-baseline.yaml. A mismatch means
+      the Admission evaluation cannot proceed under the expected constitution.
+    failure_reason_code: ARCHITECTURE_REVISION_MISMATCH
+    deterministic_inputs:
+      - intent.architecture_revision
+      - baseline.revision
+    source:
+      - architecture-baseline.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.CAPABILITY_EXISTS
+    title: Referenced capability is registered
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-03
+      - IR-10
+    description: >
+      The capability_ref in the Intent Envelope must identify a capability
+      present in core-capability-registry.yaml.
+    failure_reason_code: UNKNOWN_CAPABILITY
+    deterministic_inputs:
+      - intent.capability_ref
+      - core-capability-registry.yaml
+    source:
+      - core-capability-registry.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.CAPABILITY_MUTATES
+    title: Referenced capability is a mutation capability
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-03
+      - IR-10
+    description: >
+      The referenced capability must have mutation: true in
+      core-capability-registry.yaml for a mutation Admission path. This rule is
+      not a judgment on business value; it is an architectural gate.
+    failure_reason_code: CAPABILITY_NOT_MUTATING
+    deterministic_inputs:
+      - intent.capability_ref
+      - core-capability-registry.yaml
+    source:
+      - core-capability-registry.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.AGGREGATE_OWNS_CAPABILITY
+    title: Aggregate owns the referenced capability
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-04
+      - IR-10
+    description: >
+      The aggregate_ref in the Intent Envelope must match the aggregate that owns
+      the referenced capability in aggregate-ownership-registry.yaml.
+    failure_reason_code: OWNERSHIP_MISMATCH
+    deterministic_inputs:
+      - intent.capability_ref
+      - intent.aggregate_ref
+      - aggregate-ownership-registry.yaml
+    source:
+      - aggregate-ownership-registry.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.COMMAND_EXISTS
+    title: Referenced command is catalogued
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-05
+      - IR-10
+    description: >
+      The command_ref in the Intent Envelope must identify a command present in
+      command-event-catalogue.yaml.
+    failure_reason_code: UNKNOWN_COMMAND
+    deterministic_inputs:
+      - intent.command_ref
+      - command-event-catalogue.yaml
+    source:
+      - command-event-catalogue.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.COMMAND_CAPABILITY_MATCH
+    title: Command capability matches requested capability
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-05
+      - IR-10
+    description: >
+      The command's catalogue capability_id must equal the intent's
+      capability_ref.
+    failure_reason_code: COMMAND_CAPABILITY_MISMATCH
+    deterministic_inputs:
+      - intent.capability_ref
+      - intent.command_ref
+      - command-event-catalogue.yaml
+    source:
+      - command-event-catalogue.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.COMMAND_AGGREGATE_MATCH
+    title: Command aggregate matches requested aggregate
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-05
+      - IR-10
+    description: >
+      The command's catalogue aggregate_id must equal the intent's
+      aggregate_ref.
+    failure_reason_code: COMMAND_AGGREGATE_MISMATCH
+    deterministic_inputs:
+      - intent.aggregate_ref
+      - intent.command_ref
+      - command-event-catalogue.yaml
+    source:
+      - command-event-catalogue.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.COMMAND_TRANSITION_DEFINED
+    title: Command resolves to a defined transition
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-05
+      - IR-10
+    description: >
+      The command in command-event-catalogue.yaml must have a non-empty
+      transition_id. This rule confirms the command maps to an explicit
+      transition in the architecture, even if the command is not yet executed.
+    failure_reason_code: UNDEFINED_TRANSITION
+    deterministic_inputs:
+      - intent.command_ref
+      - command-event-catalogue.yaml
+    source:
+      - command-event-catalogue.yaml
+      - testdata/rs_001/run.ps1
+
+  - rule_id: P0.ADMISSION.INTENT_REQUIRED_FIELDS
+    title: Intent Envelope contains all required references
+    status: proposed
+    executable: true
+    invariant_refs:
+      - IR-10
+      - IR-11
+    description: >
+      The Intent Envelope must contain all required fields defined by
+      schemas/intent-envelope.schema.json. A missing required field is a fail-closed
+      condition.
+    failure_reason_code: MISSING_REQUIRED_FIELD
+    deterministic_inputs:
+      - intent_envelope document
+      - schemas/intent-envelope.schema.json
+    source:
+      - schemas/intent-envelope.schema.json
+      - testdata/rs_001/run.ps1
+
+rejected_reason_codes:
+  - reason_code: INVALID_INTENT
+    status: rejected
+    rationale: >
+      INVALID_INTENT is too broad for P0 Admission Rule Registry v0.1. It
+      conflates missing required fields, extra properties, type mismatches,
+      empty identifiers, and any other schema violation into a single code.
+      MISSING_REQUIRED_FIELD is already captured by
+      P0.ADMISSION.INTENT_REQUIRED_FIELDS. Other schema violations should be
+      assigned precise, deterministic reason codes once their scope is defined.
+      Do not use INVALID_INTENT as a normative v0.1 reason code.
+
+reason_code_to_rule:
+  ARCHITECTURE_REVISION_MISMATCH:
+    - P0.ADMISSION.ARCHITECTURE_REVISION
+  UNKNOWN_CAPABILITY:
+    - P0.ADMISSION.CAPABILITY_EXISTS
+  CAPABILITY_NOT_MUTATING:
+    - P0.ADMISSION.CAPABILITY_MUTATES
+  OWNERSHIP_MISMATCH:
+    - P0.ADMISSION.AGGREGATE_OWNS_CAPABILITY
+  UNKNOWN_COMMAND:
+    - P0.ADMISSION.COMMAND_EXISTS
+  COMMAND_CAPABILITY_MISMATCH:
+    - P0.ADMISSION.COMMAND_CAPABILITY_MATCH
+  COMMAND_AGGREGATE_MISMATCH:
+    - P0.ADMISSION.COMMAND_AGGREGATE_MATCH
+  UNDEFINED_TRANSITION:
+    - P0.ADMISSION.COMMAND_TRANSITION_DEFINED
+  MISSING_REQUIRED_FIELD:
+    - P0.ADMISSION.INTENT_REQUIRED_FIELDS
