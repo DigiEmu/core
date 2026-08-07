@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DigiEmu P0 Event Envelope v0.1",
+  "description": "Architectural evidence that a defined transition produced or references a runtime event. The runtime_event_type field carries the exact runtime AuditEvent.Type string without normalization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_revision",
+    "event_id",
+    "command_ref",
+    "transition_ref",
+    "runtime_event_type",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Version of the Event Envelope schema.",
+      "examples": ["v0.1"]
+    },
+    "architecture_revision": {
+      "type": "string",
+      "description": "Revision of the authoritative architecture baseline. This field references architecture-baseline.yaml: baseline.revision. The current authoritative revision is \"0.3\".",
+      "examples": ["0.3"]
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for this event envelope. The exact deterministic derivation rule for event_id is not yet defined; it MUST NOT be assumed to be random, UUID-generated, or produced by any non-deterministic process. This is not the runtime event type."
+    },
+    "command_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the architectural command that produced the transition, as defined in command-event-catalogue.yaml.",
+      "examples": ["unit.create"]
+    },
+    "transition_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the defined transition that produced the event, as defined in command-event-catalogue.yaml.",
+      "examples": ["unit:created"]
+    },
+    "runtime_event_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Exact runtime AuditEvent.Type string. This value is not normalized by the architecture and must match the runtime emission exactly.",
+      "examples": ["unit.created", "version.created", "MEANING_SET", "CLAIM_SET", "UNCERTAINTY_SET"]
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Generic evidence object referencing or summarizing the runtime event. The structure is intentionally minimal.",
+      "additionalProperties": true
+    }
+  }
+}

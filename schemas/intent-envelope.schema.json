@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DigiEmu P0 Intent Envelope v0.1",
+  "description": "Normalized request envelope before architectural Admission. This envelope captures the intended capability, aggregate, and command without claiming verification success, runtime enforcement, or external authority approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_revision",
+    "intent_id",
+    "capability_ref",
+    "aggregate_ref",
+    "command_ref",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Version of the Intent Envelope schema.",
+      "examples": ["v0.1"]
+    },
+    "architecture_revision": {
+      "type": "string",
+      "description": "Revision of the authoritative architecture baseline. This field references architecture-baseline.yaml: baseline.revision. The current authoritative revision is \"0.3\".",
+      "examples": ["0.3"]
+    },
+    "intent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for this intent. The exact deterministic derivation rule for intent_id is not yet defined; it MUST NOT be assumed to be random, UUID-generated, or produced by any non-deterministic process."
+    },
+    "capability_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to a capability defined in core-capability-registry.yaml.",
+      "examples": ["core.unit.create"]
+    },
+    "aggregate_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the aggregate owner responsible for the target of the intent, as defined in aggregate-ownership-registry.yaml.",
+      "examples": ["unit"]
+    },
+    "command_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the architectural command being requested, as defined in command-event-catalogue.yaml.",
+      "examples": ["unit.create"]
+    },
+    "payload": {
+      "type": "object",
+      "description": "Command-specific payload. The exact schema for each payload is not defined in this envelope; it is interpreted by the target command handler.",
+      "additionalProperties": true
+    }
+  }
+}

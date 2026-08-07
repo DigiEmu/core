@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DigiEmu P0 Command Envelope v0.1",
+  "description": "Command that has passed architectural Admission and is eligible for execution. Admission does not imply DigiEmu Core verification success and does not imply that runtime enforcement exists in Core 2.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_revision",
+    "command_id",
+    "admission_ref",
+    "capability_ref",
+    "aggregate_ref",
+    "command_ref",
+    "transition_ref",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Version of the Command Envelope schema.",
+      "examples": ["v0.1"]
+    },
+    "architecture_revision": {
+      "type": "string",
+      "description": "Revision of the authoritative architecture baseline. This field references architecture-baseline.yaml: baseline.revision. The current authoritative revision is \"0.3\".",
+      "examples": ["0.3"]
+    },
+    "command_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for this admitted command instance. The exact deterministic derivation rule for command_id is not yet defined; it MUST NOT be assumed to be random, UUID-generated, or produced by any non-deterministic process."
+    },
+    "admission_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the Admission Result that admitted this command."
+    },
+    "capability_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the capability being exercised, as defined in core-capability-registry.yaml.",
+      "examples": ["core.unit.create"]
+    },
+    "aggregate_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the aggregate owner responsible for the target of the command, as defined in aggregate-ownership-registry.yaml.",
+      "examples": ["unit"]
+    },
+    "command_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the architectural command, as defined in command-event-catalogue.yaml.",
+      "examples": ["unit.create"]
+    },
+    "transition_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Reference to the defined transition that this command resolves to, as defined in command-event-catalogue.yaml.",
+      "examples": ["unit:created"]
+    },
+    "payload": {
+      "type": "object",
+      "description": "Admitted command-specific payload. The exact schema for each payload is not defined in this envelope; it is interpreted by the target command handler.",
+      "additionalProperties": true
+    }
+  }
+}
