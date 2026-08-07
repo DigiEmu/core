@@ -1,0 +1,91 @@
+catalogue:
+  id: digiemu-command-event
+  version: "0.1"
+  architecture_baseline_revision: "0.3"
+  status: proposed
+  date: 2026-08-07
+  description: >
+    Maps authoritative mutating Core capabilities to their architectural command,
+    owning aggregate, transition, and emitted domain/audit event. All entries are
+    derived from repository evidence. CLI command text is not automatically the
+    architectural command id. command_id and transition_id are catalogue-defined
+    architectural identifiers; event_id values are exact runtime AuditEvent.Type
+    strings and must not be changed.
+
+provenance:
+  command_id: catalogue-defined; not a verbatim runtime string
+  transition_id: catalogue-defined; not a verbatim runtime string
+  event_id: runtime-defined; exact AuditEvent.Type values emitted by the handler
+  capability_id: core-capability-registry.yaml
+  aggregate_id: aggregate-ownership-registry.yaml
+  handler: runtime Go type in internal/kernel/usecases
+  status: existing means the handler and CLI dispatch exist; it does not imply command_id or transition_id exist in runtime code
+
+commands:
+  - command_id: unit.create
+    capability_id: core.unit.create
+    aggregate_id: unit
+    status: existing
+    handler: internal/kernel/usecases/CreateUnit
+    cli_source: cmd/digiemu/main.go (unit create)
+    transition_id: unit:created
+    event_id: unit.created
+    description: Creates a Unit aggregate root with a stable key, title, and description.
+
+  - command_id: version.create
+    capability_id: core.version.create
+    aggregate_id: unit
+    status: existing
+    handler: internal/kernel/usecases/CreateVersion
+    cli_source: cmd/digiemu/main.go (version create)
+    transition_id: version:created
+    event_id: version.created
+    description: Creates a Version entity under an existing Unit and updates the Unit head version.
+
+  - command_id: meaning.set
+    capability_id: core.meaning.set
+    aggregate_id: unit
+    status: existing
+    handler: internal/kernel/usecases/SetMeaning
+    cli_source: cmd/digiemu/main.go (meaning set)
+    transition_id: meaning:set
+    event_id: MEANING_SET
+    description: Sets the Meaning value object for a specific Unit Version.
+
+  - command_id: claim.set
+    capability_id: core.claim.set
+    aggregate_id: unit
+    status: existing
+    handler: internal/kernel/usecases/SetClaims
+    cli_source: cmd/digiemu/main.go (claim set)
+    transition_id: claim:set
+    event_id: CLAIM_SET
+    description: Sets the ClaimSet value object for a specific Unit Version.
+
+  - command_id: uncertainty.set
+    capability_id: core.uncertainty.set
+    aggregate_id: unit
+    status: existing
+    handler: internal/kernel/usecases/SetUncertainty
+    cli_source: cmd/digiemu/main.go (uncertainty set)
+    transition_id: uncertainty:set
+    event_id: UNCERTAINTY_SET
+    description: Sets the Uncertainty value object for a specific Unit Version.
+
+unresolved_events: []
+
+evidence:
+  - file: internal/kernel/usecases/create_unit.go
+    note: Creates domain.Unit, persists it, and emits AuditEvent Type "unit.created" with UnitCreatedData.
+  - file: internal/kernel/usecases/create_version.go
+    note: Loads Unit, creates domain.Version, saves Version, updates Unit.HeadVersionID, and emits AuditEvent Type "version.created" with VersionCreatedData.
+  - file: internal/kernel/usecases/set_meaning.go
+    note: Saves meaning under unit + version and emits AuditEvent Type "MEANING_SET" with MeaningSetData.
+  - file: internal/kernel/usecases/set_claims.go
+    note: Saves claimset under unit + version and emits AuditEvent Type "CLAIM_SET" with ClaimSetData.
+  - file: internal/kernel/usecases/set_uncertainty.go
+    note: Saves uncertainty under unit + version and emits AuditEvent Type "UNCERTAINTY_SET" with UncertaintySetData.
+  - file: internal/kernel/domain/audit_event.go
+    note: Defines AuditEvent and the data payloads UnitCreatedData, VersionCreatedData, MeaningSetData, ClaimSetData, UncertaintySetData.
+  - file: cmd/digiemu/main.go
+    note: Defines CLI dispatch to unit create, version create, meaning set, claim set, uncertainty set.
