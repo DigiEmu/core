@@ -1,0 +1,113 @@
+registry:
+  id: digiemu-core-capability
+  version: "0.1"
+  architecture_baseline_revision: "0.3"
+  status: proposed
+  date: 2026-08-07
+  description: >
+    This registry records Core domain and verification capabilities. A capability is an
+    operation that reads or changes authoritative DigiEmu domain state or artifacts.
+    Interface/transport mechanisms, CLI command groups, and reference scenarios are not
+    automatically capabilities under this definition.
+  mutation_definition: >
+    mutation: true only when execution changes authoritative DigiEmu domain state or
+    admitted persistent Core state. Read-only queries, file export, signature production,
+    network serving, and other transport or interface mechanisms are not mutations.
+
+capabilities:
+  - id: core.verify
+    name: Verify
+    status: existing
+    layer: Core
+    description: Deterministic verification of snapshot bundles against expected hashes.
+    source: cmd/digiemu/verify.go, docs/VERIFY_SPEC_v1.0.md
+    mutation: false
+
+  - id: core.replay
+    name: Replay
+    status: existing
+    layer: Core
+    description: Deterministic replay of a snapshot bundle to reconstruct state.
+    source: cmd/digiemu/replay.go, docs/VERIFY_SPEC_v1.0.md
+    mutation: false
+
+  - id: core.snapshot
+    name: Snapshot
+    status: existing
+    layer: Core
+    description: Creation and canonicalization of snapshot artifacts.
+    source: cmd/digiemu/snapshot.go, docs/SNAPSHOT_HASH_v1.0.md
+    mutation: true
+
+  - id: core.conformance
+    name: Conformance
+    status: existing
+    layer: Core
+    description: Execution of conformance test cases and production of conformance reports.
+    source: internal/conformance/runner.go, docs/CORE_2_CONFORMANCE_PACK.md
+    mutation: false
+
+  - id: core.audit
+    name: Audit
+    status: existing
+    layer: Core
+    description: Audit log verification and tailing.
+    source: cmd/digiemu/main.go, internal/kernel/usecases/VerifyAudit
+    mutation: false
+
+  - id: core.unit.create
+    name: Create Unit
+    status: existing
+    layer: Core
+    description: Create a unit in the Core kernel.
+    source: cmd/digiemu/main.go, internal/kernel/usecases.CreateUnit
+    mutation: true
+
+  - id: core.version.create
+    name: Create Version
+    status: existing
+    layer: Core
+    description: Create a version of an existing unit.
+    source: cmd/digiemu/main.go, internal/kernel/usecases.CreateVersion
+    mutation: true
+
+  - id: core.meaning.set
+    name: Set Meaning
+    status: existing
+    layer: Core
+    description: Set the meaning payload for a unit version.
+    source: cmd/digiemu/main.go, internal/kernel/usecases.SetMeaning
+    mutation: true
+
+  - id: core.claim.set
+    name: Set Claims
+    status: existing
+    layer: Core
+    description: Set the claim set for a unit version.
+    source: cmd/digiemu/main.go, internal/kernel/usecases.SetClaims
+    mutation: true
+
+  - id: core.uncertainty.set
+    name: Set Uncertainty
+    status: existing
+    layer: Core
+    description: Set the uncertainty payload for a unit version.
+    source: cmd/digiemu/main.go, internal/kernel/usecases.SetUncertainty
+    mutation: true
+
+  - id: core.import
+    name: Import
+    status: existing
+    layer: Core
+    description: Import bundles into the local data store.
+    source: cmd/digiemu/import.go
+    mutation: true
+
+  - id: p0.admission
+    name: Admission
+    status: proposed
+    layer: P0
+    description: Architectural admissibility gate for constitution-governed state transitions. Admission is not Core verification and is not currently enforced in released Core 2.0.0.
+    source: 01_decisions/ADR-P0-05-Core-Admission-Constitution.md, docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md
+    mutation: false
+
