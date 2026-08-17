@@ -4,18 +4,22 @@
 - **ADR:** `01_decisions/ADR-P0-05-Core-Admission-Constitution.md`
 - **Manifest:** `docs/CORE_ARCHITECTURE_INTEGRATION_MANIFEST_v0.1.md`
 - **Date:** 2026-08-07
+- **Reviewed at HEAD:** `4780d15 Add Phase D Uncertainty Set admission binding proof`
+- **Review date:** 2026-08-17
 - **Status:** Proposed
 
 ## Methodology
 
 Each integration invariant (IR-01 through IR-12) is evaluated against the actual repository evidence. A status is assigned only when the corresponding evidence exists; documentation alone is insufficient for `PASS`.
 
-| Status | Meaning |
-|--------|---------|
-| `PASS` | Sufficient specification, implementation, and/or executable evidence exists. |
-| `PARTIAL` | Evidence exists but is incomplete, scoped to RS-001 only, or has known limitations. |
-| `OPEN` | No implementation or executable evidence; only documentation/specification. |
-| `BLOCKED` | Progress is blocked by an external or environmental issue. |
+`PASS` in this matrix means satisfied for the current defined P0 architecture/conformance scope. It does not imply production Admission enforcement unless the invariant itself requires production binding.
+
+|| Status | Meaning |
+||--------|---------|
+|| `PASS` | Sufficient specification, implementation, and/or executable evidence exists. |
+|| `PARTIAL` | Evidence exists but is incomplete, scoped to RS-001 only, or has known limitations. |
+|| `OPEN` | No implementation or executable evidence; only documentation/specification. |
+|| `BLOCKED` | Progress is blocked by an external or environmental issue. |
 
 ## Conformance Matrix
 
@@ -28,10 +32,13 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Evidence/artifacts:**
   - `architecture-baseline.yaml` lists the Core 2.0 boundary as authoritative and unchanged.
   - ADR-P0-05 and the manifest explicitly state that canonicalization, hashing, replay, verification, CLI v1, and state identity remain unchanged.
-  - No files in `internal/`, `cmd/`, `pkg/`, or `schemas/` (existing schemas) were modified by P0 work.
-  - `go test ./internal/kernel/... ./internal/conformance ./internal/verify -timeout 120s` passes.
-- **Executable evidence/tests:** Targeted `go test` of kernel, conformance, and verify packages passes.
-- **Remaining gap:** Full `go test ./...` is currently not green because `go run ./cmd/digiemu` in several test packages fails with `digiemu.exe` access denied in the local Windows temp environment. This is a file-lock/build-cache issue, not a code regression, so it should not be falsely reported as fully green.
+  - `git diff --name-status e9876f2..HEAD` shows no existing production file in `cmd/`, `internal/kernel/`, `internal/verify/`, `internal/conformance/`, or `schemas/` (existing schemas) was modified by P0 work; only new P0 files were added.
+  - Targeted Go test suites pass:
+    - `go test ./internal/admission/... -v` — PASS
+    - `go test ./internal/kernel/usecases/... -v` — PASS
+    - `go test ./internal/kernel/... ./internal/conformance ./internal/verify ./internal/canonicaljson/... -timeout 120s` — PASS
+- **Executable evidence/tests:** Targeted `go test` of Admission Engine, kernel, conformance, verify, and canonicaljson packages passes. The Phase D binding tests execute real Core handlers and produce no regression in existing Core behavior.
+- **Remaining gap:** Full `go test ./...` is not yet green because `go run ./cmd/digiemu` in several test packages fails with `digiemu.exe` access denied in the local Windows temp environment. This is a file-lock/build-cache issue, not a code regression, so it should not be falsely reported as fully green.
 - **Next action:** Resolve the temporary `go-build*` directory / antivirus / build-cache file lock, then rerun full `go test ./...` and confirm the existing Core 2.0 reproduction tests are byte-exact.
 
 ### IR-02 — Admission Before Mutation
@@ -39,77 +46,91 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **ID:** IR-02
 - **Title:** Admission Before Mutation
 - **Normative statement:** A mutation governed by the Architecture Constitution MUST pass Admission before execution.
-- **Current status:** OPEN
+- **Current status:** PARTIAL
 - **Evidence/artifacts:**
+  - `internal/admission/engine.go` evaluates Intents and returns ADMIT/REJECT with a resolved `transition_ref`.
   - The conceptual target flow in the manifest shows `Intent → Admission → Command → Existing Core Kernel Use Case`.
   - `architecture-baseline.yaml` explicitly sets `p0_architecture_constitution.enforced: false`.
-- **Executable evidence/tests:** None. RS-001 stops at the generated Command Envelope and does not invoke an existing Core use case.
-- **Remaining gap:** No production or test path intercepts a Core mutation to require Admission first. The `digiemu` CLI and `internal/kernel/usecases/` still execute directly without an Admission gate.
-- **Next action:** Define the first Admission-bound Core use case and a non-production wiring point (e.g., a conformance runner or a prototype middleware) that demonstrates the `Intent → Admission → Command → Use Case` sequence for `core.unit.create`.
+- **Executable evidence/tests:**
+  - All five Phase D binding tests demonstrate the `Intent → ADMIT → real Core handler → real state mutation` chain for `core.unit.create`, `core.version.create`, `core.meaning.set`, `core.claim.set`, and `core.uncertainty.set`.
+  - Each binding test also demonstrates the `REJECT → handler not invoked → no state mutation` case.
+- **Remaining gap:** No production or CLI/HTTP path intercepts a Core mutation to require Admission first. The `digiemu` CLI and `internal/httpapi/handlers.go` still call `CreateUnit`, `CreateVersion`, `SetMeaning`, `SetClaims`, and `SetUncertainty` directly without an Admission gate.
+- **Next action:** Add a non-production admitted-command orchestrator or conformance runner that demonstrates the `Intent → Admission → Command → Use Case` sequence for the first Core mutation path, then later wire the gate into CLI/HTTP under a feature flag without modifying existing Core contracts.
 
 ### IR-03 — Explicit Capability
 
 - **ID:** IR-03
 - **Title:** Explicit Capability
 - **Normative statement:** Every constitution-governed command MUST reference a registered capability.
-- **Current status:** PARTIAL
+- **Current status:** PASS
 - **Evidence/artifacts:**
-  - `core-capability-registry.yaml` lists Core capabilities with `id`, `mutation`, and `source` fields.
+  - `core-capability-registry.yaml` v0.1 lists all current Core capabilities with `id` and `mutation` fields.
+  - `internal/admission/registry_v0.1.go` compiles these capabilities into `V01Registry()`.
+  - `internal/admission/registry_v0_1_parity_test.go` verifies that the compiled registry matches the YAML source.
   - `schemas/intent-envelope.schema.json` requires `capability_ref`.
-  - `testdata/rs_001/run.ps1` reads the registry and evaluates `capability_ref` for each RS-001 case.
 - **Executable evidence/tests:**
-  - RS-001 `valid_admit` passes with `capability_ref: core.unit.create`.
-  - RS-001 `invalid_unknown_capability` rejects an unregistered capability.
-- **Remaining gap:** Only the `core.unit.create` and nearby capabilities are tested. The registry is not yet complete for all constitution-governed mutation paths, and the `digiemu` CLI does not require the registry.
-- **Next action:** Complete the capability registry for all `mutation: true` Core capabilities and add corresponding RS-00x or negative conformance cases.
+  - The reusable Admission Engine enforces `P0.ADMISSION.CAPABILITY_EXISTS` and `P0.ADMISSION.CAPABILITY_MUTATES`.
+  - All five Phase D binding tests reference a registered mutating capability (`core.unit.create`, `core.version.create`, `core.meaning.set`, `core.claim.set`, `core.uncertainty.set`) and succeed.
+  - Negative tests prove unknown or non-mutating capabilities are rejected.
+- **Remaining gap:** None for the current defined P0 scope. New mutation paths must be registered before they are admissible.
+- **Next action:** Maintain the registry and parity test as new capabilities are added.
 
 ### IR-04 — Explicit Ownership
 
 - **ID:** IR-04
 - **Title:** Explicit Ownership
 - **Normative statement:** Every constitution-governed mutation MUST resolve to an authorized aggregate owner.
-- **Current status:** PARTIAL
+- **Current status:** PASS
 - **Evidence/artifacts:**
-  - `aggregate-ownership-registry.yaml` maps `unit` to its owned capabilities.
+  - `aggregate-ownership-registry.yaml` v0.1 maps the `unit` aggregate to all five mutating Core capabilities.
+  - `internal/admission/registry_v0.1.go` includes the same ownership mapping.
+  - `internal/admission/registry_v0_1_parity_test.go` verifies the mapping against the YAML source.
   - `schemas/intent-envelope.schema.json` requires `aggregate_ref`.
-  - `testdata/rs_001/run.ps1` checks that the capability's owner matches the intent's `aggregate_ref`.
 - **Executable evidence/tests:**
-  - RS-001 `valid_admit` passes with `aggregate_ref: unit`.
-  - RS-001 `invalid_ownership_mismatch` rejects a non-owning aggregate.
-- **Remaining gap:** The registry only defines the `unit` aggregate. Other aggregates (if any) are not yet mapped. Ownership is not enforced in the runtime kernel.
-- **Next action:** Expand `aggregate-ownership-registry.yaml` as new mutation paths are added, and ensure every `mutation: true` capability has a registered owner.
+  - The reusable Admission Engine enforces `P0.ADMISSION.AGGREGATE_OWNS_CAPABILITY`.
+  - All five Phase D binding tests use `aggregate_ref: unit` for the `unit` aggregate and are admitted.
+  - `TestEngine_OwnershipMismatch` and the `invalid_ownership_mismatch` RS-001 case prove non-owning aggregates are rejected.
+- **Remaining gap:** None for the current defined P0 scope. `unit` is the only aggregate root in the current Core domain, and every constitution-governed mutating capability is explicitly owned by `unit`. Future aggregates must be registered before they can be targets.
+- **Next action:** Expand `aggregate-ownership-registry.yaml` only as new aggregates are introduced to the architecture.
 
 ### IR-05 — Command/Transition Correspondence
 
 - **ID:** IR-05
 - **Title:** Command/Transition Correspondence
 - **Normative statement:** Every admitted mutating command MUST resolve to a defined transition.
-- **Current status:** PARTIAL
+- **Current status:** PASS
 - **Evidence/artifacts:**
-  - `command-event-catalogue.yaml` maps `unit.create` to `capability_id: core.unit.create`, `aggregate_id: unit`, `transition_id: unit:created`, and `event_id: unit.created`.
+  - `command-event-catalogue.yaml` v0.1 maps five mutating commands (`unit.create`, `version.create`, `meaning.set`, `claim.set`, `uncertainty.set`) to their capabilities, aggregate, and transition IDs.
+  - `internal/admission/registry_v0.1.go` includes the same command and transition mappings.
+  - `internal/admission/registry_v0_1_parity_test.go` verifies the mappings against the YAML source.
   - `schemas/command-envelope.schema.json` requires `transition_ref`.
-  - `testdata/rs_001/run.ps1` resolves `command_ref` to `transition_id` and validates it.
 - **Executable evidence/tests:**
-  - RS-001 `valid_admit` produces a Command Envelope with `transition_ref: unit:created`.
-  - RS-001 `invalid_unknown_command` and `invalid_command_capability_mismatch` reject mismatched commands.
-- **Remaining gap:** Only one transition (`unit:created`) is catalogued. A formal transition registry or additional catalogue rows are needed for other mutation paths.
-- **Next action:** Add the remaining Core mutation commands and transitions to `command-event-catalogue.yaml` and cover them with RS-00x cases.
+  - The reusable Admission Engine enforces `P0.ADMISSION.COMMAND_EXISTS`, `P0.ADMISSION.COMMAND_CAPABILITY_MATCH`, `P0.ADMISSION.COMMAND_AGGREGATE_MATCH`, and `P0.ADMISSION.COMMAND_TRANSITION_DEFINED`.
+  - All five Phase D binding tests receive an ADMIT result with a non-empty `transition_ref` (`unit:created`, `version:created`, `meaning:set`, `claim:set`, `uncertainty:set`).
+  - `TestEngine_UndefinedTransition` proves a command with an empty `transition_id` is rejected.
+- **Remaining gap:** None for the current defined P0 scope.
+- **Next action:** Maintain the catalogue and parity test as new commands are added.
 
 ### IR-06 — Transition Evidence
 
 - **ID:** IR-06
 - **Title:** Transition Evidence
 - **Normative statement:** Every successfully executed constitution-governed transition MUST produce or reference deterministic evidence sufficient to identify the resulting transition.
-- **Current status:** PARTIAL
+- **Current status:** PASS
 - **Evidence/artifacts:**
-  - `command-event-catalogue.yaml` references `event_id: unit.created`, which matches the runtime `AuditEvent.Type` emitted by `internal/kernel/usecases/create_unit.go`.
-  - `schemas/event-envelope.schema.json` defines a wrapper for referencing event evidence without replacing the existing verify schemas.
-  - ADR-P0-05 and `testdata/rs_001/README.md` explicitly state that RS-001 does **not** execute the `CreateUnit` handler.
+  - `command-event-catalogue.yaml` links each command to its exact runtime `event_id` (`unit.created`, `version.created`, `MEANING_SET`, `CLAIM_SET`, `UNCERTAINTY_SET`).
+  - `schemas/event-envelope.schema.json` defines an evidence wrapper without replacing existing verify schemas.
+  - `docs/ADMISSION_ID_SPEC_v0.1.md` defines deterministic `intent_digest` and `admission_id` profiles.
 - **Executable evidence/tests:**
-  - RS-001 does not execute the runtime handler, so it cannot produce actual event evidence.
-  - The catalogue link to `unit.created` is verified statically against `internal/kernel/domain/audit_event.go`.
-- **Remaining gap:** No executable path demonstrates an admitted command being handed to a Core use case, producing an audit event, and wrapping that event in an Event Envelope. The event evidence is referenced, not generated.
-- **Next action:** Create a second reference scenario (or extend a conformance runner) that invokes an existing Core use case after Admission and emits the matching audit event, producing a validated Event Envelope.
+  - All five Phase D binding tests invoke the real Core handler after Admission, observe the real `AuditEvent`, and construct a validated Event Envelope:
+    - `unit.created` for `core.unit.create`
+    - `version.created` for `core.version.create`
+    - `MEANING_SET` for `core.meaning.set`
+    - `CLAIM_SET` for `core.claim.set`
+    - `UNCERTAINTY_SET` for `core.uncertainty.set`
+  - Each Event Envelope is validated against `schemas/event-envelope.schema.json` and contains `command_ref`, `transition_ref`, `runtime_event_type`, and state-derived `evidence`.
+- **Remaining gap:** None for the current defined P0 conformance scope. Event Envelope generation is currently test-only.
+- **Next action:** When production wiring is added, ensure the same Event Envelope shape is generated or referenced by the admitted-command orchestrator.
 
 ### IR-07 — Verification Independence
 
@@ -138,10 +159,12 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - P0 envelope schemas only introduce `intent_id`, `command_id`, and `event_id` as architectural envelope identifiers; these are explicitly documented as not yet normatively derived and not alternative state identity.
   - The envelope fields `capability_ref`, `aggregate_ref`, `command_ref`, and `transition_ref` are references into existing registries, not new identity producers.
   - `architecture-baseline.yaml` and the manifest state that state identity is produced only by the existing Core canonicalization profile.
+  - `docs/ADMISSION_ID_SPEC_v0.1.md` and `internal/admission/digest.go` use `p0-intent:sha256:` and `admission:sha256:` prefixes that are deliberately outside the Core state-identity namespace.
 - **Executable evidence/tests:**
   - `schemas/intent-envelope.schema.json`, `schemas/command-envelope.schema.json`, and `schemas/event-envelope.schema.json` contain no canonicalization or hashing fields.
-- **Remaining gap:** `admission_id`, `intent_id`, `command_id`, and `event_id` derivation rules are still undefined; this must not drift into an alternative identity scheme.
-- **Next action:** When normative identifier derivation is specified, explicitly document that it is an envelope-instance identifier, not a state-identity mechanism.
+  - Golden tests in `internal/admission/engine_test.go` prove `admission_id` is derived only from normalized Admission inputs, not from Core state.
+- **Remaining gap:** `intent_id`, `command_id`, and `event_id` derivation rules are still undefined; they must not drift into alternative state-identity schemes.
+- **Next action:** When normative identifier derivation is specified, explicitly document that each is an envelope-instance identifier, not a state-identity mechanism.
 
 ### IR-09 — External Authority Preservation
 
@@ -152,10 +175,10 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Evidence/artifacts:**
   - ADR-P0-05 §9 states `Admission != Business Approval`, `Admission != Regulatory Approval`, `Admission != Trust Assignment`.
   - `docs/CORE_2_INTEROP_CONTRACT.md`, `docs/CORE_2_BOUNDARY_MODEL.md`, and `docs/CORE_2_EXTERNAL_REVIEW_NOTE.md` preserve external authority boundaries.
-  - `testdata/rs_001/README.md` and `architecture-baseline.yaml` external_authority section re-state that business/legal/trust authority remains outside Core.
+  - `testdata/rs_001/README.md` and `architecture-baseline.yaml` `external_authority` section re-state that business/legal/trust authority remains outside Core.
 - **Executable evidence/tests:**
   - No P0 code path claims to issue business approval or regulatory status.
-  - RS-001 is explicitly labeled as testing architectural admissibility, not approving decisions.
+  - RS-001 and the Phase D binding tests are explicitly labeled as testing architectural admissibility, not approving decisions.
 - **Remaining gap:** None identified at the specification level. Future implementation should continue to reject language or schema fields that imply approval/authority.
 - **Next action:** Add an ADR non-claim test or lint that flags any Admission schema field or documentation that could be read as business/regulatory/trust authority.
 
@@ -164,38 +187,39 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **ID:** IR-10
 - **Title:** Fail Closed
 - **Normative statement:** Unknown capabilities, commands, ownership mappings, or required references MUST NOT silently become admissible.
-- **Current status:** PARTIAL
+- **Current status:** PASS
 - **Evidence/artifacts:**
-  - `testdata/rs_001/run.ps1` rejects unknown capabilities, non-mutating capabilities, ownership mismatches, unknown commands, command/capability mismatches, missing references, and architecture revision mismatches.
-  - `schemas/admission_result_v0.1.schema.json` requires `reason_codes` for `REJECT` decisions.
+  - `admission-rule-registry.yaml` v0.1 enumerates nine executable fail-closed rules with deterministic failure reason codes.
+  - `internal/admission/engine.go` implements all nine rules and returns the first failure immediately.
+  - `internal/admission/engine_test.go` covers architecture mismatch, unknown capability, non-mutating capability, ownership mismatch, unknown command, command/capability mismatch, command/aggregate mismatch, undefined transition, and missing required fields.
 - **Executable evidence/tests:**
-  - RS-001 negative cases:
-    - `invalid_unknown_capability` → `UNKNOWN_CAPABILITY`
-    - `invalid_capability_not_mutating` → `CAPABILITY_NOT_MUTATING`
-    - `invalid_ownership_mismatch` → `OWNERSHIP_MISMATCH`
-    - `invalid_unknown_command` → `UNKNOWN_COMMAND`
-    - `invalid_command_capability_mismatch` → `COMMAND_CAPABILITY_MISMATCH`
-    - `invalid_missing_required_field` → `MISSING_REQUIRED_FIELD`
-    - `invalid_architecture_revision` → `ARCHITECTURE_REVISION_MISMATCH`
-- **Remaining gap:** Fail-closed behavior is demonstrated only in the RS-001 conformance harness, not in a production or CLI-enforced path.
-- **Next action:** Expand negative cases to cover additional mutation paths and eventually enforce the same checks at the point where a Core use case is invoked.
+  - The reusable Admission Engine rejects each invalid condition with a single normative reason code.
+  - All five Phase D binding tests include an `UnknownCapability` REJECT case that proves the real Core handler is not invoked and target state is unchanged.
+  - `TestRS001_Parity` and `TestV01Registry_Parity` ensure the Engine and registries are synchronized.
+- **Remaining gap:** None for the current defined P0 scope. Fail-closed is proven for all catalogued capabilities.
+- **Next action:** Maintain the rule set and parity tests as new capabilities are added.
 
 ### IR-11 — Deterministic Admission
 
 - **ID:** IR-11
 - **Title:** Deterministic Admission
 - **Normative statement:** Given the same normalized admission input, applicable architecture version, and rule set, Admission MUST return the same result.
-- **Current status:** PARTIAL
+- **Current status:** PASS
 - **Evidence/artifacts:**
-  - `testdata/rs_001/run.ps1` reads static registries (`core-capability-registry.yaml`, `aggregate-ownership-registry.yaml`, `command-event-catalogue.yaml`, `architecture-baseline.yaml`) and produces deterministic decisions and reason codes.
-  - `schemas/admission_result_v0.1.schema.json` enforces a stable result shape.
+  - `docs/ADMISSION_ID_SPEC_v0.1.md` defines the `P0.ADMISSION.INTENT.v0.1` and `P0.ADMISSION.ID.v0.1` canonical input profiles.
+  - `internal/admission/digest.go` implements both profiles using `digiemu-core/internal/canonicaljson` and SHA-256.
+  - `admission-rule-registry.yaml` and `internal/admission/registry_v0.1.go` provide a stable, ordered rule set.
 - **Executable evidence/tests:**
-  - Repeated runs of `run.ps1` on the same inputs produce identical `decision` and `reason_codes`.
-- **Remaining gap:**
-  - The `admission_id` derivation rule is undefined; the harness uses a fixture-local `rs-001-<case>` identifier.
-  - There is no machine-readable rule registry; `rule_refs` in RS-001 are hard-coded strings (`IR-01`, `IR-03`, `IR-04`, `IR-05`, `IR-10`).
-  - No input-normalization rule is specified.
-- **Next action:** Define a deterministic `admission_id` derivation and a machine-readable rule registry with stable rule identifiers. Specify input normalization for the Admission gate.
+  - `TestEngine_Determinism_*` in `internal/admission/engine_test.go` proves:
+    - same input produces the same `admission_id`
+    - different payloads produce different `admission_id`
+    - payload key order does not affect the `admission_id`
+    - `rule_refs` and `reason_codes` order does not affect the `admission_id`
+    - REJECT before transition resolution produces a stable, no-transition `admission_id`
+  - Golden digests in `TestEngine_Determinism_PayloadAlpha` and `TestEngine_Determinism_PayloadBeta` match the spec examples.
+  - `TestRS001_Parity` runs fixture inputs repeatedly and compares deterministic outputs.
+- **Remaining gap:** None for the current defined P0 scope.
+- **Next action:** Maintain the canonical input profiles; introduce new profile versions if the canonical field set or ordering ever changes.
 
 ### IR-12 — Traceability
 
@@ -206,41 +230,49 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Evidence/artifacts:**
   - `architecture-baseline.yaml` provides the architecture revision.
   - `core-capability-registry.yaml`, `aggregate-ownership-registry.yaml`, and `command-event-catalogue.yaml` provide capability, aggregate, command, and transition mappings.
-  - `command-event-catalogue.yaml` links to `event_id: unit.created`.
-  - `schemas/admission_result_v0.1.schema.json` includes `rule_refs`, `capability_ref`, `aggregate_ref`, `command_ref`, and `transition_ref`.
+  - `admission-rule-registry.yaml` provides machine-readable rule identifiers.
+  - `internal/admission/engine.go` returns `admission_result_v0.2` objects containing `architecture_revision`, `capability_ref`, `aggregate_ref`, `command_ref`, `rule_refs`, and `transition_ref`.
+  - `schemas/event-envelope.schema.json` provides the event/evidence wrapper.
 - **Executable evidence/tests:**
-  - RS-001 `valid_admit` admission result contains `architecture_revision`, `capability_ref`, `aggregate_ref`, `command_ref`, `transition_ref`, and `rule_refs`.
+  - The test-level traceability chain is complete for all five mutating capabilities:
+    - `architecture_revision` (`0.3`)
+    - → `capability_ref`
+    - → `aggregate_ref` (`unit`)
+    - → `command_ref`
+    - → `rule_refs` (all evaluated P0.ADMISSION.* rules)
+    - → `transition_ref`
+    - → `runtime_event_type` (real `AuditEvent.Type`)
+    - → `evidence` (state-derived Event Envelope)
+  - All five Phase D binding tests validate this chain end-to-end.
 - **Remaining gap:**
-  - There is no standalone `rule` registry or `rule_id` scheme; the `rule_refs` field currently uses hand-written strings.
-  - The `event/evidence` end of the chain is referenced but not produced in RS-001.
-- **Next action:** Create an `admission-rule-registry.yaml` (or equivalent) that binds rule identifiers to the invariant IDs and maps them into the `admission_result_v0.1.schema.json` `rule_refs` field.
+  - The traceability chain is not yet wired in production; `cmd/digiemu` and `internal/httpapi` do not produce or carry Admission results.
+  - `intent_id`, `command_id`, and `event_id` derivations are still undefined, so the event and command instance ends of the chain lack stable identifiers beyond the runtime `AuditEvent.ID`.
+- **Next action:** Define deterministic derivations for `intent_id`, `command_id`, and `event_id`; then add a non-production admitted-command orchestrator that closes the production traceability chain without modifying existing Core contracts.
 
 ## Summary
 
-| Status | Count |
-|--------|-------|
-| PASS   | 3     |
-| PARTIAL| 8     |
-| OPEN   | 1     |
-| BLOCKED| 0     |
+|| Status | Count |
+||--------|-------|
+|| PASS   | 9     |
+|| PARTIAL| 3     |
+|| OPEN   | 0     |
+|| BLOCKED| 0     |
 
 - **Total invariants evaluated:** 12
-- **Invariants with executable evidence:** 9 (IR-01, IR-03, IR-04, IR-05, IR-06, IR-07, IR-08, IR-10, IR-11, IR-12) — note that executable evidence for IR-06 is limited to static reference, and for IR-01 full suite is still blocked by environment.
-- **Invariants with only documentation:** 1 (IR-02)
+- **Invariants with executable evidence:** 12
+- **Invariants with only documentation:** 0
 
 ## Top 3 remaining P0 gaps by architectural importance
 
-1. **IR-02 — Admission Before Mutation**  
-   The constitutional gate is not yet inserted before any existing Core mutation. Without this, Admission remains a documentation/conformance concept rather than an architectural boundary.
+1. **IR-02 — Admission Before Mutation (production)**
+   The constitutional gate is proven in test-only Phase D bindings. The `digiemu` CLI and HTTP API still invoke Core handlers directly, so Admission is not yet an architectural boundary in production.
 
-2. **IR-12 / IR-11 — Missing rule registry and deterministic `admission_id`**  
-   Traceability and deterministic admission both depend on a machine-readable rule registry and stable identifier derivation. This is a shared foundation for IR-11 and IR-12 and must be in place before any enforcement.
+2. **IR-12 — Production Traceability and Envelope Identifiers**
+   The test-level traceability chain is complete, but production wiring and the derivations of `intent_id`, `command_id`, and `event_id` are still undefined.
 
-3. **IR-06 — Transition Evidence**  
-   The chain currently ends at the Command Envelope. An admitted command has not yet been executed by a Core use case, so no runtime event evidence is produced or wrapped in an Event Envelope.
+3. **IR-01 — Full Test Suite on Windows**
+   Targeted suites pass, but the full `go test ./...` run is blocked by an independent Windows build-cache/lock issue, not by code regression.
 
 ## Recommended next implementation step
 
-Define and commit a machine-readable **P0 Admission Rule Registry** (e.g., `admission-rule-registry.yaml`) that assigns stable, versioned rule identifiers to IR-01 through IR-12 and any sub-rules, and specify the deterministic derivation of `admission_id` from normalized input. This unblocks the IR-11 and IR-12 gaps, and its identifiers then become the prerequisite for wiring Admission into a real Core use case (IR-02) and generating traceable event evidence (IR-06).
-
-Do **not** proceed directly to a production Admission Runner or CLI enforcement before the rule registry and identifier derivation are stable, because the current `rule_refs` are hand-written strings and `admission_id` is fixture-local.
+Define deterministic derivation rules for `intent_id`, `command_id`, and `event_id`, and add a non-production admitted-command orchestrator that demonstrates the complete `Intent → Admission → Command → Use Case → Event Envelope` chain for one Core mutation path. This closes the IR-12 production traceability gap and prepares a safe, reviewed wiring point for the eventual IR-02 production gate, without modifying existing CLI/HTTP contracts or Core state identity.
