@@ -37,6 +37,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
     - `go test ./internal/admission/... -v` — PASS
     - `go test ./internal/kernel/usecases/... -v` — PASS
     - `go test ./internal/kernel/... ./internal/conformance ./internal/verify ./internal/canonicaljson/... -timeout 120s` — PASS
+  - Phase E increments 1–5 (`de9ec49`, `2e38388`, `67a6a7e`, `e3383bd`, `eefe604`) modify only `internal/kernel/usecases/orchestrate_test.go`; targeted `go test ./internal/admission/...` and `go test ./internal/kernel/usecases/...` continue to pass; no production Core runtime files were changed.
 - **Executable evidence/tests:** Targeted `go test` of Admission Engine, kernel, conformance, verify, and canonicaljson packages passes. The Phase D binding tests execute real Core handlers and produce no regression in existing Core behavior.
 - **Remaining gap:** Full `go test ./...` is not yet green because `go run ./cmd/digiemu` in several test packages fails with `digiemu.exe` access denied in the local Windows temp environment. This is a file-lock/build-cache issue, not a code regression, so it should not be falsely reported as fully green.
 - **Next action:** Resolve the temporary `go-build*` directory / antivirus / build-cache file lock, then rerun full `go test ./...` and confirm the existing Core 2.0 reproduction tests are byte-exact.
@@ -54,6 +55,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Executable evidence/tests:**
   - All five Phase D binding tests demonstrate the `Intent → ADMIT → real Core handler → real state mutation` chain for `core.unit.create`, `core.version.create`, `core.meaning.set`, `core.claim.set`, and `core.uncertainty.set`.
   - Each binding test also demonstrates the `REJECT → handler not invoked → no state mutation` case.
+  - Phase E test-only orchestration in `internal/kernel/usecases/orchestrate_test.go` demonstrates the representative `ADMIT → real Core handler` and `REJECT → no handler` chain for `core.version.create` and `core.unit.create`, including: `ADMIT +` success, `ADMIT +` domain error, `ADMIT +` audit failure, and `ADMIT +` confirmed partial mutation. In all cases the `admission.Result` remains `ADMIT`; the `REJECT` path blocks the execution closure.
 - **Remaining gap:** No production or CLI/HTTP path intercepts a Core mutation to require Admission first. The `digiemu` CLI and `internal/httpapi/handlers.go` still call `CreateUnit`, `CreateVersion`, `SetMeaning`, `SetClaims`, and `SetUncertainty` directly without an Admission gate.
 - **Next action:** Add a non-production admitted-command orchestrator or conformance runner that demonstrates the `Intent → Admission → Command → Use Case` sequence for the first Core mutation path, then later wire the gate into CLI/HTTP under a feature flag without modifying existing Core contracts.
 
@@ -72,6 +74,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - The reusable Admission Engine enforces `P0.ADMISSION.CAPABILITY_EXISTS` and `P0.ADMISSION.CAPABILITY_MUTATES`.
   - All five Phase D binding tests reference a registered mutating capability (`core.unit.create`, `core.version.create`, `core.meaning.set`, `core.claim.set`, `core.uncertainty.set`) and succeed.
   - Negative tests prove unknown or non-mutating capabilities are rejected.
+  - Phase E `REJECT` and `ADMIT` tests (`de9ec49`, `2e38388`, `67a6a7e`, `e3383bd`, `eefe604`) continue to use `core.version.create` and `core.unit.create` from the registered capability set.
 - **Remaining gap:** None for the current defined P0 scope. New mutation paths must be registered before they are admissible.
 - **Next action:** Maintain the registry and parity test as new capabilities are added.
 
@@ -90,6 +93,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - The reusable Admission Engine enforces `P0.ADMISSION.AGGREGATE_OWNS_CAPABILITY`.
   - All five Phase D binding tests use `aggregate_ref: unit` for the `unit` aggregate and are admitted.
   - `TestEngine_OwnershipMismatch` and the `invalid_ownership_mismatch` RS-001 case prove non-owning aggregates are rejected.
+  - Phase E `ADMIT` tests for `core.version.create` and `core.unit.create` also use `aggregate_ref: unit`, consistent with the ownership registry.
 - **Remaining gap:** None for the current defined P0 scope. `unit` is the only aggregate root in the current Core domain, and every constitution-governed mutating capability is explicitly owned by `unit`. Future aggregates must be registered before they can be targets.
 - **Next action:** Expand `aggregate-ownership-registry.yaml` only as new aggregates are introduced to the architecture.
 
@@ -108,6 +112,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - The reusable Admission Engine enforces `P0.ADMISSION.COMMAND_EXISTS`, `P0.ADMISSION.COMMAND_CAPABILITY_MATCH`, `P0.ADMISSION.COMMAND_AGGREGATE_MATCH`, and `P0.ADMISSION.COMMAND_TRANSITION_DEFINED`.
   - All five Phase D binding tests receive an ADMIT result with a non-empty `transition_ref` (`unit:created`, `version:created`, `meaning:set`, `claim:set`, `uncertainty:set`).
   - `TestEngine_UndefinedTransition` proves a command with an empty `transition_id` is rejected.
+  - Phase E `ADMIT` tests assert `transition_ref` values `unit:created` and `version:created` before invoking the real Core handler.
 - **Remaining gap:** None for the current defined P0 scope.
 - **Next action:** Maintain the catalogue and parity test as new commands are added.
 
@@ -129,6 +134,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
     - `CLAIM_SET` for `core.claim.set`
     - `UNCERTAINTY_SET` for `core.uncertainty.set`
   - Each Event Envelope is validated against `schemas/event-envelope.schema.json` and contains `command_ref`, `transition_ref`, `runtime_event_type`, and state-derived `evidence`.
+  - Phase E Increment 2 (`2e38388`) demonstrates the success chain `ADMIT → version:created → real CreateVersion → coherent VersionRecord, HeadVersionID, and version.created AuditEvent` in the test-only `admissionGateProbe` helper. Phase E does not introduce new `event_id` semantics.
 - **Remaining gap:** None for the current defined P0 conformance scope. Event Envelope generation is currently test-only.
 - **Next action:** When production wiring is added, ensure the same Event Envelope shape is generated or referenced by the admitted-command orchestrator.
 
@@ -146,6 +152,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Executable evidence/tests:**
   - `go test ./internal/verify -timeout 120s` passes.
   - No existing `VERIFY_RESULT_SCHEMA_v1.json`, `verify_result_v2.schema.json`, or `core_2_conformance_report.schema.json` files were modified.
+  - Phase E tests invoke existing real Core use cases (`CreateVersion`, `CreateUnit`) and do not modify `internal/verify`, canonicalization, hashing, replay, or verification code.
 - **Remaining gap:** None identified.
 - **Next action:** Maintain the separation: any future Admission artifacts must continue to reference, not redefine, Core verification semantics.
 
@@ -163,6 +170,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Executable evidence/tests:**
   - `schemas/intent-envelope.schema.json`, `schemas/command-envelope.schema.json`, and `schemas/event-envelope.schema.json` contain no canonicalization or hashing fields.
   - Golden tests in `internal/admission/engine_test.go` prove `admission_id` is derived only from normalized Admission inputs, not from Core state.
+  - Phase E `IntentID` values in `orchestrate_test.go` are test-only fixtures; they are not used to derive Core state identity or envelope identifiers.
 - **Remaining gap:** `intent_id`, `command_id`, and `event_id` derivation rules are still undefined; they must not drift into alternative state-identity schemes.
 - **Next action:** When normative identifier derivation is specified, explicitly document that each is an envelope-instance identifier, not a state-identity mechanism.
 
@@ -179,6 +187,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 - **Executable evidence/tests:**
   - No P0 code path claims to issue business approval or regulatory status.
   - RS-001 and the Phase D binding tests are explicitly labeled as testing architectural admissibility, not approving decisions.
+  - Phase E test comments explicitly state that successful paths, partial failures, and audit failures prove only adapter-level behavior, not business, regulatory, or trust authority.
 - **Remaining gap:** None identified at the specification level. Future implementation should continue to reject language or schema fields that imply approval/authority.
 - **Next action:** Add an ADR non-claim test or lint that flags any Admission schema field or documentation that could be read as business/regulatory/trust authority.
 
@@ -196,6 +205,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - The reusable Admission Engine rejects each invalid condition with a single normative reason code.
   - All five Phase D binding tests include an `UnknownCapability` REJECT case that proves the real Core handler is not invoked and target state is unchanged.
   - `TestRS001_Parity` and `TestV01Registry_Parity` ensure the Engine and registries are synchronized.
+  - Phase E Increment 1 (`de9ec49`) adds `TestPhaseE_Reject_DoesNotInvokeHandler`, which proves an `UNKNOWN_CAPABILITY` `REJECT` causes the execution closure to be skipped entirely.
 - **Remaining gap:** None for the current defined P0 scope. Fail-closed is proven for all catalogued capabilities.
 - **Next action:** Maintain the rule set and parity tests as new capabilities are added.
 
@@ -218,6 +228,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
     - REJECT before transition resolution produces a stable, no-transition `admission_id`
   - Golden digests in `TestEngine_Determinism_PayloadAlpha` and `TestEngine_Determinism_PayloadBeta` match the spec examples.
   - `TestRS001_Parity` runs fixture inputs repeatedly and compares deterministic outputs.
+  - Phase E tests use `admission.NewEngine(admission.V01Registry())`, reusing the same stable `V01Registry()` and deterministic `Engine.Evaluate`.
 - **Remaining gap:** None for the current defined P0 scope.
 - **Next action:** Maintain the canonical input profiles; introduce new profile versions if the canonical field set or ordering ever changes.
 
@@ -244,6 +255,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
     - → `runtime_event_type` (real `AuditEvent.Type`)
     - → `evidence` (state-derived Event Envelope)
   - All five Phase D binding tests validate this chain end-to-end.
+  - Phase E strengthens test-level traceability for representative `ADMIT` cases: `ADMIT` is correlated with real `CreateVersion` and `CreateUnit` execution; successful execution is observable through coherent Core state and `AuditEvent`; audit failure is distinguishable from mutation failure; confirmed partial mutation can be identified through state inspection; `admission.Result` remains `ADMIT` across all execution outcomes.
 - **Remaining gap:**
   - The traceability chain is not yet wired in production; `cmd/digiemu` and `internal/httpapi` do not produce or carry Admission results.
   - `intent_id`, `command_id`, and `event_id` derivations are still undefined, so the event and command instance ends of the chain lack stable identifiers beyond the runtime `AuditEvent.ID`.
@@ -272,6 +284,20 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
 
 3. **IR-01 — Full Test Suite on Windows**
    Targeted suites pass, but the full `go test ./...` run is blocked by an independent Windows build-cache/lock issue, not by code regression.
+
+## Phase E Test-Only Scope Note
+
+Phase E evidence is TEST-ONLY orchestration/conformance evidence. It proves semantic behavior through existing real Core use cases and test-only adapters/fault wrappers in `internal/kernel/usecases/orchestrate_test.go`. Phase E does NOT prove:
+
+- production Admission enforcement
+- CLI/HTTP integration
+- crash durability
+- concurrent `AuditLog` safety
+- filesystem transactionality
+- automatic recovery
+- idempotency
+- production retry safety
+- regulatory or legal compliance
 
 ## Recommended next implementation step
 
