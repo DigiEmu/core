@@ -444,3 +444,166 @@ func TestPhaseE_Admit_CreateUnit_AuditFailure_PreservesStateAndAdmission(t *test
 	// ADMIT succeeded, the Core mutation persisted, and the audit completeness
 	// step failed. This is a semantic comment, not a runtime classification.
 }
+
+// testUpdateHeadFailure is the deterministic error returned by failUpdateHeadRepo.
+var testUpdateHeadFailure = errors.New("injected UpdateUnitHead failure")
+
+// failUpdateHeadRepo is a test-only UnitRepository wrapper that fails
+// UpdateUnitHead BEFORE delegating to the underlying repository. All other
+// methods delegate normally. This creates a controlled use-case-level partial
+// state: SaveVersion succeeds, HeadVersionID does not get updated.
+type failUpdateHeadRepo struct {
+	ports.UnitRepository
+	updateHeadCalls int
+	err             error
+}
+
+func (r *failUpdateHeadRepo) UpdateUnitHead(unitID, headVersionID string) error {
+	r.updateHeadCalls++
+	return r.err
+}
+
+// TestPhaseE_Admit_CreateVersion_UpdateHeadFailure_InspectsConfirmedPartialMutation
+// proves the transition from persistence uncertainty to confirmed partial
+// mutation through state inspection.
+func TestPhaseE_Admit_CreateVersion_UpdateHeadFailure_InspectsConfirmedPartialMutation(t *testing.T) {
+	baseRepo := memory.NewUnitRepo()
+	clock := memory.FakeClock{Now: 1700000000}
+
+	// Prerequisite: a fresh Unit with no head version.
+	createUnit := usecases.CreateUnit{Repo: baseRepo, Audit: memory.NewAuditLog(), Clock: clock}
+	unitResp, err := createUnit.CreateUnit(ports.CreateUnitRequest{
+		Key:         "phase-e-partial-unit",
+		Title:       "Phase E Partial Unit",
+		Description: "fixture for Phase E partial mutation test",
+		ActorID:     "phase-e-tester",
+	})
+	if err != nil {
+		t.Fatalf("prerequisite CreateUnit: %v", err)
+	}
+
+	beforeUnit, ok, _ := baseRepo.FindUnitByID(unitResp.UnitID)
+	if !ok {
+		t.Fatalf("prerequisite unit not found")
+	}
+	if beforeUnit.HeadVersionID != "" {
+		t.Fatalf("prerequisite unit already has a head version: %s", beforeUnit.HeadVersionID)
+	}
+	previousHead := beforeUnit.HeadVersionID
+
+	// Wrap the base repository so UpdateUnitHead fails before delegation.
+	failingRepo := &failUpdateHeadRepo{
+		UnitRepository: baseRepo,
+		err:            testUpdateHeadFailure,
+	}
+
+	label := "v1"
+	content := "Phase E partial version content"
+	actor := "phase-e-tester"
+
+	intent := admission.Intent{
+		SchemaVersion:        "v0.1",
+		ArchitectureRevision: "0.3",
+		IntentID:             "phase-e-partial-version-01",
+		CapabilityRef:        "core.version.create",
+		AggregateRef:         "unit",
+		CommandRef:           "version.create",
+		Payload: map[string]any{
+			"unit_key": "phase-e-partial-unit",
+			"label":    label,
+			"content":  content,
+			"actor_id": actor,
+		},
+	}
+
+	eng := admission.NewEngine(admission.V01Registry())
+	probe := &admissionGateProbe{}
+
+	versionAudit := memory.NewAuditLog()
+
+	onAdmit := func() error {
+		createVersion := usecases.CreateVersion{Repo: failingRepo, Audit: versionAudit, Clock: clock}
+		req := ports.CreateVersionRequest{
+			UnitKey:       "phase-e-partial-unit",
+			Label:         label,
+			Content:       content,
+			ActorID:       actor,
+			BaseVersionID: "",
+		}
+		_, err := createVersion.CreateVersion(req)
+		return err
+	}
+
+	adm, err := probe.evaluate(eng, intent, onAdmit)
+	if err != testUpdateHeadFailure {
+		t.Fatalf("expected testUpdateHeadFailure from handler, got %v", err)
+	}
+
+	// ADMISSION STABILITY: the decision remains ADMIT.
+	if adm.Decision != "ADMIT" {
+		t.Fatalf("expected ADMIT after UpdateUnitHead failure, got %s", adm.Decision)
+	}
+	if adm.TransitionRef != "version:created" {
+		t.Fatalf("expected transition version:created, got %s", adm.TransitionRef)
+	}
+	if len(adm.ReasonCodes) != 0 {
+		t.Fatalf("expected no REJECT reason codes after ADMIT, got %v", adm.ReasonCodes)
+	}
+
+	if !probe.handlerCalled {
+		t.Fatalf("admissionGateProbe recorded handlerCalled=false after ADMIT")
+	}
+	if failingRepo.updateHeadCalls != 1 {
+		t.Fatalf("expected UpdateUnitHead called once, got %d", failingRepo.updateHeadCalls)
+	}
+
+	// STATE INSPECTION: resolve initially uncertain outcome to confirmed partial
+	// mutation. The VersionRecord exists, but the head is unchanged.
+	vs, err := baseRepo.ListVersionsByUnitID(unitResp.UnitID)
+	if err != nil {
+		t.Fatalf("ListVersionsByUnitID: %v", err)
+	}
+	if len(vs) != 1 {
+		t.Fatalf("expected 1 version, got %d", len(vs))
+	}
+	v := vs[0]
+
+	if v.UnitID != unitResp.UnitID {
+		t.Fatalf("version unit id mismatch: got %s want %s", v.UnitID, unitResp.UnitID)
+	}
+	if v.Label != label || v.Content != content {
+		t.Fatalf("version content mismatch: got %+v", v)
+	}
+	if v.PrevVersionID != previousHead {
+		t.Fatalf("version PrevVersionID mismatch: got %s want %s", v.PrevVersionID, previousHead)
+	}
+
+	afterUnit, ok, _ := baseRepo.FindUnitByID(unitResp.UnitID)
+	if !ok {
+		t.Fatalf("prerequisite unit not found after execution")
+	}
+	if afterUnit.HeadVersionID != previousHead {
+		t.Fatalf("HeadVersionID changed from %q to %q", previousHead, afterUnit.HeadVersionID)
+	}
+	if afterUnit.HeadVersionID == v.ID {
+		t.Fatalf("HeadVersionID must not equal the new Version.ID after partial mutation")
+	}
+
+	// No version.created AuditEvent was appended because UpdateUnitHead failed
+	// before the use case reached Audit.Append.
+	reader := memory.NewAuditByUnitReader(versionAudit)
+	events, err := reader.ListByUnitID(unitResp.UnitID)
+	if err != nil {
+		t.Fatalf("ListByUnitID: %v", err)
+	}
+	if len(events) != 0 {
+		t.Fatalf("expected 0 audit events, got %d", len(events))
+	}
+
+	// Blind retry is intentionally not performed because state inspection confirms
+	// that the VersionRecord already exists while HeadVersionID remains stale.
+
+	// This is a controlled test-double model of the use-case-level partial state
+	// exposed by the UnitRepository port boundary. It does not prove Windows
+	// filesystem behavior, crash durability, or automatic recovery.
+}
