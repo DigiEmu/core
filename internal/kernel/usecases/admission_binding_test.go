@@ -4,15 +4,12 @@
 package usecases_test
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"sort"
 	"testing"
 
-	"digiemu-core/internal/canonicaljson"
+	"digiemu-core/internal/admission"
 	"digiemu-core/internal/kernel/adapters/memory"
 	"digiemu-core/internal/kernel/ports"
 	"digiemu-core/internal/kernel/usecases"
@@ -23,48 +20,6 @@ import (
 // repoRoot reaches the repository root from internal/kernel/usecases.
 func repoRoot() string {
 	return filepath.Join("..", "..", "..")
-}
-
-type intentEnvelope struct {
-	SchemaVersion        string         `json:"schema_version"`
-	ArchitectureRevision string         `json:"architecture_revision"`
-	IntentID             string         `json:"intent_id"`
-	CapabilityRef        string         `json:"capability_ref"`
-	AggregateRef         string         `json:"aggregate_ref"`
-	CommandRef           string         `json:"command_ref"`
-	Payload              map[string]any `json:"payload"`
-}
-
-type intentDigestPreimage struct {
-	IntentDigestProfile  string         `json:"intent_digest_profile"`
-	SchemaVersion        string         `json:"schema_version"`
-	ArchitectureRevision string         `json:"architecture_revision"`
-	CapabilityRef        string         `json:"capability_ref"`
-	AggregateRef         string         `json:"aggregate_ref"`
-	CommandRef           string         `json:"command_ref"`
-	Payload              map[string]any `json:"payload"`
-}
-
-type admissionIDPreimage struct {
-	AdmissionIDProfile   string   `json:"admission_id_profile"`
-	SchemaVersion        string   `json:"schema_version"`
-	ArchitectureRevision string   `json:"architecture_revision"`
-	IntentDigest         string   `json:"intent_digest"`
-	CapabilityRef        string   `json:"capability_ref"`
-	AggregateRef         string   `json:"aggregate_ref"`
-	CommandRef           string   `json:"command_ref"`
-	TransitionRef        *string  `json:"transition_ref"`
-	Decision             string   `json:"decision"`
-	RuleRefs             []string `json:"rule_refs"`
-	ReasonCodes          []string `json:"reason_codes"`
-}
-
-type admissionResult struct {
-	Decision      string
-	TransitionRef string
-	ReasonCode    string
-	RuleRefs      []string
-	ReasonCodes   []string
 }
 
 func loadSchema(t *testing.T, rel string) *jsonschema.Schema {
@@ -95,127 +50,6 @@ func stringFromMap(m map[string]any, k string) string {
 	return s
 }
 
-func computeIntentDigest(in intentEnvelope) string {
-	p := intentDigestPreimage{
-		IntentDigestProfile:  "P0.ADMISSION.INTENT.v0.1",
-		SchemaVersion:        in.SchemaVersion,
-		ArchitectureRevision: in.ArchitectureRevision,
-		CapabilityRef:        in.CapabilityRef,
-		AggregateRef:         in.AggregateRef,
-		CommandRef:           in.CommandRef,
-		Payload:              in.Payload,
-	}
-	b, err := canonicaljson.Marshal(p)
-	if err != nil {
-		panic(err)
-	}
-	sum := sha256.Sum256(b)
-	return "p0-intent:sha256:" + hex.EncodeToString(sum[:])
-}
-
-func computeAdmissionID(intentDigest string, in intentEnvelope, decision, transitionRef string, ruleRefs, reasonCodes []string) string {
-	var t *string
-	if transitionRef != "" {
-		t = &transitionRef
-	}
-	rrs := make([]string, len(ruleRefs))
-	copy(rrs, ruleRefs)
-	sort.Strings(rrs)
-	rcs := make([]string, len(reasonCodes))
-	copy(rcs, reasonCodes)
-	sort.Strings(rcs)
-	p := admissionIDPreimage{
-		AdmissionIDProfile:   "P0.ADMISSION.ID.v0.1",
-		SchemaVersion:        in.SchemaVersion,
-		ArchitectureRevision: in.ArchitectureRevision,
-		IntentDigest:         intentDigest,
-		CapabilityRef:        in.CapabilityRef,
-		AggregateRef:         in.AggregateRef,
-		CommandRef:           in.CommandRef,
-		TransitionRef:        t,
-		Decision:             decision,
-		RuleRefs:             rrs,
-		ReasonCodes:          rcs,
-	}
-	b, err := canonicaljson.Marshal(p)
-	if err != nil {
-		panic(err)
-	}
-	sum := sha256.Sum256(b)
-	return "admission:sha256:" + hex.EncodeToString(sum[:])
-}
-
-// evaluateAdmission is a minimal Phase D test adapter that applies the P0 v0.1
-// admission rules for the core.unit.create path. It does not parse YAML; values
-// are derived from the v0.1 registries and baseline.
-func evaluateAdmission(in intentEnvelope) admissionResult {
-	const (
-		baseline         = "0.3"
-		capUnitCreate    = "core.unit.create"
-		aggUnit          = "unit"
-		cmdUnitCreate    = "unit.create"
-		transUnitCreated = "unit:created"
-	)
-	ruleIDs := []string{
-		"P0.ADMISSION.ARCHITECTURE_REVISION",
-		"P0.ADMISSION.CAPABILITY_EXISTS",
-		"P0.ADMISSION.CAPABILITY_MUTATES",
-		"P0.ADMISSION.AGGREGATE_OWNS_CAPABILITY",
-		"P0.ADMISSION.COMMAND_EXISTS",
-		"P0.ADMISSION.COMMAND_CAPABILITY_MATCH",
-		"P0.ADMISSION.COMMAND_AGGREGATE_MATCH",
-		"P0.ADMISSION.COMMAND_TRANSITION_DEFINED",
-		"P0.ADMISSION.INTENT_REQUIRED_FIELDS",
-	}
-	refs := func(n int) []string {
-		out := make([]string, n)
-		copy(out, ruleIDs[:n])
-		return out
-	}
-	if in.ArchitectureRevision != baseline {
-		return admissionResult{
-			Decision:    "REJECT",
-			ReasonCode:  "ARCHITECTURE_REVISION_MISMATCH",
-			RuleRefs:    refs(1),
-			ReasonCodes: []string{"ARCHITECTURE_REVISION_MISMATCH"},
-		}
-	}
-	if in.CapabilityRef != capUnitCreate {
-		return admissionResult{
-			Decision:    "REJECT",
-			ReasonCode:  "UNKNOWN_CAPABILITY",
-			RuleRefs:    refs(2),
-			ReasonCodes: []string{"UNKNOWN_CAPABILITY"},
-		}
-	}
-	// core.unit.create is mutating (checked by registry).
-	if in.AggregateRef != aggUnit {
-		return admissionResult{
-			Decision:    "REJECT",
-			ReasonCode:  "OWNERSHIP_MISMATCH",
-			RuleRefs:    refs(4),
-			ReasonCodes: []string{"OWNERSHIP_MISMATCH"},
-		}
-	}
-	if in.CommandRef != cmdUnitCreate {
-		return admissionResult{
-			Decision:    "REJECT",
-			ReasonCode:  "UNKNOWN_COMMAND",
-			RuleRefs:    refs(5),
-			ReasonCodes: []string{"UNKNOWN_COMMAND"},
-		}
-	}
-	// COMMAND_CAPABILITY_MATCH, COMMAND_AGGREGATE_MATCH, and COMMAND_TRANSITION_DEFINED
-	// are satisfied by the constants for this path.
-	_ = capUnitCreate
-	return admissionResult{
-		Decision:      "ADMIT",
-		TransitionRef: transUnitCreated,
-		RuleRefs:      refs(9),
-		ReasonCodes:   []string{},
-	}
-}
-
 func toAny(t *testing.T, v any) any {
 	t.Helper()
 	b, err := json.Marshal(v)
@@ -229,8 +63,8 @@ func toAny(t *testing.T, v any) any {
 	return out
 }
 
-func newUnitCreateIntent(key, title, description, actor string) intentEnvelope {
-	return intentEnvelope{
+func newUnitCreateIntent(key, title, description, actor string) admission.Intent {
+	return admission.Intent{
 		SchemaVersion:        "v0.1",
 		ArchitectureRevision: "0.3",
 		IntentID:             "phase-d-" + key,
@@ -259,16 +93,18 @@ func TestUnitCreate_Binding_And_EventEvidence(t *testing.T) {
 		t.Fatalf("intent envelope schema validation: %v", err)
 	}
 
-	intentDigest := computeIntentDigest(intent)
-	adm := evaluateAdmission(intent)
+	eng := admission.NewEngine(admission.V01Registry())
+	adm, err := eng.Evaluate(intent)
+	if err != nil {
+		t.Fatalf("admission evaluation: %v", err)
+	}
 	if adm.Decision != "ADMIT" {
-		t.Fatalf("expected ADMIT, got %s (%s)", adm.Decision, adm.ReasonCode)
+		t.Fatalf("expected ADMIT, got %s", adm.Decision)
 	}
 	if adm.TransitionRef != "unit:created" {
 		t.Fatalf("expected transition unit:created, got %s", adm.TransitionRef)
 	}
-	admissionID := computeAdmissionID(intentDigest, intent, adm.Decision, adm.TransitionRef, adm.RuleRefs, adm.ReasonCodes)
-	t.Logf("admission_id=%s", admissionID)
+	t.Logf("admission_id=%s", adm.AdmissionID)
 
 	repo := memory.NewUnitRepo()
 	audit := memory.NewAuditLog()
@@ -337,11 +173,11 @@ func TestUnitCreate_Binding_And_EventEvidence(t *testing.T) {
 	if events[0].ActorID != req.ActorID {
 		t.Fatalf("audit event actor mismatch: got %s, want %s", events[0].ActorID, req.ActorID)
 	}
-	_ = admissionID
+	_ = adm.AdmissionID
 }
 
 func TestUnitCreate_UnknownCapability_NoMutation(t *testing.T) {
-	intent := intentEnvelope{
+	intent := admission.Intent{
 		SchemaVersion:        "v0.1",
 		ArchitectureRevision: "0.3",
 		IntentID:             "phase-d-reject-01",
@@ -350,12 +186,23 @@ func TestUnitCreate_UnknownCapability_NoMutation(t *testing.T) {
 		CommandRef:           "unit.create",
 		Payload:              map[string]any{},
 	}
-	adm := evaluateAdmission(intent)
+	eng := admission.NewEngine(admission.V01Registry())
+	adm, err := eng.Evaluate(intent)
+	if err != nil {
+		t.Fatalf("admission evaluation: %v", err)
+	}
 	if adm.Decision != "REJECT" {
 		t.Fatalf("expected REJECT, got %s", adm.Decision)
 	}
-	if adm.ReasonCode != "UNKNOWN_CAPABILITY" {
-		t.Fatalf("expected UNKNOWN_CAPABILITY, got %s", adm.ReasonCode)
+	found := false
+	for _, c := range adm.ReasonCodes {
+		if c == "UNKNOWN_CAPABILITY" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected UNKNOWN_CAPABILITY, got %v", adm.ReasonCodes)
 	}
 
 	repo := memory.NewUnitRepo()
