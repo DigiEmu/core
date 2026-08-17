@@ -4,6 +4,7 @@
 package usecases_test
 
 import (
+	"errors"
 	"testing"
 
 	"digiemu-core/internal/admission"
@@ -325,4 +326,121 @@ func TestPhaseE_Admit_CreateVersion_HandlerError_DoesNotRewriteAdmission(t *test
 	if len(versionAudit.Events) != 0 {
 		t.Fatalf("expected 0 audit events, got %d", len(versionAudit.Events))
 	}
+}
+
+// testAuditFailure is the deterministic error returned by failingAuditLog.
+var testAuditFailure = errors.New("injected audit failure")
+
+// failingAuditLog is a test-only AuditLog that records an Append attempt but
+// never persists a successful event. It is used to model an audit failure
+// that occurs after a Core state mutation has already succeeded.
+type failingAuditLog struct {
+	appendCalls int
+	lastAttempt *domain.AuditEvent
+	err         error
+}
+
+func (a *failingAuditLog) Append(ev domain.AuditEvent) error {
+	a.appendCalls++
+	// Record the attempt for inspection, but do not treat it as persisted.
+	a.lastAttempt = &ev
+	return a.err
+}
+
+// TestPhaseE_Admit_CreateUnit_AuditFailure_PreservesStateAndAdmission proves
+// that a real CreateUnit state mutation persists even when Audit.Append fails,
+// and that the Admission decision remains ADMIT.
+func TestPhaseE_Admit_CreateUnit_AuditFailure_PreservesStateAndAdmission(t *testing.T) {
+	repo := memory.NewUnitRepo()
+	clock := memory.FakeClock{Now: 1700000000}
+
+	unitKey := "phase-e-audit-fail-unit"
+	title := "Phase E Audit Failure Unit"
+	description := "fixture for Phase E audit failure test"
+	actor := "phase-e-tester"
+
+	intent := admission.Intent{
+		SchemaVersion:        "v0.1",
+		ArchitectureRevision: "0.3",
+		IntentID:             "phase-e-unit-audit-fail-01",
+		CapabilityRef:        "core.unit.create",
+		AggregateRef:         "unit",
+		CommandRef:           "unit.create",
+		Payload: map[string]any{
+			"key":         unitKey,
+			"title":       title,
+			"description": description,
+			"actor_id":    actor,
+		},
+	}
+
+	eng := admission.NewEngine(admission.V01Registry())
+	probe := &admissionGateProbe{}
+
+	// Audit log that will fail on Append, modeling a partial-failure case.
+	failAudit := &failingAuditLog{err: testAuditFailure}
+
+	onAdmit := func() error {
+		createUnit := usecases.CreateUnit{Repo: repo, Audit: failAudit, Clock: clock}
+		req := ports.CreateUnitRequest{
+			Key:         unitKey,
+			Title:       title,
+			Description: description,
+			ActorID:     actor,
+		}
+		_, err := createUnit.CreateUnit(req)
+		return err
+	}
+
+	adm, err := probe.evaluate(eng, intent, onAdmit)
+	if err != testAuditFailure {
+		t.Fatalf("expected testAuditFailure from handler, got %v", err)
+	}
+
+	// ADMISSION STABILITY: the Admission decision remains ADMIT.
+	if adm.Decision != "ADMIT" {
+		t.Fatalf("expected ADMIT after audit failure, got %s", adm.Decision)
+	}
+	if adm.TransitionRef != "unit:created" {
+		t.Fatalf("expected transition unit:created, got %s", adm.TransitionRef)
+	}
+	if len(adm.ReasonCodes) != 0 {
+		t.Fatalf("expected no REJECT reason codes after ADMIT, got %v", adm.ReasonCodes)
+	}
+
+	if !probe.handlerCalled {
+		t.Fatalf("admissionGateProbe recorded handlerCalled=false after ADMIT")
+	}
+
+	// Audit was attempted exactly once.
+	if failAudit.appendCalls != 1 {
+		t.Fatalf("expected 1 audit append attempt, got %d", failAudit.appendCalls)
+	}
+	if failAudit.lastAttempt == nil {
+		t.Fatalf("expected an attempted audit event")
+	}
+	if failAudit.lastAttempt.Type != "unit.created" {
+		t.Fatalf("expected attempted audit type unit.created, got %s", failAudit.lastAttempt.Type)
+	}
+
+	// STATE PERSISTS: the Unit exists despite the audit failure.
+	u, ok, err := repo.FindUnitByKey(unitKey)
+	if err != nil {
+		t.Fatalf("FindUnitByKey: %v", err)
+	}
+	if !ok {
+		t.Fatalf("unit not found despite successful SaveUnit: key=%s", unitKey)
+	}
+	if u.Key != unitKey || u.Title != title || u.Description != description {
+		t.Fatalf("unit fields mismatch: got %+v", u)
+	}
+
+	// No successfully persisted audit events exist for this operation.
+	// The Append call returned an error; the event is an attempted event only.
+	// Blind retry is intentionally not performed because persisted state already
+	// exists.
+
+	// Conceptually this scenario matches the committed PARTIAL_FAILURE semantics:
+	// ADMIT succeeded, the Core mutation persisted, and the audit completeness
+	// step failed. This is a semantic comment, not a runtime classification.
 }
