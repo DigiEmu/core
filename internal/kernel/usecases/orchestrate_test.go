@@ -8,6 +8,7 @@ import (
 
 	"digiemu-core/internal/admission"
 	"digiemu-core/internal/kernel/adapters/memory"
+	"digiemu-core/internal/kernel/domain"
 	"digiemu-core/internal/kernel/ports"
 	"digiemu-core/internal/kernel/usecases"
 )
@@ -241,4 +242,87 @@ func TestPhaseE_Admit_CreateVersion_ExecutesAndProducesCoherentStateAndAudit(t *
 	// The successful path does not prove crash durability, filesystem atomicity,
 	// or production concurrency. It proves only adapter-level ADMIT, execution,
 	// coherent state, and observable audit in the memory test fixture.
+}
+
+// TestPhaseE_Admit_CreateVersion_HandlerError_DoesNotRewriteAdmission proves that
+// a real handler execution error is separate from the Admission decision: ADMIT
+// remains ADMIT even when the real CreateVersion use case returns a domain error.
+func TestPhaseE_Admit_CreateVersion_HandlerError_DoesNotRewriteAdmission(t *testing.T) {
+	repo := memory.NewUnitRepo()
+	clock := memory.FakeClock{Now: 1700000000}
+
+	missingUnitKey := "phase-e-missing-unit"
+	label := "v1"
+	content := "some content"
+	actor := "phase-e-tester"
+
+	// A valid CreateVersion Intent. Admission is independent of the Unit's
+	// existence; that check belongs to the Core handler.
+	intent := admission.Intent{
+		SchemaVersion:        "v0.1",
+		ArchitectureRevision: "0.3",
+		IntentID:             "phase-e-version-notfound-01",
+		CapabilityRef:        "core.version.create",
+		AggregateRef:         "unit",
+		CommandRef:           "version.create",
+		Payload: map[string]any{
+			"unit_key": missingUnitKey,
+			"label":    label,
+			"content":  content,
+			"actor_id": actor,
+		},
+	}
+
+	eng := admission.NewEngine(admission.V01Registry())
+	probe := &admissionGateProbe{}
+
+	versionAudit := memory.NewAuditLog()
+
+	onAdmit := func() error {
+		createVersion := usecases.CreateVersion{Repo: repo, Audit: versionAudit, Clock: clock}
+		req := ports.CreateVersionRequest{
+			UnitKey:       missingUnitKey,
+			Label:         label,
+			Content:       content,
+			ActorID:       actor,
+			BaseVersionID: "",
+		}
+		_, err := createVersion.CreateVersion(req)
+		return err
+	}
+
+	adm, err := probe.evaluate(eng, intent, onAdmit)
+	if err != domain.ErrUnitNotFound {
+		t.Fatalf("expected ErrUnitNotFound from handler, got %v", err)
+	}
+
+	// ADMISSION STABILITY: the decision remains ADMIT regardless of the
+	// subsequent handler error.
+	if adm.Decision != "ADMIT" {
+		t.Fatalf("expected ADMIT after handler error, got %s", adm.Decision)
+	}
+	if adm.TransitionRef != "version:created" {
+		t.Fatalf("expected transition version:created, got %s", adm.TransitionRef)
+	}
+	if len(adm.ReasonCodes) != 0 {
+		t.Fatalf("expected no REJECT reason codes after ADMIT, got %v", adm.ReasonCodes)
+	}
+
+	if !probe.handlerCalled {
+		t.Fatalf("admissionGateProbe recorded handlerCalled=false after ADMIT")
+	}
+
+	// This specific domain error occurs before any Core state change or audit
+	// append. This assertion does not generalize to all execution errors,
+	// especially not to partial-failure cases.
+	units, err := repo.ListUnits()
+	if err != nil {
+		t.Fatalf("ListUnits: %v", err)
+	}
+	if len(units) != 0 {
+		t.Fatalf("expected 0 units, got %d", len(units))
+	}
+	if len(versionAudit.Events) != 0 {
+		t.Fatalf("expected 0 audit events, got %d", len(versionAudit.Events))
+	}
 }
