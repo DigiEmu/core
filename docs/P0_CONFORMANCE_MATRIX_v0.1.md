@@ -38,9 +38,14 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
     - `go test ./internal/kernel/usecases/... -v` — PASS
     - `go test ./internal/kernel/... ./internal/conformance ./internal/verify ./internal/canonicaljson/... -timeout 120s` — PASS
   - Phase E increments 1–5 (`de9ec49`, `2e38388`, `67a6a7e`, `e3383bd`, `eefe604`) modify only `internal/kernel/usecases/orchestrate_test.go`; targeted `go test ./internal/admission/...` and `go test ./internal/kernel/usecases/...` continue to pass; no production Core runtime files were changed.
+  - `581fb82` adds the first production Admission pilot at `digiemu unit create --admission`, frozen in `f979647`. The pilot is opt-in (`--admission` defaults to `false`), the legacy `CreateUnit` CLI branch is unchanged, and CI (Drift Guard, CI, Demo Verify Gate Windows) is green at `f979647`. However, complete executable regression proof for all legacy runtime behavior is not yet established.
 - **Executable evidence/tests:** Targeted `go test` of Admission Engine, kernel, conformance, verify, and canonicaljson packages passes. The Phase D binding tests execute real Core handlers and produce no regression in existing Core behavior.
-- **Remaining gap:** Full `go test ./...` is not yet green because `go run ./cmd/digiemu` in several test packages fails with `digiemu.exe` access denied in the local Windows temp environment. This is a file-lock/build-cache issue, not a code regression, so it should not be falsely reported as fully green.
-- **Next action:** Resolve the temporary `go-build*` directory / antivirus / build-cache file lock, then rerun full `go test ./...` and confirm the existing Core 2.0 reproduction tests are byte-exact.
+- **Remaining gap:**
+  - Current GitHub CI and the Windows Demo Verify Gate are green at `f979647`.
+  - The legacy `CreateUnit` branch is preserved in `cmd/digiemu/main.go`.
+  - Direct executable regression coverage of the complete legacy CLI behavior is still incomplete.
+  - The historical local Windows build-cache/file-lock evidence is not itself a current code-regression finding.
+- **Next action:** Add or execute narrowly scoped legacy-path regression evidence when IR-01 is next reviewed; do not promote IR-01 from CI alone.
 
 ### IR-02 — Admission Before Mutation
 
@@ -52,12 +57,17 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - `internal/admission/engine.go` evaluates Intents and returns ADMIT/REJECT with a resolved `transition_ref`.
   - The conceptual target flow in the manifest shows `Intent → Admission → Command → Existing Core Kernel Use Case`.
   - `architecture-baseline.yaml` explicitly sets `p0_architecture_constitution.enforced: false`.
+  - `581fb82` implements the first production Admission gate in `cmd/digiemu/main.go` for the `digiemu unit create --admission` path, demonstrating `Intent → Admission → CreateUnit`. The pilot is frozen in `f979647` and is backed by `0461883` (design) and `f7fa892` (real-fs evidence). CI is green at `f979647`.
 - **Executable evidence/tests:**
   - All five Phase D binding tests demonstrate the `Intent → ADMIT → real Core handler → real state mutation` chain for `core.unit.create`, `core.version.create`, `core.meaning.set`, `core.claim.set`, and `core.uncertainty.set`.
   - Each binding test also demonstrates the `REJECT → handler not invoked → no state mutation` case.
   - Phase E test-only orchestration in `internal/kernel/usecases/orchestrate_test.go` demonstrates the representative `ADMIT → real Core handler` and `REJECT → no handler` chain for `core.version.create` and `core.unit.create`, including: `ADMIT +` success, `ADMIT +` domain error, `ADMIT +` audit failure, and `ADMIT +` confirmed partial mutation. In all cases the `admission.Result` remains `ADMIT`; the `REJECT` path blocks the execution closure.
-- **Remaining gap:** No production or CLI/HTTP path intercepts a Core mutation to require Admission first. The `digiemu` CLI and `internal/httpapi/handlers.go` still call `CreateUnit`, `CreateVersion`, `SetMeaning`, `SetClaims`, and `SetUncertainty` directly without an Admission gate.
-- **Next action:** Add a non-production admitted-command orchestrator or conformance runner that demonstrates the `Intent → Admission → Command → Use Case` sequence for the first Core mutation path, then later wire the gate into CLI/HTTP under a feature flag without modifying existing Core contracts.
+- **Remaining gap:**
+  - The `digiemu unit create --admission` pilot is the only production-gated mutation path.
+  - Legacy `unit create` (without `--admission`), `version create`, `meaning set`, `claim set`, `uncertainty set`, HTTP handlers, and all other production entry points still invoke Core handlers directly without an Admission gate.
+  - `p0_architecture_constitution.enforced` remains `false`.
+  - Core-wide `Admission Before Mutation` is not satisfied.
+- **Next action:** Document a controlled local run of the frozen `CreateUnit` production pilot. Keep Core-wide IR-02 `PARTIAL` until additional production entry points are explicitly gated.
 
 ### IR-03 — Explicit Capability
 
@@ -206,6 +216,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - All five Phase D binding tests include an `UnknownCapability` REJECT case that proves the real Core handler is not invoked and target state is unchanged.
   - `TestRS001_Parity` and `TestV01Registry_Parity` ensure the Engine and registries are synchronized.
   - Phase E Increment 1 (`de9ec49`) adds `TestPhaseE_Reject_DoesNotInvokeHandler`, which proves an `UNKNOWN_CAPABILITY` `REJECT` causes the execution closure to be skipped entirely.
+  - `581fb82`/`f979647` provide direct executable evidence for the `CreateUnit` production pilot: pilot lock conflict, Admission Engine evaluation error, and `REJECT` all stop before `CreateUnit` is invoked.
 - **Remaining gap:** None for the current defined P0 scope. Fail-closed is proven for all catalogued capabilities.
 - **Next action:** Maintain the rule set and parity tests as new capabilities are added.
 
@@ -229,6 +240,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - Golden digests in `TestEngine_Determinism_PayloadAlpha` and `TestEngine_Determinism_PayloadBeta` match the spec examples.
   - `TestRS001_Parity` runs fixture inputs repeatedly and compares deterministic outputs.
   - Phase E tests use `admission.NewEngine(admission.V01Registry())`, reusing the same stable `V01Registry()` and deterministic `Engine.Evaluate`.
+  - `581fb82` production pilot uses `admission.NewEngine(admission.V01Registry())` with fixed `architecture_revision: "0.3"`, `capability_ref: "core.unit.create"`, `aggregate_ref: "unit"`, and `command_ref: "unit.create"`. The non-normative `IntentID` placeholder `p0-pilot-unresolved-intent-id` does not enter the established intent digest semantics.
 - **Remaining gap:** None for the current defined P0 scope.
 - **Next action:** Maintain the canonical input profiles; introduce new profile versions if the canonical field set or ordering ever changes.
 
@@ -244,6 +256,7 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - `admission-rule-registry.yaml` provides machine-readable rule identifiers.
   - `internal/admission/engine.go` returns `admission_result_v0.2` objects containing `architecture_revision`, `capability_ref`, `aggregate_ref`, `command_ref`, `rule_refs`, and `transition_ref`.
   - `schemas/event-envelope.schema.json` provides the event/evidence wrapper.
+  - `581fb82`/`f979647` production pilot `digiemu unit create --admission` runtime output directly provides `admission_id → transition_ref → resulting Unit.ID` on the gated path. The underlying Admission evaluation binds `capability_ref = core.unit.create`, `command_ref = unit.create`, and `transition_ref = unit:created`.
 - **Executable evidence/tests:**
   - The test-level traceability chain is complete for all five mutating capabilities:
     - `architecture_revision` (`0.3`)
@@ -257,9 +270,11 @@ Each integration invariant (IR-01 through IR-12) is evaluated against the actual
   - All five Phase D binding tests validate this chain end-to-end.
   - Phase E strengthens test-level traceability for representative `ADMIT` cases: `ADMIT` is correlated with real `CreateVersion` and `CreateUnit` execution; successful execution is observable through coherent Core state and `AuditEvent`; audit failure is distinguishable from mutation failure; confirmed partial mutation can be identified through state inspection; `admission.Result` remains `ADMIT` across all execution outcomes.
 - **Remaining gap:**
-  - The traceability chain is not yet wired in production; `cmd/digiemu` and `internal/httpapi` do not produce or carry Admission results.
+  - The frozen `CreateUnit` pilot carries and surfaces an Admission result at runtime, but only on the `digiemu unit create --admission` opt-in path. HTTP and the other four mutation paths remain without production Admission traceability.
+  - `admission_id` is not persisted into `Unit` state or `AuditEvent`. No durable Admission→Audit correlation exists.
   - `intent_id`, `command_id`, and `event_id` derivations are still undefined, so the event and command instance ends of the chain lack stable identifiers beyond the runtime `AuditEvent.ID`.
-- **Next action:** Define deterministic derivations for `intent_id`, `command_id`, and `event_id`; then add a non-production admitted-command orchestrator that closes the production traceability chain without modifying existing Core contracts.
+  - The `IntentID` remains a non-normative placeholder.
+- **Next action:** Preserve the frozen pilot semantics and gather controlled-run evidence. Future durable traceability requires an explicit new design/revision before adding persistent Admission correlation or new identifier semantics.
 
 ## Summary
 
