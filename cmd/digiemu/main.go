@@ -2,18 +2,22 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 
+	"digiemu-core/internal/admission"
 	"digiemu-core/internal/httpapi"
 	fsrepo "digiemu-core/internal/kernel/adapters/fs"
 	mem "digiemu-core/internal/kernel/adapters/memory"
+	"digiemu-core/internal/kernel/domain"
 	"digiemu-core/internal/kernel/ports"
 	usecases "digiemu-core/internal/kernel/usecases"
 )
@@ -76,7 +80,7 @@ func printUsage() {
 	fmt.Println("  digiemu verify --ref REF [--data ./data] [--json]")
 	fmt.Println("  digiemu snapshot file <path>")
 	fmt.Println("  digiemu replay --bundle PATH [--json]")
-	fmt.Println("  digiemu unit create [--key KEY] --title TITLE [--desc DESC|--description DESC] [--data ./data]")
+	fmt.Println("  digiemu unit create [--key KEY] --title TITLE [--desc DESC|--description DESC] [--data ./data] [--admission]")
 	fmt.Println("  digiemu version create --unit UNIT_KEY --content CONTENT [--data ./data]")
 	fmt.Println("  digiemu audit verify [--data ./data] [--strict-hash] [--unit UNIT_KEY]")
 	fmt.Println("  digiemu audit tail [--data ./data] [--n 50] [--type EVENT_TYPE] [--unit-id UNIT_ID] [--version-id VERSION_ID] [--json]")
@@ -112,6 +116,7 @@ func runUnit(args []string) {
 		desc := fs.String("desc", "", "unit description (optional)")
 		description := fs.String("description", "", "unit description (optional, alias for --desc)")
 		data := fs.String("data", "./data", "data directory")
+		admissionFlag := fs.Bool("admission", false, "Evaluate P0 Admission before creating the unit (experimental pilot)")
 		_ = fs.Parse(args[1:])
 
 		if *title == "" {
@@ -134,14 +139,51 @@ func runUnit(args []string) {
 		audit := fsrepo.NewAuditLog(*data)
 		clock := mem.RealClock{}
 
-		uc := usecases.CreateUnit{Repo: repo, Audit: audit, Clock: clock}
-
-		in := ports.CreateUnitRequest{Key: k, Title: *title, Description: d, ActorID: "cli"}
-		out, err := uc.CreateUnit(in)
-		if err != nil {
-			log.Fatalf("create unit: %v", err)
+		if !*admissionFlag {
+			uc := usecases.CreateUnit{Repo: repo, Audit: audit, Clock: clock}
+			in := ports.CreateUnitRequest{Key: k, Title: *title, Description: d, ActorID: "cli"}
+			out, err := uc.CreateUnit(in)
+			if err != nil {
+				log.Fatalf("create unit: %v", err)
+			}
+			fmt.Printf("OK: unit created id=%s key=%s\n", out.UnitID, out.Key)
+			return
 		}
-		fmt.Printf("OK: unit created id=%s key=%s\n", out.UnitID, out.Key)
+
+		// P0 Admission pilot path.
+		engine := admission.NewEngine(admission.V01Registry())
+		uc := usecases.CreateUnit{Repo: repo, Audit: audit, Clock: clock}
+		pilotResult, perr := runCreateUnitPilot(*data, k, *title, d, engine.Evaluate, uc.CreateUnit, repo)
+		if perr != nil {
+			fmt.Fprintln(os.Stderr, perr)
+			os.Exit(1)
+		}
+
+		if pilotResult.decision == "REJECT" {
+			fmt.Fprintf(os.Stderr, "admission_id=%s\n", pilotResult.admissionID)
+			fmt.Fprintf(os.Stderr, "decision=%s\n", pilotResult.decision)
+			fmt.Fprintf(os.Stderr, "reason_codes=%v\n", pilotResult.reasonCodes)
+			os.Exit(1)
+		}
+		if pilotResult.message != "" && pilotResult.decision == "" {
+			// Admission engine system/evaluation error.
+			fmt.Fprintln(os.Stderr, pilotResult.message)
+			os.Exit(1)
+		}
+		if pilotResult.message != "" {
+			// ADMIT but handler error.
+			fmt.Fprintf(os.Stderr, "admission_id=%s\n", pilotResult.admissionID)
+			fmt.Fprintf(os.Stderr, "decision=%s transition_ref=%s\n", pilotResult.decision, pilotResult.transitionRef)
+			fmt.Fprintln(os.Stderr, pilotResult.message)
+			if pilotResult.stateMsg != "" {
+				fmt.Fprintln(os.Stderr, pilotResult.stateMsg)
+			}
+			os.Exit(1)
+		}
+
+		fmt.Printf("admission_id=%s\n", pilotResult.admissionID)
+		fmt.Printf("decision=%s transition_ref=%s\n", pilotResult.decision, pilotResult.transitionRef)
+		fmt.Printf("OK: unit created id=%s key=%s\n", pilotResult.unitID, pilotResult.key)
 
 	default:
 		fmt.Fprintln(os.Stderr, "unit subcommands: create")
@@ -627,6 +669,142 @@ func runServe(args []string) {
 	}
 
 	// NOTE: add graceful shutdown context handling when we introduce signal handling
+}
+
+// P0 CreateUnit Admission pilot helpers.
+
+// pilotCreateUnitResult is a narrow, unexported, pilot-specific structure that
+// carries the CLI-relevant outcome of runCreateUnitPilot. It is not a generic
+// outcome framework.
+type pilotCreateUnitResult struct {
+	admissionID   string
+	decision      string
+	transitionRef string
+	reasonCodes   []string
+	unitID        string
+	key           string
+	message       string
+	stateMsg      string
+}
+
+// runCreateUnitPilot runs the Admission gate and the existing CreateUnit use
+// case without calling os.Exit. It returns a pilotCreateUnitResult and an
+// error only for lock/unexpected failure, not for Admission or handler errors.
+// It never rewrites an ADMIT into a REJECT.
+func runCreateUnitPilot(dataDir, key, title, description string, evaluate func(admission.Intent) (admission.Result, error), createUnit func(ports.CreateUnitRequest) (ports.CreateUnitResponse, error), repo ports.UnitRepository) (pilotCreateUnitResult, error) {
+	release, err := acquirePilotLock(dataDir)
+	if err != nil {
+		return pilotCreateUnitResult{}, err
+	}
+	defer release()
+
+	intent := buildCreateUnitIntent(key, title, description)
+	result, err := evaluate(intent)
+	if err != nil {
+		return pilotCreateUnitResult{message: fmt.Sprintf("admission evaluation failed: %v", err)}, nil
+	}
+	if result.Decision != "ADMIT" {
+		return pilotCreateUnitResult{
+			admissionID: result.AdmissionID,
+			decision:    result.Decision,
+			reasonCodes: result.ReasonCodes,
+		}, nil
+	}
+
+	out, err := createUnit(ports.CreateUnitRequest{Key: key, Title: title, Description: description, ActorID: "cli"})
+	if err != nil {
+		if isPrePersistenceCreateUnitError(err) {
+			return pilotCreateUnitResult{
+				admissionID:   result.AdmissionID,
+				decision:      result.Decision,
+				transitionRef: result.TransitionRef,
+				message:       fmt.Sprintf("execution/domain error: %v", err),
+				stateMsg:      "persistence not attempted by this call",
+			}, nil
+		}
+		return pilotCreateUnitResult{
+			admissionID:   result.AdmissionID,
+			decision:      result.Decision,
+			transitionRef: result.TransitionRef,
+			message:       fmt.Sprintf("execution error: %v", err),
+			stateMsg:      inspectCreateUnitState(repo, key, title, description),
+		}, nil
+	}
+
+	return pilotCreateUnitResult{
+		admissionID:   result.AdmissionID,
+		decision:      result.Decision,
+		transitionRef: result.TransitionRef,
+		unitID:        out.UnitID,
+		key:           out.Key,
+	}, nil
+}
+
+// buildCreateUnitIntent constructs the fixed, non-normative admission.Intent
+// used by the first Production Admission pilot. It is intentionally not a
+// generic or final intent builder.
+func buildCreateUnitIntent(key, title, description string) admission.Intent {
+	return admission.Intent{
+		SchemaVersion:        "v0.1",
+		ArchitectureRevision: "0.3",
+		IntentID:             "p0-pilot-unresolved-intent-id",
+		CapabilityRef:        "core.unit.create",
+		AggregateRef:         "unit",
+		CommandRef:           "unit.create",
+		Payload: map[string]any{
+			"key":         key,
+			"title":       title,
+			"description": description,
+		},
+	}
+}
+
+// acquirePilotLock creates a per-data-directory lock for the Admission pilot.
+// It uses O_CREATE|O_EXCL to fail closed if another pilot instance is running.
+// The returned release function must be called after the operation.
+func acquirePilotLock(dataDir string) (func(), error) {
+	if err := os.MkdirAll(dataDir, 0o755); err != nil {
+		return nil, fmt.Errorf("ensure pilot data dir: %w", err)
+	}
+	lockPath := filepath.Join(dataDir, ".p0-admission-create-unit.lock")
+	f, err := os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
+	if err != nil {
+		if os.IsExist(err) {
+			return nil, fmt.Errorf("pilot lock already held: %s", lockPath)
+		}
+		return nil, fmt.Errorf("acquire pilot lock: %w", err)
+	}
+	release := func() {
+		_ = f.Close()
+		_ = os.Remove(lockPath)
+	}
+	return release, nil
+}
+
+// isPrePersistenceCreateUnitError reports whether the error occurred before
+// SaveUnit could begin, based on the existing sentinel errors from CreateUnit.
+func isPrePersistenceCreateUnitError(err error) bool {
+	return errors.Is(err, domain.ErrInvalidUnitKey) ||
+		errors.Is(err, domain.ErrInvalidUnitTitle) ||
+		errors.Is(err, domain.ErrUnitAlreadyExists) ||
+		errors.Is(err, domain.ErrAuditNotConfigured) ||
+		errors.Is(err, domain.ErrClockNotConfigured)
+}
+
+// inspectCreateUnitState returns an observational message for a Unit after a
+// CreateUnit error. It does not claim crash durability or historical causation.
+func inspectCreateUnitState(repo ports.UnitRepository, key, title, description string) string {
+	got, ok, err := repo.FindUnitByKey(key)
+	if err != nil {
+		return "repository observation failed; mutation state unresolved"
+	}
+	if !ok {
+		return "no coherent Unit currently observable"
+	}
+	if got.Key == key && got.Title == title && got.Description == description {
+		return "coherent Unit currently observable"
+	}
+	return "Unit observable; causation unresolved"
 }
 
 // slugify creates a simple URL-safe key from the title
