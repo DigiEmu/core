@@ -61,6 +61,30 @@ func TestVerifyResultV2ExamplesValidateSchema(t *testing.T) {
 	}
 }
 
+// TestVerifyResultV2EmbeddedSchemaExamples validates examples declared within
+// the JSON Schema itself, in addition to the standalone fixture documents.
+func TestVerifyResultV2EmbeddedSchemaExamples(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+	schemaBytes, err := os.ReadFile(filepath.Join("..", "..", "schemas", "verify_result_v2.schema.json"))
+	if err != nil {
+		t.Fatalf("read schema: %v", err)
+	}
+	var doc struct {
+		Examples []interface{} `json:"examples"`
+	}
+	if err := json.Unmarshal(schemaBytes, &doc); err != nil {
+		t.Fatalf("decode schema examples: %v", err)
+	}
+	if len(doc.Examples) == 0 {
+		t.Fatal("schema must contain at least one embedded example")
+	}
+	for i, example := range doc.Examples {
+		if err := sch.Validate(example); err != nil {
+			t.Fatalf("embedded schema example %d is invalid: %v", i, err)
+		}
+	}
+}
+
 func compileVerifyResultV2Schema(t *testing.T) *jsonschema.Schema {
 	t.Helper()
 	repoRoot := filepath.Join("..", "..")
