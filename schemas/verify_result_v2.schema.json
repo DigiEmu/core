@@ -68,7 +68,7 @@
       "hash_algorithm": "sha256",
       "reconstruction_profile": "digiemu-reconstruct-v1",
       "verifier_version": "0.0.0-draft",
-      "snapshot_hash": "sha256:examplehash"
+      "snapshot_hash": "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
     }
   ]
 }
