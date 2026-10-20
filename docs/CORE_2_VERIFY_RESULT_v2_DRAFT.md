@@ -80,6 +80,23 @@ digiemu verify --ref <ref> --verify-result-version=v2-draft
 
 Accepted flag values: `v2`, `v2-draft`, and the compatibility alias `2.0-draft` (all normalize to canonical `v2-draft`). `v1` (default) preserves the legacy output. The v2 projection re-expresses the v1 outcome; it does not change verification semantics, hashes, or exit codes.
 
+Conformance runner scope (informative)
+-------------------------------------
+The current `internal/conformance` runner provides bounded conformance-case
+validation, not independent end-to-end verification of every declared outcome.
+It checks required expected-result fields and recognized draft version values,
+then compares an observed result with the expected result. For ordinary valid
+JSON inputs without a specifically recognized error condition, the current
+observation path inherits the expected result and reason code rather than
+independently reconstructing and verifying a snapshot.
+
+Accordingly, `case_passed: true` means the current runner accepted the case;
+it MUST NOT be represented as standalone proof of independent verification.
+Independent verification claims require separate execution evidence from the
+actual verifier and matching expected/actual results. This scope note documents
+the existing implementation and does not change the normative Verify Result
+contract or introduce new runtime behavior.
+
 Registry and schema
 -------------------
 The canonical reason-code registry is published in `docs/CORE_2_REASON_CODES.md` and a machine-readable JSON Schema draft is available at `schemas/verify_result_v2.schema.json`. Example v2 `Verify Result` documents are provided in `testdata/verify_result_v2/` for PASS/FAIL/ERROR cases.
