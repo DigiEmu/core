@@ -213,7 +213,8 @@ func TestExecConformance_ComparatorRejectsIncorrectExpectation(t *testing.T) {
 	exit, doc := observeVerify(t, v2VerifyArgs(bundle)) // observed PASS document, exit 0
 
 	incorrect := []execExpectation{
-		{Result: "FAIL", ReasonCode: "HASH_MISMATCH", FailurePath: "/expected_hash_v1", WantExit: 1},
+		// Only the result differs from the observed PASS document.
+		{Result: "FAIL", ReasonCode: "STATE_RECONSTRUCTED", WantExit: 0},
 		{Result: "PASS", ReasonCode: "INTERNAL_ERROR", WantExit: 0},
 		{Result: "PASS", ReasonCode: "STATE_RECONSTRUCTED", FailurePath: "/bogus", WantExit: 0},
 		// All document fields correct but a deliberately wrong exit code.
@@ -223,5 +224,12 @@ func TestExecConformance_ComparatorRejectsIncorrectExpectation(t *testing.T) {
 		if err := compareObserved(exit, doc, bad); err == nil {
 			t.Fatalf("incorrect expectation %+v was accepted against observed PASS document (exit=%d)", bad, exit)
 		}
+	}
+
+	// Focused check: the result-only mismatch must be rejected on the result
+	// field itself, not on an earlier exit-code comparison.
+	err := compareObserved(exit, doc, execExpectation{Result: "FAIL", ReasonCode: "STATE_RECONSTRUCTED", WantExit: 0})
+	if err == nil || !strings.Contains(err.Error(), "result:") {
+		t.Fatalf("expected rejection attributed to result field, got %v", err)
 	}
 }
