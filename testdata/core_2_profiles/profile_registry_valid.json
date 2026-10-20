@@ -12,7 +12,7 @@
     "planned": ["digiemu-reconstruct-v2-planned"]
   },
   "verify_result_versions": {
-    "active": ["2.0-draft"]
+    "active": ["v2-draft", "2.0-draft"]
   },
   "conformance_levels": {
     "active": ["core-2-draft-basic", "core-2-draft-conformance"]

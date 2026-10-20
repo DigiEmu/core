@@ -17,6 +17,7 @@ Component | Status | Notes
 Snapshot Hash v1 | stable-v1, tested | Existing canonical snapshot hashing; covered by hash boundary vectors
 Canonical JSON v1 | stable-v1, tested | Deterministic canonicalization used for HashV1
 Verify Result v2 draft | draft-core-2, schema-backed | Draft verify result schema under `schemas/verify_result_v2.schema.json`
+Verify Result v2 CLI opt-in | draft-core-2, tested | `digiemu verify --verify-result-version=v2-draft` (alias: `2.0-draft`); v1 remains the default output
 Reason Codes Registry | draft-core-2, tested | Draft registry documented in `docs/CORE_2_REASON_CODES.md`
 Profile Registry | draft-core-2, schema-backed | Draft schema in `schemas/core_2_profile_registry.schema.json`
 Conformance Pack | draft-core-2, tested | Pack under `testdata/core_2_conformance/` for partner testing

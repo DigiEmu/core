@@ -60,3 +60,69 @@ func TestVerifyResultV2ExamplesValidateSchema(t *testing.T) {
 		}
 	}
 }
+
+func compileVerifyResultV2Schema(t *testing.T) *jsonschema.Schema {
+	t.Helper()
+	repoRoot := filepath.Join("..", "..")
+	schemaPath := filepath.Join(repoRoot, "schemas", "verify_result_v2.schema.json")
+	absSchemaPath, err := filepath.Abs(schemaPath)
+	if err != nil {
+		t.Fatalf("failed to resolve absolute path for schema %s: %v", schemaPath, err)
+	}
+	compiler := jsonschema.NewCompiler()
+	schemaURL := "file:///" + filepath.ToSlash(absSchemaPath)
+	sch, err := compiler.Compile(schemaURL)
+	if err != nil {
+		t.Fatalf("failed to compile schema %s: %v", schemaURL, err)
+	}
+	return sch
+}
+
+func v2BaseDoc() map[string]interface{} {
+	return map[string]interface{}{
+		"verify_result_version":    "v2-draft",
+		"result":                   "PASS",
+		"reason_code":              "STATE_RECONSTRUCTED",
+		"canonicalization_profile": "digiemu-canonical-json-v1",
+		"hash_algorithm":           "sha256",
+		"reconstruction_profile":   "digiemu-reconstruct-v1",
+		"verifier_version":         "0.0.0-draft",
+	}
+}
+
+func TestVerifyResultV2_PASS_RequiresSnapshotHash(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+
+	// Positive: PASS with snapshot_hash validates.
+	pass := v2BaseDoc()
+	pass["snapshot_hash"] = "sha256:" + "a"
+	if err := sch.Validate(pass); err != nil {
+		t.Fatalf("PASS with snapshot_hash must validate: %v", err)
+	}
+
+	// Negative: PASS without snapshot_hash must be rejected.
+	missing := v2BaseDoc()
+	if err := sch.Validate(missing); err == nil {
+		t.Fatalf("PASS without snapshot_hash must be rejected")
+	}
+}
+
+func TestVerifyResultV2_FAILAndERROR_DoNotRequireSnapshotHash(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+
+	fail := v2BaseDoc()
+	fail["result"] = "FAIL"
+	fail["reason_code"] = "HASH_MISMATCH"
+	fail["snapshot_hash_expected"] = "sha256:e"
+	fail["snapshot_hash_actual"] = "sha256:a"
+	if err := sch.Validate(fail); err != nil {
+		t.Fatalf("FAIL without snapshot_hash must remain valid: %v", err)
+	}
+
+	errDoc := v2BaseDoc()
+	errDoc["result"] = "ERROR"
+	errDoc["reason_code"] = "INVALID_SNAPSHOT_SCHEMA"
+	if err := sch.Validate(errDoc); err != nil {
+		t.Fatalf("ERROR without snapshot_hash must remain valid: %v", err)
+	}
+}
