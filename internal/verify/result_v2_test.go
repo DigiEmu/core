@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	pkgverify "digiemu-core/pkg/verify"
+	derr "digiemu-core/pkg/digiemu"
 )
 
 func TestParseVerifyResultVersion(t *testing.T) {
@@ -153,6 +154,23 @@ func TestResultV2_ERROR_DecodeFailureMapsSchemaInvalid(t *testing.T) {
 	v2 := ResultV2FromResultV1(res, nil, "x")
 	if v2.Result != "ERROR" || v2.ReasonCode != "INVALID_SNAPSHOT_SCHEMA" {
 		t.Fatalf("got %s/%s", v2.Result, v2.ReasonCode)
+	}
+}
+
+// TestResultV2_BlockedExistingExpectedPreservesCurrentErrorProjection
+// characterizes the current lossy v2 mapping without freezing new governance
+// semantics. The CLI exit code and full v1 write_reason remain separate.
+func TestResultV2_BlockedExistingExpectedPreservesCurrentErrorProjection(t *testing.T) {
+	res := okResult()
+	res.WriteBlocked = true
+	res.WriteReason = WriteReasonExistingExpected
+	err := derr.UsageError("verify.writeExpected", "snapshot.json", errors.New("expected already set"))
+	v2 := ResultV2FromResultV1(res, err, "test")
+	if v2.Result != "ERROR" || v2.ReasonCode != "INTERNAL_ERROR" {
+		t.Fatalf("blocked write projects to %s/%s; want ERROR/INTERNAL_ERROR until policy contract is decided", v2.Result, v2.ReasonCode)
+	}
+	if v2.SnapshotHash != "" {
+		t.Fatalf("ERROR should not manufacture snapshot_hash: %q", v2.SnapshotHash)
 	}
 }
 
