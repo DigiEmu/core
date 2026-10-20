@@ -1,12 +1,16 @@
 package verify
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"testing"
 
-	pkgverify "digiemu-core/pkg/verify"
 	derr "digiemu-core/pkg/digiemu"
+	pkgverify "digiemu-core/pkg/verify"
+
+	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 func TestParseVerifyResultVersion(t *testing.T) {
@@ -172,6 +176,69 @@ func TestResultV2_BlockedExistingExpectedPreservesCurrentErrorProjection(t *test
 	if v2.SnapshotHash != "" {
 		t.Fatalf("ERROR should not manufacture snapshot_hash: %q", v2.SnapshotHash)
 	}
+}
+
+// TestResultV2_PASS_ProjectionSchemaConformance characterizes the projection
+// boundary: ResultV2FromResultV1 trusts res.OK unconditionally and copies
+// res.Got into snapshot_hash. The schema-invalid PASS rows describe
+// intentionally inconsistent synthetic inputs only; they are NOT desired
+// normative contract. Real producer states always carry a 64-hex Got when
+// OK=true (Operator.Verify sets OK only after assigning the computed digest),
+// so schema-invalid PASS is unreachable through the current CLI. The test
+// documents the producer precondition rather than a runtime defect.
+func TestResultV2_PASS_ProjectionSchemaConformance(t *testing.T) {
+	sch := compileV2ResultSchema(t)
+
+	cases := []struct {
+		name            string
+		got             string
+		wantSnapshot    string
+		wantSchemaValid bool
+	}{
+		{"valid digest", "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2", "sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2", true},
+		{"placeholder got", "REPLACE_AFTER_COMPUTE", "REPLACE_AFTER_COMPUTE", false},
+		{"empty got", "", "", false},
+	}
+	for _, tc := range cases {
+		res := okResult()
+		res.OK = true
+		res.Got = tc.got
+		v2 := ResultV2FromResultV1(res, nil, "test")
+
+		if v2.Result != "PASS" {
+			t.Fatalf("%s: result=%q, want PASS", tc.name, v2.Result)
+		}
+		if v2.SnapshotHash != tc.wantSnapshot {
+			t.Fatalf("%s: snapshot_hash=%q, want %q", tc.name, v2.SnapshotHash, tc.wantSnapshot)
+		}
+
+		raw, err := json.Marshal(v2)
+		if err != nil {
+			t.Fatalf("%s: marshal: %v", tc.name, err)
+		}
+		var doc any
+		if err := json.Unmarshal(raw, &doc); err != nil {
+			t.Fatalf("%s: unmarshal: %v", tc.name, err)
+		}
+		valid := sch.Validate(doc) == nil
+		if valid != tc.wantSchemaValid {
+			t.Fatalf("%s: schema-valid=%v, want %v (snapshot_hash=%q)", tc.name, valid, tc.wantSchemaValid, v2.SnapshotHash)
+		}
+	}
+}
+
+func compileV2ResultSchema(t *testing.T) *jsonschema.Schema {
+	t.Helper()
+	absSchemaPath, err := filepath.Abs(filepath.Join("..", "..", "schemas", "verify_result_v2.schema.json"))
+	if err != nil {
+		t.Fatalf("abs schema path: %v", err)
+	}
+	compiler := jsonschema.NewCompiler()
+	sch, err := compiler.Compile("file:///" + filepath.ToSlash(absSchemaPath))
+	if err != nil {
+		t.Fatalf("compile v2 schema: %v", err)
+	}
+	return sch
 }
 
 func TestResultV2_RequiredFieldsNeverEmpty(t *testing.T) {

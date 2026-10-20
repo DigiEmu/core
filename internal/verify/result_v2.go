@@ -105,6 +105,14 @@ func reasonCodeForResultErrors(res ResultV1) (code string, failurePath string) {
 // v1 trace/errors/message fields have no v2 counterpart and are dropped.
 // Hash state is never fabricated: hash fields are emitted only when the
 // corresponding v1 value is present.
+//
+// Producer precondition: the caller must supply a ResultV1 where OK=true
+// implies Got holds a 64-hex digest. The current production caller,
+// Operator.Verify, guarantees this (OK is set only after Got is assigned the
+// computed sha256 hex). Inputs violating the precondition project to a
+// schema-invalid PASS document; this is deliberately not converted to
+// FAIL/ERROR because CLI exit codes derive from the v1 result, not the v2
+// projection.
 func ResultV2FromResultV1(res ResultV1, opErr error, verifierVersion string) ResultV2 {
 	v2 := ResultV2{
 		VerifyResultVersion:     VerifyResultV2Version,
