@@ -140,6 +140,51 @@ func TestVerifyResultV2_PASS_RequiresSnapshotHash(t *testing.T) {
 	}
 }
 
+func TestVerifyResultV2_ReasonCodeMatchesResultGroup(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+	groups := map[string][]string{
+		"PASS": {"STATE_RECONSTRUCTED"},
+		"FAIL": {"HASH_MISMATCH", "RECONSTRUCTION_RULE_MISMATCH", "CHAIN_BROKEN", "TRANSITION_INVALID", "INSIDE_HASH_FIELD_CHANGED"},
+		"ERROR": {"CANONICALIZATION_ERROR", "INVALID_SNAPSHOT_SCHEMA", "MISSING_REQUIRED_FIELD", "UNSUPPORTED_HASH_ALGORITHM", "UNSUPPORTED_CANONICALIZATION_PROFILE", "UNSUPPORTED_RECONSTRUCTION_PROFILE", "INTERNAL_ERROR"},
+	}
+	for result, validCodes := range groups {
+		for _, validCode := range validCodes {
+			doc := v2BaseDoc()
+			doc["result"] = result
+			doc["reason_code"] = validCode
+			if result == "PASS" {
+				doc["snapshot_hash"] = "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
+			}
+			if err := sch.Validate(doc); err != nil {
+				t.Fatalf("valid combination %s/%s rejected: %v", result, validCode, err)
+			}
+			for otherResult, otherCodes := range groups {
+				if otherResult == result {
+					continue
+				}
+				for _, wrongCode := range otherCodes {
+					doc["reason_code"] = wrongCode
+					if err := sch.Validate(doc); err == nil {
+						t.Fatalf("invalid combination %s/%s accepted", result, wrongCode)
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestVerifyResultV2_RequiresCanonicalEmittedVersion(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+	for _, version := range []string{"v99-unknown", "2.0-draft", "v2", "v1", ""} {
+		doc := v2BaseDoc()
+		doc["verify_result_version"] = version
+		doc["snapshot_hash"] = "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
+		if err := sch.Validate(doc); err == nil {
+			t.Fatalf("schema accepted noncanonical emitted version %q", version)
+		}
+	}
+}
+
 func TestVerifyResultV2_FAILAndERROR_DoNotRequireSnapshotHash(t *testing.T) {
 	sch := compileVerifyResultV2Schema(t)
 
