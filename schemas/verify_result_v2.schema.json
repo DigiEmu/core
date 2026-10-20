@@ -14,7 +14,7 @@
     "verifier_version"
   ],
   "properties": {
-    "verify_result_version": { "type": "string", "examples": ["v2-draft"] },
+    "verify_result_version": { "type": "string", "const": "v2-draft", "examples": ["v2-draft"] },
     "result": { "type": "string", "enum": ["PASS","FAIL","ERROR"] },
     "reason_code": {
       "type": "string",
@@ -38,7 +38,7 @@
     "hash_algorithm": { "type": "string", "examples": ["sha256"] },
     "reconstruction_profile": { "type": "string", "examples": ["digiemu-reconstruct-v1"] },
     "verifier_version": { "type": "string" },
-    "snapshot_hash": { "type": "string" },
+    "snapshot_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "snapshot_hash_expected": { "type": "string" },
     "snapshot_hash_actual": { "type": "string" },
     "failure_path": { "type": "string", "description": "JSON Pointer or dotpath to failing field" },
@@ -50,6 +50,27 @@
     "crypto_profile": { "type": "string" },
     "outside_hash_metadata_status": { "type": "string" }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "result": { "const": "PASS" } },
+        "required": ["result"]
+      },
+      "then": { "required": ["snapshot_hash"] }
+    },
+    {
+      "if": { "properties": { "result": { "const": "PASS" } }, "required": ["result"] },
+      "then": { "properties": { "reason_code": { "enum": ["STATE_RECONSTRUCTED"] } } }
+    },
+    {
+      "if": { "properties": { "result": { "const": "FAIL" } }, "required": ["result"] },
+      "then": { "properties": { "reason_code": { "enum": ["HASH_MISMATCH","RECONSTRUCTION_RULE_MISMATCH","CHAIN_BROKEN","TRANSITION_INVALID","INSIDE_HASH_FIELD_CHANGED"] } } }
+    },
+    {
+      "if": { "properties": { "result": { "const": "ERROR" } }, "required": ["result"] },
+      "then": { "properties": { "reason_code": { "enum": ["CANONICALIZATION_ERROR","INVALID_SNAPSHOT_SCHEMA","MISSING_REQUIRED_FIELD","UNSUPPORTED_HASH_ALGORITHM","UNSUPPORTED_CANONICALIZATION_PROFILE","UNSUPPORTED_RECONSTRUCTION_PROFILE","INTERNAL_ERROR"] } } }
+    }
+  ],
   "examples": [
     {
       "verify_result_version": "v2-draft",
@@ -59,7 +80,7 @@
       "hash_algorithm": "sha256",
       "reconstruction_profile": "digiemu-reconstruct-v1",
       "verifier_version": "0.0.0-draft",
-      "snapshot_hash": "sha256:examplehash"
+      "snapshot_hash": "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
     }
   ]
 }

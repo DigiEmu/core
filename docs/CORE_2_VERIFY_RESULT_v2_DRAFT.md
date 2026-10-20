@@ -14,9 +14,9 @@ Result values
 Allowed values for the top-level `result` field are: `PASS`, `FAIL`, `ERROR`.
 
 Required fields (MUST)
-- `verify_result_version` (string) — e.g. `v2-draft`
+- `verify_result_version` (string) — canonical identifier is `v2-draft`. `2.0-draft` is a compatibility alias accepted on input and resolves to `v2-draft`.
 - `result` — one of `PASS` | `FAIL` | `ERROR`
-- `snapshot_hash` — canonical snapshot hash computed inside the Core boundary
+- `snapshot_hash` — canonical snapshot hash computed inside the Core boundary. REQUIRED when `result` is `PASS` (enforced by `schemas/verify_result_v2.schema.json` via a conditional requirement). For `FAIL` and `ERROR` outcomes a computed hash may legitimately be absent; use `snapshot_hash_expected` / `snapshot_hash_actual` instead where applicable.
 - `canonicalization_profile` — declared profile used for canonicalization
 - `hash_algorithm` — identifier of the hash algorithm used (e.g. `sha256`)
 - `reconstruction_profile` — reference to reconstruction rules/profile used
@@ -60,9 +60,42 @@ Semantics notes (normative)
 - `failure_path` SHOULD be provided for `FAIL` cases where field-level diffs are computable.
 - `evidence_references` MAY point to artifacts stored in DigiEmu Secure or other storage systems; Core MUST NOT assume custody of those artifacts.
 
+Consumer-neutral boundary (normative)
+-------------------------------------
+- The Verify Result document is consumer-neutral: it carries no consumer-specific identifiers (no CodexAI, TBN, AntifragileOS, or other consumer system fields) and MUST NOT gain such fields.
+- Consumer moment placement — where a verification sits inside a consumer's own lifecycle — is bound in the consumer's external carriage envelope, which references DigiEmu artifacts (snapshot IDs, hashes, verification report IDs) by reference only.
+- `evidence_references` is the only designated binding point from the Verify Result to external artifacts; it references evidence without embedding consumer identity into Core state identity.
+
 Compatibility
 -------------
 Core 2.0 SHALL continue to emit existing v1.0 `Verify Result` outputs. v2 outputs are OPTIONAL and MUST NOT be emitted by default for v1.0 CLI commands unless explicitly enabled.
+
+CLI opt-in
+----------
+The v1 `digiemu verify` command emits the draft v2 document only on explicit request:
+
+```
+digiemu verify --ref <ref> --verify-result-version=v2-draft
+```
+
+Accepted flag values: `v2`, `v2-draft`, and the compatibility alias `2.0-draft` (all normalize to canonical `v2-draft`). `v1` (default) preserves the legacy output. The v2 projection re-expresses the v1 outcome; it does not change verification semantics, hashes, or exit codes.
+
+Conformance runner scope (informative)
+-------------------------------------
+The current `internal/conformance` runner provides bounded conformance-case
+validation, not independent end-to-end verification of every declared outcome.
+It checks required expected-result fields and recognized draft version values,
+then compares an observed result with the expected result. For ordinary valid
+JSON inputs without a specifically recognized error condition, the current
+observation path inherits the expected result and reason code rather than
+independently reconstructing and verifying a snapshot.
+
+Accordingly, `case_passed: true` means the current runner accepted the case;
+it MUST NOT be represented as standalone proof of independent verification.
+Independent verification claims require separate execution evidence from the
+actual verifier and matching expected/actual results. This scope note documents
+the existing implementation and does not change the normative Verify Result
+contract or introduce new runtime behavior.
 
 Registry and schema
 -------------------

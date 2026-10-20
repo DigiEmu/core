@@ -37,6 +37,7 @@ func runVerifyWithIO(args []string, stdout, stderr io.Writer) int {
 	fixtureRoot := fs.String("fixture-root", "data/test-fixtures", "Fixture root directory (contains snapshots/<ref>/snapshot.json)")
 	preferData := fs.Bool("prefer-data", false, "If true, prefer --data over --fixture-root when both bundles exist")
 	jsonOut := fs.String("json", "", "Emit JSON output to stdout (pretty or canonical). Use --json or --json=canonical")
+	resultVersion := fs.String("verify-result-version", "", "Verify result contract version: v1 (default) or v2-draft (opt-in; implies JSON output). Alias: 2.0-draft")
 	strict := fs.Bool("strict", false, "Exit non-zero if verification fails")
 	writeExpected := fs.Bool("write-expected", false, "Write expected_hash_v1 only if snapshot has a placeholder; never overwrites.")
 	bundlePath := fs.String("bundle", "", "Optional bundle root path to load directly (bypass ref lookup)")
@@ -50,6 +51,13 @@ func runVerifyWithIO(args []string, stdout, stderr io.Writer) int {
 	mode, err := parseJSONMode(*jsonOut)
 	if err != nil {
 		fmt.Fprintln(stderr, err.Error())
+		fs.Usage()
+		return 2
+	}
+
+	version, verr := verify.ParseVerifyResultVersion(*resultVersion)
+	if verr != nil {
+		fmt.Fprintf(stderr, "invalid --verify-result-version: %q (expected v1 or v2-draft)\n", *resultVersion)
 		fs.Usage()
 		return 2
 	}
@@ -98,7 +106,23 @@ func runVerifyWithIO(args []string, stdout, stderr io.Writer) int {
 
 	res, opErr := op.Verify(ref)
 
-	if mode != jsonModeNone {
+	if version == verify.VerifyResultV2Version {
+		// Opt-in v2-draft contract: JSON document on stdout.
+		v2 := verify.ResultV2FromResultV1(res, opErr, Version)
+		var encErr error
+		if mode == jsonModeCanonical {
+			encErr = writeCanonicalJSON(stdout, v2)
+		} else {
+			encErr = writePrettyJSON(stdout, v2)
+		}
+		if encErr != nil {
+			fmt.Fprintf(stderr, "encode error: %v\n", encErr)
+			return 4
+		}
+		if opErr != nil {
+			fmt.Fprintf(stderr, "verify error: %v\n", opErr)
+		}
+	} else if mode != jsonModeNone {
 		// JSON mode contract: stdout is JSON only.
 		var encErr error
 		switch mode {

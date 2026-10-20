@@ -57,7 +57,8 @@ Planned reconstruction profiles:
 
 Active verify-result versions:
 
-- 2.0-draft
+- v2-draft (canonical emitted identifier)
+- 2.0-draft (compatibility alias accepted on input; equivalent to v2-draft)
 
 Active conformance levels:
 

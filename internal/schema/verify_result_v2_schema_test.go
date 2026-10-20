@@ -60,3 +60,147 @@ func TestVerifyResultV2ExamplesValidateSchema(t *testing.T) {
 		}
 	}
 }
+
+// TestVerifyResultV2EmbeddedSchemaExamples validates examples declared within
+// the JSON Schema itself, in addition to the standalone fixture documents.
+func TestVerifyResultV2EmbeddedSchemaExamples(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+	schemaBytes, err := os.ReadFile(filepath.Join("..", "..", "schemas", "verify_result_v2.schema.json"))
+	if err != nil {
+		t.Fatalf("read schema: %v", err)
+	}
+	var doc struct {
+		Examples []interface{} `json:"examples"`
+	}
+	if err := json.Unmarshal(schemaBytes, &doc); err != nil {
+		t.Fatalf("decode schema examples: %v", err)
+	}
+	if len(doc.Examples) == 0 {
+		t.Fatal("schema must contain at least one embedded example")
+	}
+	for i, example := range doc.Examples {
+		if err := sch.Validate(example); err != nil {
+			t.Fatalf("embedded schema example %d is invalid: %v", i, err)
+		}
+	}
+}
+
+func compileVerifyResultV2Schema(t *testing.T) *jsonschema.Schema {
+	t.Helper()
+	repoRoot := filepath.Join("..", "..")
+	schemaPath := filepath.Join(repoRoot, "schemas", "verify_result_v2.schema.json")
+	absSchemaPath, err := filepath.Abs(schemaPath)
+	if err != nil {
+		t.Fatalf("failed to resolve absolute path for schema %s: %v", schemaPath, err)
+	}
+	compiler := jsonschema.NewCompiler()
+	schemaURL := "file:///" + filepath.ToSlash(absSchemaPath)
+	sch, err := compiler.Compile(schemaURL)
+	if err != nil {
+		t.Fatalf("failed to compile schema %s: %v", schemaURL, err)
+	}
+	return sch
+}
+
+func v2BaseDoc() map[string]interface{} {
+	return map[string]interface{}{
+		"verify_result_version":    "v2-draft",
+		"result":                   "PASS",
+		"reason_code":              "STATE_RECONSTRUCTED",
+		"canonicalization_profile": "digiemu-canonical-json-v1",
+		"hash_algorithm":           "sha256",
+		"reconstruction_profile":   "digiemu-reconstruct-v1",
+		"verifier_version":         "0.0.0-draft",
+	}
+}
+
+func TestVerifyResultV2_PASS_RequiresSnapshotHash(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+
+	// Positive: PASS with a valid tagged digest validates.
+	pass := v2BaseDoc()
+	pass["snapshot_hash"] = "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
+	if err := sch.Validate(pass); err != nil {
+		t.Fatalf("PASS with valid snapshot_hash must validate: %v", err)
+	}
+
+	// Negative: PASS without snapshot_hash must be rejected.
+	missing := v2BaseDoc()
+	if err := sch.Validate(missing); err == nil {
+		t.Fatalf("PASS without snapshot_hash must be rejected")
+	}
+
+	// Negative: PASS with an invalid snapshot_hash must be rejected.
+	for _, bad := range []string{"", "notahash", "sha256:zzz", "sha256:273910b6"} {
+		badDoc := v2BaseDoc()
+		badDoc["snapshot_hash"] = bad
+		if err := sch.Validate(badDoc); err == nil {
+			t.Fatalf("PASS with invalid snapshot_hash %q must be rejected", bad)
+		}
+	}
+}
+
+func TestVerifyResultV2_ReasonCodeMatchesResultGroup(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+	groups := map[string][]string{
+		"PASS": {"STATE_RECONSTRUCTED"},
+		"FAIL": {"HASH_MISMATCH", "RECONSTRUCTION_RULE_MISMATCH", "CHAIN_BROKEN", "TRANSITION_INVALID", "INSIDE_HASH_FIELD_CHANGED"},
+		"ERROR": {"CANONICALIZATION_ERROR", "INVALID_SNAPSHOT_SCHEMA", "MISSING_REQUIRED_FIELD", "UNSUPPORTED_HASH_ALGORITHM", "UNSUPPORTED_CANONICALIZATION_PROFILE", "UNSUPPORTED_RECONSTRUCTION_PROFILE", "INTERNAL_ERROR"},
+	}
+	for result, validCodes := range groups {
+		for _, validCode := range validCodes {
+			doc := v2BaseDoc()
+			doc["result"] = result
+			doc["reason_code"] = validCode
+			if result == "PASS" {
+				doc["snapshot_hash"] = "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
+			}
+			if err := sch.Validate(doc); err != nil {
+				t.Fatalf("valid combination %s/%s rejected: %v", result, validCode, err)
+			}
+			for otherResult, otherCodes := range groups {
+				if otherResult == result {
+					continue
+				}
+				for _, wrongCode := range otherCodes {
+					doc["reason_code"] = wrongCode
+					if err := sch.Validate(doc); err == nil {
+						t.Fatalf("invalid combination %s/%s accepted", result, wrongCode)
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestVerifyResultV2_RequiresCanonicalEmittedVersion(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+	for _, version := range []string{"v99-unknown", "2.0-draft", "v2", "v1", ""} {
+		doc := v2BaseDoc()
+		doc["verify_result_version"] = version
+		doc["snapshot_hash"] = "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
+		if err := sch.Validate(doc); err == nil {
+			t.Fatalf("schema accepted noncanonical emitted version %q", version)
+		}
+	}
+}
+
+func TestVerifyResultV2_FAILAndERROR_DoNotRequireSnapshotHash(t *testing.T) {
+	sch := compileVerifyResultV2Schema(t)
+
+	fail := v2BaseDoc()
+	fail["result"] = "FAIL"
+	fail["reason_code"] = "HASH_MISMATCH"
+	fail["snapshot_hash_expected"] = "sha256:e"
+	fail["snapshot_hash_actual"] = "sha256:a"
+	if err := sch.Validate(fail); err != nil {
+		t.Fatalf("FAIL without snapshot_hash must remain valid: %v", err)
+	}
+
+	errDoc := v2BaseDoc()
+	errDoc["result"] = "ERROR"
+	errDoc["reason_code"] = "INVALID_SNAPSHOT_SCHEMA"
+	if err := sch.Validate(errDoc); err != nil {
+		t.Fatalf("ERROR without snapshot_hash must remain valid: %v", err)
+	}
+}
