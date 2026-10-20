@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"digiemu-core/internal/verify"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -87,6 +88,11 @@ func RunCase(caseDir string) Result {
 		return r
 	}
 	if vr, ok := m["verify_result_version"].(string); ok && vr != "" {
+		normalized, verr := verify.ParseVerifyResultVersion(vr)
+		if verr != nil || normalized != verify.VerifyResultV2Version {
+			r.Err = fmt.Sprintf("unsupported 'verify_result_version': %q", vr)
+			return r
+		}
 		r.VerifyResultVersion = vr
 	} else {
 		r.Err = "missing or empty 'verify_result_version'"

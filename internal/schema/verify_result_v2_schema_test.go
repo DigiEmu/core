@@ -93,17 +93,26 @@ func v2BaseDoc() map[string]interface{} {
 func TestVerifyResultV2_PASS_RequiresSnapshotHash(t *testing.T) {
 	sch := compileVerifyResultV2Schema(t)
 
-	// Positive: PASS with snapshot_hash validates.
+	// Positive: PASS with a valid tagged digest validates.
 	pass := v2BaseDoc()
-	pass["snapshot_hash"] = "sha256:" + "a"
+	pass["snapshot_hash"] = "sha256:273910b657210eece942efc038f6e06994711da6399422e57225ce2394299e55"
 	if err := sch.Validate(pass); err != nil {
-		t.Fatalf("PASS with snapshot_hash must validate: %v", err)
+		t.Fatalf("PASS with valid snapshot_hash must validate: %v", err)
 	}
 
 	// Negative: PASS without snapshot_hash must be rejected.
 	missing := v2BaseDoc()
 	if err := sch.Validate(missing); err == nil {
 		t.Fatalf("PASS without snapshot_hash must be rejected")
+	}
+
+	// Negative: PASS with an invalid snapshot_hash must be rejected.
+	for _, bad := range []string{"", "notahash", "sha256:zzz", "sha256:273910b6"} {
+		badDoc := v2BaseDoc()
+		badDoc["snapshot_hash"] = bad
+		if err := sch.Validate(badDoc); err == nil {
+			t.Fatalf("PASS with invalid snapshot_hash %q must be rejected", bad)
+		}
 	}
 }
 

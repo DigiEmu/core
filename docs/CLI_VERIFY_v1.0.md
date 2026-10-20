@@ -26,10 +26,10 @@ Minimal examples (expected exit codes shown):
 # verify ok => 0
 digiemu verify --bundle ./data/test-fixtures/snapshots/demo --json
 
-# mismatch => 2 (after setting expected_hash_v1 to an incorrect value)
+# mismatch => 1 (after setting expected_hash_v1 to an incorrect value)
 digiemu verify --bundle ./path/to/temp/snapshots/demo --json
 
-# write blocked existing expected (with --write-expected) => 3
+# write blocked existing expected (with --write-expected) => 2
 digiemu verify --bundle ./data/test-fixtures/snapshots/demo --write-expected --json
 ```
 
@@ -44,10 +44,10 @@ Notes:
 | Code | Meaning | When it occurs | Notes |
 | ---: | --- | --- | --- |
 | 0 | OK | Verification succeeds (`ok=true`). | Also ok when `--write-expected` is not set. |
-| 2 | Hash mismatch | `expected != got`. | Verification failure. |
-| 3 | Write blocked by governance | Only when `--write-expected` is set AND `expected_hash_v1` is already present (non-placeholder), i.e. would require overwrite. | This code may occur even if verification itself would otherwise be OK. |
-| 4 | Invalid input | Missing snapshot, invalid JSON, invalid hash, invalid bundle path, IO error, or a write-blocked reason other than `existing_expected_present`. | Includes write-blocked reasons such as `snapshot_not_found`, `snapshot_invalid_json`, `invalid_hash`, `io_error`. |
-| 5 | Internal / unexpected error | Unexpected runtime error (not classified as an input/write-policy error). | Implementation may exit before emitting JSON output. |
+| 1 | Verification failure | `expected != got` (hash mismatch), missing snapshot or bundle path, invalid JSON, invalid hash. | Includes write-blocked reasons `snapshot_not_found`, `snapshot_invalid_json`, `invalid_hash`. |
+| 2 | Usage error | Invalid flags/arguments; also write blocked by governance: `--write-expected` is set AND `expected_hash_v1` is already present (non-placeholder), i.e. would require overwrite. | The write-blocked form may occur even if verification itself would otherwise be OK. |
+| 3 | IO error | Filesystem I/O failure while reading or writing. | Includes write-blocked reason `io_error`. |
+| 4 | Internal / unexpected error | Unexpected runtime error (not classified as an input/write-policy error). | Implementation may exit before emitting JSON output. |
 
 ### Minimal examples (PowerShell)
 
@@ -58,7 +58,7 @@ Code 0 (OK):
 echo $LASTEXITCODE
 ```
 
-Code 2 (hash mismatch):
+Code 1 (hash mismatch):
 
 ```powershell
 $tmp = Join-Path $env:TEMP ("digiemu-mismatch-" + [guid]::NewGuid())
@@ -71,21 +71,21 @@ $o | ConvertTo-Json -Depth 100 | Out-File $p -Encoding utf8
 echo $LASTEXITCODE
 ```
 
-Code 3 (write blocked by governance):
+Code 2 (write blocked by governance):
 
 ```powershell
 ./digiemu.exe verify --bundle .\data\test-fixtures\snapshots\demo --write-expected --json
 echo $LASTEXITCODE
 ```
 
-Code 4 (invalid input; snapshot not found):
+Code 1 (invalid input; snapshot not found):
 
 ```powershell
 ./digiemu.exe verify --bundle .\data\test-fixtures\snapshots\does-not-exist --json
 echo $LASTEXITCODE
 ```
 
-Code 5 (internal/unexpected error example; force write failure):
+Code 3 (io error example; force write failure):
 
 ```powershell
 $tmp = Join-Path $env:TEMP ("digiemu-internal-" + [guid]::NewGuid())
@@ -102,10 +102,10 @@ echo $LASTEXITCODE
 Exit codes:
 
 - `0` = verification succeeded (hash match)
-- `2` = hash mismatch (`expected != got`)
-- `3` = write blocked by governance (existing expected present; only with `--write-expected`)
-- `4` = invalid input/bundle/snapshot/json/hash
-- `5` = internal/unexpected error
+- `1` = verification failure (hash mismatch; invalid input/bundle/snapshot/json/hash; file missing)
+- `2` = usage error (bad flags; also write blocked by governance — existing expected present; only with `--write-expected`)
+- `3` = io error
+- `4` = internal/unexpected error
 
 Output formats:
 

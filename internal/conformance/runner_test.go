@@ -58,13 +58,44 @@ func TestValidateCaseFilesMissingProducesError(t *testing.T) {
 func TestRunCaseInvalidResultValue(t *testing.T) {
 	dir := t.TempDir()
 	// write expected_verify_result with invalid result value
-	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"BAD","reason_code":"X","verify_result_version":"v"}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"BAD","reason_code":"X","verify_result_version":"v2-draft"}`), 0o644)
 	// input.json required for discovery but not used for RunCase test
 	os.WriteFile(filepath.Join(dir, "input.json"), []byte(`{}`), 0o644)
 
 	r := RunCase(dir)
 	if r.Err == "" {
 		t.Fatalf("expected error for invalid result value")
+	}
+}
+
+func TestRunCaseUnsupportedVerifyResultVersionFailsDeterministically(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"PASS","reason_code":"STATE_RECONSTRUCTED","verify_result_version":"totally-bogus-v9"}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "input.json"), []byte(`{}`), 0o644)
+
+	r := RunCase(dir)
+	if r.Err == "" {
+		t.Fatalf("expected error for unsupported verify_result_version")
+	}
+	if !strings.Contains(r.Err, "unsupported 'verify_result_version'") {
+		t.Fatalf("expected unsupported version error, got: %s", r.Err)
+	}
+	if r.CasePassed {
+		t.Fatalf("expected case_passed false for unsupported verify_result_version")
+	}
+}
+
+func TestRunCaseVerifyResultVersionAliasAccepted(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "expected_verify_result.json"), []byte(`{"result":"PASS","reason_code":"STATE_RECONSTRUCTED","verify_result_version":"2.0-draft"}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "input.json"), []byte(`{}`), 0o644)
+
+	r := RunCase(dir)
+	if r.Err != "" {
+		t.Fatalf("expected 2.0-draft compatibility alias to be accepted, got error: %s", r.Err)
+	}
+	if !r.CasePassed {
+		t.Fatalf("expected case_passed true for 2.0-draft alias")
 	}
 }
 
